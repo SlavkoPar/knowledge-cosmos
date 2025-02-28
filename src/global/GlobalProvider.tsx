@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useReducer, Dispatch, useCallback } from "react";
+import { v4 as uuidv4 } from 'uuid';
 
 import {
   IGlobalContext, ILoginUser, ROLES, GlobalActionTypes,
@@ -8,7 +9,7 @@ import {
   IRegisterUser,
   ICat,
   IParentInfo,
-  IDateAndBy,
+  IWhoWhen,
   ICatExport,
   IHistory, IHistoryData,
   IAnswerRating
@@ -16,7 +17,7 @@ import {
 
 import { globalReducer, initialGlobalState } from "global/globalReducer";
 
-import { IAssignedAnswer, ICategory, IQuestion } from "categories/types";
+import { Category, IAssignedAnswer, ICategory, ICategoryDto, IQuestion, IQuestionKey, Question } from "categories/types";
 import { IGroup, IAnswer } from "groups/types";
 import { IRole, IUser } from 'roles/types';
 
@@ -30,6 +31,7 @@ import groupData from './groups-answers.json';
 import roleData from './roles-users.json';
 import historyData from './history.json';
 import { forEachChild } from "typescript";
+import axios from "axios";
 
 const GlobalContext = createContext<IGlobalContext>({} as any);
 const GlobalDispatchContext = createContext<Dispatch<any>>(() => null);
@@ -165,9 +167,7 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
       numOfUsers: users?.length || 0,
       created: {
         date: new Date(),
-        by: {
-          nickName: 'Boss'
-        }
+        nickName: 'Boss'
       },
       archived: false
     }
@@ -228,9 +228,7 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
       numOfAnswers: answers?.length || 0,
       created: {
         date: new Date(),
-        by: {
-          nickName: 'Boss'
-        }
+        nickName: 'Boss'
       },
       archived: false
     }
@@ -296,6 +294,7 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
       }
 
       const cat: ICategory = {
+        partitionKey: '',
         id,
         kind: kind ?? 0,
         parentCategory,
@@ -308,9 +307,7 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
         numOfQuestions: questions?.length || 0,
         created: {
           date: new Date(),
-          by: {
-            nickName: 'Boss'
-          }
+          nickName: 'Boss'
         },
         archived: false
       }
@@ -335,9 +332,7 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
                 },
                 assigned: {
                   date: new Date(),
-                  by: {
-                    nickName: globalState.authUser.nickName
-                  }
+                  nickName: globalState.authUser.nickName
                 }
               }))
             }
@@ -345,14 +340,15 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
             const words = q.title.toLowerCase().replaceAll('?', '').split(' ').map((s: string) => s.trim());
             const question: IQuestion = {
               parentCategory: cat.id,
+              id: uuidv4(),
               title,
               words: words.filter(w => w.length > 1),
               source: source ?? 0,
               status: status ?? 0,
               assignedAnswers: assAnswers,
               numOfAssignedAnswers: 0,
-              level: 2,
-              variations: q.variations ?? [],
+              //level: 2,
+              //variations: q.variations ?? [],
               archived: false
             }
             console.log('-->>>', { question })
@@ -460,46 +456,76 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
     // }
   }
 
-  const loadAllCategories = useCallback(async (dbp: IDBPDatabase): Promise<any> => {
+  const loadAllCategories = useCallback(async (): Promise<any> => {
     try {
-      const tx = dbp.transaction('Categories');
-      const allCategories: Map<string, ICat> = new Map<string, ICat>();
-      for await (const cursor of tx.store.iterate()) {
-        let category: ICategory = cursor.value;
-        const { id, parentCategory, title, variations, hasSubCategories, kind } = category;
-        const cat: ICat = {
-          id,
-          parentCategory,
-          title,
-          words: title.toLowerCase().replaceAll('?', '').split(' ').map((s: string) => s.trim()).filter(w => w.length > 1),
-          titlesUpTheTree: '',
-          variations,
-          hasSubCategories,
-          kind
-        }
-        allCategories.set(id, cat);
-      }
-      await tx.done;
+      const url = `https://localhost:7005/api/Category`;
+      axios
+        .get(url, {
+          withCredentials: false,
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': "*"
+          }
+        })
+        .then(({ data }) => {
+          console.log({data})
 
-      let values = allCategories.values();
-      while (true) {
-        let result = values.next();
-        if (result.done) break;
-        let cat = result.value as unknown as ICat;
-        let titlesUpTheTree = cat.id;
-        let cat2 = cat;
-        while (cat2.parentCategory !== 'null') {
-          cat2 = allCategories.get(cat2.parentCategory)!;
-          titlesUpTheTree = cat2!.id + ' / ' + titlesUpTheTree;
-        }
-        cat.titlesUpTheTree = titlesUpTheTree;
-      }
-      dispatch({ type: GlobalActionTypes.SET_ALL_CATEGORIES, payload: { allCategories } });
+          const categories = new Map<string, ICategory>();
+          console.timeEnd();
+          data.forEach((categoryDto: ICategoryDto) => categories.set(categoryDto.id, new Category(categoryDto).category));
+          categories.forEach((category, id) => {
+            let titlesUpTheTree = id;
+            let parentCategory = category.parentCategory;
+            while (parentCategory !== null) {
+              const cat2 = categories.get(parentCategory)!;
+              titlesUpTheTree = cat2!.id + ' / ' + titlesUpTheTree;
+              parentCategory = cat2.parentCategory;
+            }
+            category.titlesUpTheTree = titlesUpTheTree;
+          })
+          dispatch({ type: GlobalActionTypes.SET_ALL_CATEGORIES, payload: { categories } });
+        })
     }
     catch (error: any) {
       console.log(error)
       dispatch({ type: GlobalActionTypes.SET_ERROR, payload: { error } });
     }
+
+    //const tx = dbp.transaction('Categories');
+    //const allCategories: Map<string, ICat> = new Map<string, ICat>();
+    // for await (const cursor of tx.store.iterate()) {
+    //   let category: ICategory = cursor.value;
+    //   const { id, parentCategory, title, variations, hasSubCategories, kind } = category;
+    //   const cat: ICat = {
+    //     id,
+    //     parentCategory,
+    //     title,
+    //     words: title.toLowerCase().replaceAll('?', '').split(' ').map((s: string) => s.trim()).filter(w => w.length > 1),
+    //     titlesUpTheTree: '',
+    //     variations,
+    //     hasSubCategories,
+    //     kind
+    //   }
+    //   allCategories.set(id, cat);
+    // }
+    //await tx.done;
+
+    //let values = allCategories.values();
+    //while (true) {
+    //let result = values.next();
+    //if (result.done) break;
+    //let cat = result.value as unknown as ICat;
+    // let titlesUpTheTree = cat.id;
+    // let cat2 = cat;
+    // while (cat2.parentCategory !== null) {
+    //   cat2 = allCategories.get(cat2.parentCategory)!;
+    //   titlesUpTheTree = cat2!.id + ' / ' + titlesUpTheTree;
+    // }
+    // cat.titlesUpTheTree = titlesUpTheTree;
+    //}
+    //dispatch({ type: GlobalActionTypes.SET_ALL_CATEGORIES, payload: { allCategories } });
+    //}
+
   }, [dispatch]);
 
   const OpenDB = useCallback(async (): Promise<any> => {
@@ -515,7 +541,7 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
           store.createIndex('parentCategory_idx', 'parentCategory', { unique: false });
 
           // Questions
-          const questionsStore = db.createObjectStore('Questions', { autoIncrement: true });
+          const questionsStore = db.createObjectStore('Questions', { keyPath: 'id' });
           questionsStore.createIndex('words_idx', 'words', { multiEntry: true, unique: false });
           questionsStore.createIndex('parentCategory_title_idx', ['parentCategory', 'title'], { unique: true });
           questionsStore.createIndex('parentCategory_idx', 'parentCategory', { unique: false });
@@ -553,7 +579,7 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
         terminated() {
           alert('terminated')
         }
-      });
+      })
       // Add initial data
       if (initializeData) {
         await addInitialData(dbp);
@@ -562,7 +588,7 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
         const regUser: IRegisterUser = { ...userData, level: 1, confirmed: false }
         await registerUser(regUser, true, dbp);
       }
-      await loadAllCategories(dbp);
+      await loadAllCategories();
       await dispatch({ type: GlobalActionTypes.SET_DBP, payload: { dbp } });
       // else {
       //   signInUser({nickName: 'Boss', password: 'Boss12345'})
@@ -606,21 +632,37 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
     return arr;
   }
 
-  const getQuestion = async (id: number): Promise<IQuestion | undefined> => {
+  const getQuestion = async (questionKey: IQuestionKey): Promise<IQuestion | null> => {
     try {
-      const { dbp } = globalState;
-      const question: IQuestion = await dbp!.get("Questions", id);
-      const { parentCategory } = question;
-      const category: ICategory = await dbp!.get("Categories", parentCategory)
-      question.id = id;
-      question.categoryTitle = category.title;
-      return question;
+      const { parentCategory, id } = questionKey;
+      const url = `https://localhost:7005/api/Question/${parentCategory}/${id}`;
+      //console.log(`FETCHING --->>> ${url}`)
+      //dispatch({ type: ActionTypes.SET_LOADING })
+      console.time()
+      axios
+        .get(url, {
+          withCredentials: false,
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': "*"
+          }
+        })
+        .then(({ data: questionDto }) => {
+          const categories: ICategory[] = [];
+          console.timeEnd();
+          const question: IQuestion = new Question(questionDto, parentCategory).question;
+          question.categoryTitle = 'nadji me';
+          return question;
+        })
+        .catch((error) => {
+          console.log('FETCHING --->>>', error);
+        });
     }
     catch (error: any) {
       console.log(error);
       dispatch({ type: GlobalActionTypes.SET_ERROR, payload: error });
     }
-    return undefined
+    return null
   }
 
 
@@ -787,8 +829,8 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
     });
     Promise.resolve();
   }
-  
-  const getAnswersRated = async (dbp: IDBPDatabase | null, questionId: number): Promise<IAnswerRating[]> => {
+
+  const getAnswersRated = async (dbp: IDBPDatabase | null, questionId: string): Promise<IAnswerRating[]> => {
     if (!dbp) {
       dbp = globalState.dbp;
     }
@@ -822,36 +864,36 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
     }
     const arr: IAnswerRating[] = [];
     map.forEach((value, key) => {
-      arr.push({answerId: key, ...value})
+      arr.push({ answerId: key, ...value })
     })
     arr.sort(compareFn);
     return arr;
   }
 
-  const compareFn = (a:IAnswerRating, b:IAnswerRating) : number => {
+  const compareFn = (a: IAnswerRating, b: IAnswerRating): number => {
     if (a.fixed > b.fixed) {
       return -1;
-    } 
+    }
     else if (a.fixed < b.fixed) {
       return 1;
     }
 
     if (a.Undefined > b.Undefined) {
       return -1;
-    } 
+    }
     else if (a.Undefined < b.Undefined) {
-      return 1;      
+      return 1;
     }
 
     if (a.notFixed > b.notFixed) {
       return -1;
-    } 
+    }
     else if (a.notFixed < b.notFixed) {
       return 1;
     }
 
     // a must be equal to b
-    return 0; 
+    return 0;
   }
 
   return (
@@ -873,7 +915,7 @@ export function useGlobalContext() {
 
 export const useGlobalDispatch = () => {
   return useContext(GlobalDispatchContext)
-};
+}
 
 export const useGlobalState = () => {
   const { globalState } = useGlobalContext()

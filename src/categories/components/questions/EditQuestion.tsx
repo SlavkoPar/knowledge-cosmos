@@ -18,9 +18,7 @@ const EditQuestion = ({ inLine }: { inLine: boolean }) => {
             ...questionObject,
             modified: {
                 date: new Date(),
-                by: {
-                    nickName: globalState.authUser.nickName
-                }
+                nickName: globalState.authUser.nickName
             }
         }
         const q = await updateQuestion(object);

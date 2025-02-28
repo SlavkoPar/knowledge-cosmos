@@ -20,9 +20,7 @@ const AddCategory = ({ category, inLine } : { category: ICategory, inLine: boole
             id: categoryObject.title.split(' ')[0].toUpperCase(),
             created: {
                 date: new Date(),
-                by: {
-                    nickName
-                }
+                nickName
             }
         }
         createCategory(object);

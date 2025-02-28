@@ -25,12 +25,12 @@ const RegisterForm = () => {
 
   let navigate = useNavigate();
   const closeForm = () => {
-    // navigate('/support-cosmos/register/fromNavigation'); // '/register' will prevent: navigate('/register/' + returnUrl, { replace: true })
-    navigate('/support-cosmos'); // '/register' will prevent: navigate('/register/' + returnUrl, { replace: true })
+    // navigate('/knowledge-cosmos/register/fromNavigation'); // '/register' will prevent: navigate('/register/' + returnUrl, { replace: true })
+    navigate('/knowledge-cosmos'); // '/register' will prevent: navigate('/register/' + returnUrl, { replace: true })
   }
 
   const goBack = () => {
-    navigate(returnUrl && returnUrl !== 'fromNavigation' ? returnUrl : '/support-cosmos')
+    navigate(returnUrl && returnUrl !== 'fromNavigation' ? returnUrl : '/knowledge-cosmos')
   }
 
   const [showMessage, setShowMessage] = useState(false);

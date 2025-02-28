@@ -19,7 +19,7 @@ const LoginForm = ({ initialValues, invitationId }: { initialValues: ILoginUser,
   let navigate = useNavigate();
 
   const closeForm = () => {
-    navigate('/support-cosmos'); // enable closing of the form
+    navigate('/knowledge-cosmos'); // enable closing of the form
   }
 
   const submitForm = (loginUser: ILoginUser) => {
@@ -55,7 +55,7 @@ const LoginForm = ({ initialValues, invitationId }: { initialValues: ILoginUser,
 
   useEffect(() => {
     if (isAuthenticated)
-      navigate('/support-cosmos')
+      navigate('/knowledge-cosmos')
   }, [isAuthenticated, navigate])
 
   const isInvitation = formik.values.who !== '';

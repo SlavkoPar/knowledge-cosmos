@@ -19,7 +19,7 @@ import ViewCategory from "categories/components/ViewCategory";
 import QuestionList from './questions/QuestionList';
 
 const CategoryRow = ({ category }: { category: ICategory }) => {
-    const { id, title, level, inViewing, inEditing, inAdding, hasSubCategories, questions, numOfQuestions, isExpanded } = category;
+    const { id, partitionKey, title, level, inViewing, inEditing, inAdding, hasSubCategories, questions, numOfQuestions, isExpanded } = category;
 
     const { canEdit, isDarkMode, variant, bg } = useGlobalState();
 
@@ -44,15 +44,15 @@ const CategoryRow = ({ category }: { category: ICategory }) => {
 
     const edit = (id: string) => {
         // Load data from server and reinitialize category
-        editCategory(id);
+        editCategory(id, partitionKey);
     }
 
     const onSelectCategory = (id: string) => {
         // Load data from server and reinitialize category
         if (canEdit)
-            editCategory(id);
+            editCategory(id, partitionKey);
         else
-            viewCategory(id);
+            viewCategory(id, partitionKey);
     }
 
     const [hoverRef, hoverProps] = useHover();

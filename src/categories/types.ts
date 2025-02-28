@@ -1,4 +1,4 @@
-import { ActionMap, IDateAndBy, IRecord } from 'global/types';
+import { ActionMap, IWhoWhen, IRecord, IRecordDto, WhoWhen2DateAndBy } from 'global/types';
 import { IAnswer } from 'groups/types';
 
 export const Mode = {
@@ -52,7 +52,7 @@ export interface IAssignedAnswer {
 		nickName: string,
 		createdBy: string
 	}
-	assigned: IDateAndBy
+	assigned: IWhoWhen
 }
 
 export interface IFromUserAssignedAnswer {
@@ -61,10 +61,10 @@ export interface IFromUserAssignedAnswer {
 }
 
 export interface IQuestion extends IRecord {
-	id?: number;
+	id: string;
 	title: string;
 	words?: string[];
-	level: number;
+	//level: number;
 	parentCategory: string;
 	categoryTitle?: string;
 	assignedAnswers: IAssignedAnswer[];
@@ -72,19 +72,25 @@ export interface IQuestion extends IRecord {
 	source: number;
 	status: number;
 	fromUserAssignedAnswer?: IFromUserAssignedAnswer[];
-	variations: string[];
+	CategoryTitle?: string;
 	included?: boolean;
 }
+
+export interface IQuestionKey {
+	id: string;
+	parentCategory: string;
+}
+
 
 export interface IVariation {
 	name: string;
 }
 
-
 export interface ICategory extends IRecord {
+	partitionKey: string; // | null is a valid value so you can store data with null value in indexeddb 
 	id: string;
 	kind: number;
-	parentCategory: string; // | null is a valid value so you can store data with null value in indexeddb 
+	parentCategory: string | null; // | null is a valid value so you can store data with null value in indexeddb 
 	// but it is not a valid key
 	title: string;
 	// words: string[];
@@ -96,8 +102,82 @@ export interface ICategory extends IRecord {
 	isExpanded?: boolean;
 	hasSubCategories: boolean;
 	categories?: ICategory[]; // used for export to json
+	titlesUpTheTree?: string; 
 }
 
+
+export class Question {
+	constructor(dto: IQuestionDto, parentCategory: string) {
+		this.question = {
+			parentCategory,
+			id: dto.id,
+			title: dto.title,
+			assignedAnswers: [], // TODO
+			numOfAssignedAnswers: 0,
+			source: dto.source,
+			status: dto.status,
+			created: new WhoWhen2DateAndBy(dto.created).dateAndBy,
+			modified: new WhoWhen2DateAndBy(dto.modified).dateAndBy,
+			archived: false
+		}
+	}
+	question: IQuestion
+}
+
+
+export class Category {
+	constructor(dto: ICategoryDto) {
+		let questions: IQuestion[] = [];
+		if (dto.questions) {
+			questions = dto.questions.map(questionDto => new Question(questionDto, dto.id).question);
+		}
+		this.category = {
+			partitionKey: dto.partitionKey,
+			id: dto.id,
+			kind: dto.kind,
+			parentCategory: dto.parentCategory,
+			title: dto.title,
+			// words: string[];
+			level: dto.level,
+			variations: dto.variations,
+			numOfQuestions: dto.numOfQuestions,
+			hasSubCategories: dto.hasSubCategories,
+			created: new WhoWhen2DateAndBy(dto.created).dateAndBy,
+			modified: new WhoWhen2DateAndBy(dto.modified).dateAndBy,
+			archived: false,
+			questions
+		}
+	}
+	category: ICategory
+}
+
+
+export interface IQuestionDto extends IRecordDto {
+	//partitionKey: string;
+	id: string;
+	parentCategory: string;
+	// but it is not a valid key
+	title: string;
+	assignedAnswers: number[];
+	variations: string[];
+	source: number;
+	status: number;
+}
+
+export interface ICategoryDto extends IRecordDto {
+	partitionKey: string;
+	id: string;
+	kind: number;
+	parentCategory: string | null;
+	// but it is not a valid key
+	title: string;
+	// words: string[];
+	level: number;
+	variations: string[];
+	numOfQuestions: number;
+	hasSubCategories: boolean;
+	questions: IQuestionDto[];
+}
 
 export interface ICategoryInfo {
 	id: string,
@@ -106,7 +186,7 @@ export interface ICategoryInfo {
 
 
 export interface IParentInfo {
-	parentCategory: string,
+	parentCategory: string | null,
 	level: number,
 	title?: string, // to easier follow getting the list of sub-categories
 	inAdding?: boolean,
@@ -132,8 +212,8 @@ export interface ICategoriesContext {
 	reloadCategoryNode: (categoryId: string, questionId: string | null) => Promise<any>;
 	getSubCategories: ({ parentCategory, level }: IParentInfo) => void,
 	createCategory: (category: ICategory) => void,
-	viewCategory: (id: string) => void,
-	editCategory: (id: string) => void,
+	viewCategory: (id: string, partitionKey: string) => void,
+	editCategory: (id: string, partitionKey: string) => void,
 	updateCategory: (category: ICategory, closeForm: boolean) => void,
 	deleteCategory: (id: string) => void,
 	deleteCategoryVariation: (id: string, name: string) => void,
@@ -143,13 +223,13 @@ export interface ICategoriesContext {
 	//getCategoryQuestions: ({ parentCategory, level, inAdding }: IParentInfo) => void,
 	loadCategoryQuestions: ({ parentCategory }: IParentInfo) => void,
 	createQuestion: (question: IQuestion, fromModal: boolean) => Promise<any>;
-	viewQuestion: (id: number) => void;
-	editQuestion: (id: number) => void;
+	viewQuestion: (iquestionKey: IQuestionKey) => void;
+	editQuestion: (questionKey: IQuestionKey) => void;
 	updateQuestion: (question: IQuestion) => Promise<any>;
-	assignQuestionAnswer: (questionId: number, answerId: number, assigned: IDateAndBy) => Promise<any>;
-	unAssignQuestionAnswer: (questionId: number, answerId: number) => Promise<any>;
+	assignQuestionAnswer: (questionId: string, answerId: number, assigned: IWhoWhen) => Promise<any>;
+	unAssignQuestionAnswer: (questionId: string, answerId: number) => Promise<any>;
 	createAnswer: (answer: IAnswer) => Promise<any>;
-	deleteQuestion: (id: number, parentCategory: string) => void;
+	deleteQuestion: (questionKey: IQuestionKey) => void;
 }
 
 export interface ICategoryFormProps {
@@ -278,7 +358,7 @@ export type CategoriesPayload = {
 	/////////////
 	// questions
 	[ActionTypes.LOAD_CATEGORY_QUESTIONS]: {
-		parentCategory: string,
+		parentCategory: string | null,
 		questions: IQuestion[],
 		hasMore: boolean
 	};
@@ -308,8 +388,7 @@ export type CategoriesPayload = {
 	};
 
 	[ActionTypes.DELETE_QUESTION]: {
-		id: number;
-		parentCategory: string
+		questionKey: IQuestionKey
 	};
 
 	[ActionTypes.CLOSE_QUESTION_FORM]: {

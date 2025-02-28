@@ -35,7 +35,7 @@ Kad pošaljem novu verziju extenzije, dovoljan je:
 ## Dokumentacija (bice bolja, ovo je samo za jutrasnji miting) 
 
 Prvremeno, kad se menja struktura baze, treba prvo obrisati našu staru IndexDB 'SupportKnowledge' bazu, da bi se kreirala nova.\
-Dok ste na sajtu https://slavkopar.github.io/support-cosmos \
+Dok ste na sajtu https://slavkopar.github.io/knowledge-cosmos \
 pritisnete **F12** i odaberete **Application**.\
 Odaberete **SupportKnowledge** database i kliknete na **Delete Database**
 

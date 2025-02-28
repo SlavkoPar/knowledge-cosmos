@@ -1,4 +1,4 @@
-import { ActionMap, IDateAndBy, IRecord, ROLES } from 'global/types';
+import { ActionMap, IWhoWhen, IRecord, ROLES } from 'global/types';
 
 export const Mode = {
 	UNDEFINED: undefined,

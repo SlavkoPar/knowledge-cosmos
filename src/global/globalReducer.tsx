@@ -181,11 +181,11 @@ const reducer: Reducer<IGlobalState, GlobalActions> = (state, action) => {
             return { ...state, isDarkMode: true, variant: 'dark', bg: 'dark' };
 
         case GlobalActionTypes.SET_ALL_CATEGORIES: {
-            const { allCategories } = action.payload;
-            console.log("SET_CATEGORY_TAGS", allCategories)
+            const { categories } = action.payload;
+            //console.log("SET_CATEGORY_TAGS", allCategories)
             return {
                 ...state,
-                allCategories
+                categories
             };
         }
 

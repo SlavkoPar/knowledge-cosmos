@@ -4,10 +4,10 @@ import { IAssignedAnswer } from "categories/types";
 import { useGlobalContext } from "global/GlobalProvider";
 import AssignedAnswerChatBot from "global/ChatBotPage/AssignedAnswerChatBot";
 import { AutoSuggestAnswers } from 'categories/AutoSuggestAnswers'
-import { IDateAndBy } from "global/types";
+import { IWhoWhen } from "global/types";
 import { IAnswer } from "groups/types";
 import AddAnswer from "categories/components/questions/AddAnswer"
-import { initialAnswer } from "groups/GroupsReducer";
+import { initialAnswer } from "groups/types"; //GroupsReducer"; // PRE
 
 interface IProps {
     questionId: number,
@@ -34,11 +34,9 @@ const AssignedAnswersChatBot = ({ questionId, questionTitle, assignedAnswers, is
     const [showAssign, setShowAssign] = useState(false);
 
     const onSelectQuestionAnswer = async (parentGroup: string, answerId: number) => {
-        const assigned: IDateAndBy = {
+        const assigned: IWhoWhen = {
             date: new Date(),
-            by: {
-                nickName: globalState.authUser.nickName
-            }
+            nickName: globalState.authUser.nickName
         }
         // TODO in next version do not update MongoDB immediately, wait until users presses Save
         // User could have canceled question update

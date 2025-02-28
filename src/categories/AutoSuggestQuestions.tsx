@@ -7,9 +7,10 @@ import { isMobile } from 'react-device-detect'
 import { debounce, escapeRegexCharacters } from 'common/utilities'
 import './AutoSuggestQuestions.css'
 import { IDBPCursorWithValue, IDBPCursorWithValueIteratorValue, IDBPDatabase } from 'idb';
-import { IQuestion } from 'categories/types';
+import { IQuestion, IQuestionKey } from 'categories/types';
 import { ICat } from 'global/types';
 import { title } from 'process';
+import QuestionRow from './components/questions/QuestionRow';
 
 // interface IQuestionShort {
 // 	id: number;
@@ -18,7 +19,7 @@ import { title } from 'process';
 // }
 
 interface IQuest {
-	id: number;
+	id: string;
 	title: string;
 	parentCategory: string;
 	categoryTitle: string;
@@ -59,7 +60,7 @@ const QuestionAutosuggestMulti = Autosuggest as { new(): Autosuggest<IQuest, ICa
 export class AutoSuggestQuestions extends React.Component<{
 	dbp: IDBPDatabase,
 	tekst: string | undefined,
-	onSelectQuestion: (categoryId: string, questionId: number) => void,
+	onSelectQuestion: (questionKey: IQuestionKey) => void,
 	allCategories: Map<string, ICat>
 }, any> {
 	// region Fields
@@ -184,7 +185,7 @@ export class AutoSuggestQuestions extends React.Component<{
 
 		const tx = this.dbp!.transaction(['Categories', 'Questions'], 'readonly');
 		const index = tx.objectStore('Questions').index('words_idx');
-		const questionRows: number[] = [];
+		const questionKeys: IQuestionKey[] = [];
 		try {
 			let i = 0;
 			// 1) Find all questions that starts with one of the words
@@ -194,8 +195,9 @@ export class AutoSuggestQuestions extends React.Component<{
 					for await (const cursor of index.iterate(IDBKeyRange.bound(w, `${w}zzzzz`, false, true))) {
 						const q: IQuestion = { ...cursor!.value, id: parseInt(cursor!.primaryKey.toString()) }
 						const { id, parentCategory, title } = q;
-						if (!questionRows.includes(id!)) {
-							questionRows.push(id!);
+						const questionKey = { parentCategory, id }
+						if (!questionKeys.includes(questionKey)) {
+							questionKeys.push(questionKey);
 
 							// 2) Group questions by parentCategory
 							const quest: IQuest = {
@@ -222,7 +224,7 @@ export class AutoSuggestQuestions extends React.Component<{
 
 		////////////////////////////////////////////////////////////////////////////////
 		// Search for Categories title words, and add all the questions of the Category
-		if (questionRows.length === 0) {
+		if (questionKeys.length === 0) {
 			try {
 				const tx = this.dbp!.transaction('Questions')
 				const index = tx.store.index('parentCategory_idx');
@@ -234,25 +236,31 @@ export class AutoSuggestQuestions extends React.Component<{
 					for await (const cursor of index.iterate(parentCategory)) {
 						const q: IQuestion = cursor.value;
 						const { id, title } = q;
-						if (!questionRows.includes(id!))
-							questionRows.push(id!);
-						//console.log(q);
-						// 2) Group questions by parentCategory
-						const quest: IQuest = {
-							id: id!,
-							parentCategory,
-							title,
-							categoryTitle: catIdTitle.title
-						}
-						if (!catQuests.has(parentCategory)) {
-							catQuests.set(parentCategory, [quest]);
-						}
-						else {
-							catQuests.get(parentCategory)!.push(quest);
+						//if (!questionRows.includes(id!))
+						//	questionRows.push(id!);
+
+						const questionKey = { parentCategory, id }
+						if (!questionKeys.includes(questionKey)) {
+							questionKeys.push(questionKey);
+
+							//console.log(q);
+							// 2) Group questions by parentCategory
+							const quest: IQuest = {
+								id,
+								parentCategory,
+								title,
+								categoryTitle: catIdTitle.title
+							}
+							if (!catQuests.has(parentCategory)) {
+								catQuests.set(parentCategory, [quest]);
+							}
+							else {
+								catQuests.get(parentCategory)!.push(quest);
+							}
 						}
 					}
+					await tx.done;
 				}
-				await tx.done;
 			}
 			catch (error: any) {
 				console.debug(error)
@@ -261,7 +269,7 @@ export class AutoSuggestQuestions extends React.Component<{
 
 		await tx.done;
 
-		if (questionRows.length === 0)
+		if (questionKeys.length === 0)
 			return [];
 
 		try {
@@ -331,7 +339,7 @@ export class AutoSuggestQuestions extends React.Component<{
 	protected onSuggestionSelected(event: React.FormEvent<any>, data: Autosuggest.SuggestionSelectedEventData<IQuest>): void {
 		const question: IQuest = data.suggestion;
 		// alert(`Selected question is ${question.questionId} (${question.text}).`);
-		this.props.onSelectQuestion(question.parentCategory, question.id);
+		this.props.onSelectQuestion({ parentCategory: question.parentCategory, id: question.id });
 	}
 
 	/*

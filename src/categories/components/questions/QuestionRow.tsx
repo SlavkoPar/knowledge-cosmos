@@ -18,7 +18,7 @@ import QPlus from 'assets/QPlus.png';
 
 //const QuestionRow = ({ question, categoryInAdding }: { ref: React.ForwardedRef<HTMLLIElement>, question: IQuestion, categoryInAdding: boolean | undefined }) => {
 const QuestionRow = ({ question, categoryInAdding }: { question: IQuestion, categoryInAdding: boolean | undefined }) => {
-    const { id, parentCategory, level, title, inViewing, inEditing, inAdding, numOfAssignedAnswers } = question;
+    const { id, parentCategory, title, inViewing, inEditing, inAdding, numOfAssignedAnswers } = question;
 
     const { canEdit, isDarkMode, variant, bg } = useGlobalState();
 
@@ -28,20 +28,20 @@ const QuestionRow = ({ question, categoryInAdding }: { question: IQuestion, cate
     const alreadyAdding = state.mode === Mode.AddingQuestion;
 
     const del = () => {
-        deleteQuestion(id!, parentCategory);
+        deleteQuestion({parentCategory, id});
     };
 
-    const edit = (id: number) => {
+    const edit = (id: string) => {
         // Load data from server and reinitialize question
-        editQuestion(id);
+        editQuestion({parentCategory, id});
     }
 
-    const onSelectQuestion = (id: number) => {
+    const onSelectQuestion = (id: string) => {
         // Load data from server and reinitialize question
         if (canEdit)
-            editQuestion(id);
+            editQuestion({parentCategory, id});
         else
-            viewQuestion(id);
+            viewQuestion({parentCategory, id});
     }
 
     const [hoverRef, hoverProps] = useHover();
@@ -96,7 +96,7 @@ const QuestionRow = ({ question, categoryInAdding }: { question: IQuestion, cate
                         className="ms-1 p-0 text-secondary d-flex align-items-center"
                         title="Add Question"
                         onClick={() => {
-                            const categoryInfo: ICategoryInfo = { id: parentCategory, level }
+                            const categoryInfo: ICategoryInfo = { id: parentCategory, level: 0 }
                             dispatch({ type: ActionTypes.ADD_QUESTION, payload: { categoryInfo } })
                         }}
                     >

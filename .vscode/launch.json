@@ -8,10 +8,10 @@
          "type": "chrome",
          "request": "launch",
          "name": "Launch Chrome against localhost",
-         "url": "http://localhost:3000/support-cosmos",
+         "url": "http://localhost:3000/knowledge-cosmos",
          "webRoot": "${workspaceFolder}"
       }
    ]
 }
 //  /SAFARI_706
-//          "url": "http://localhost:3000/support-cosmos/ChatBotPage/2/work/a@b.com",
+//          "url": "http://localhost:3000/knowledge-cosmos/ChatBotPage/2/work/a@b.com",

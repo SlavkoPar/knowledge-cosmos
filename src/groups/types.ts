@@ -1,4 +1,4 @@
-import { ActionMap, IDateAndBy, IRecord } from 'global/types';
+import { ActionMap, IWhoWhen, IRecord } from 'global/types';
 
 export const Mode = {
 	UNDEFINED: undefined,
@@ -34,7 +34,7 @@ export interface IAnswerAnswer {
 		_id?: IDBValidKey,
 		createdBy: string
 	}
-	assigned: IDateAndBy
+	assigned: IWhoWhen
 }
 
 export interface IFromUserAssignedAnswer {
@@ -337,3 +337,35 @@ export type CatsPayload = {
 
 export type CatsActions =
 	ActionMap<CatsPayload>[keyof ActionMap<CatsPayload>];
+
+
+	export const initialAnswer: IAnswer = {
+		// temp _id for inAdding, to server as list key
+		// it will be removed on submitForm
+		// real _id will be given by the MongoDB 
+		id: 0, // real id will be given by DB
+		parentGroup: '',
+		groupTitle: '',
+		title: '',
+		level: 0,
+		source: 0,
+		status: 0,
+		archived: false
+	 }
+	 
+	 export const initialGroup: IGroup = {
+		// temp _id for inAdding, to server as list key
+		// it will be removed on submitForm
+		// real _id will be given by the MongoDB 
+		id: '',
+		title: '',
+		level: 0,
+		parentGroup: 'null',
+		hasSubGroups: false,
+		answers: [],
+		numOfAnswers: 0,
+		hasMore: false,
+		isExpanded: false,
+		archived: false
+	 }
+	 

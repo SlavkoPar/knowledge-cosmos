@@ -9,6 +9,7 @@ import { useGlobalState } from 'global/GlobalProvider';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 //import { faPlus } from '@fortawesome/free-solid-svg-icons'
 import QPlus from 'assets/QPlus.png';
+import { IQuestionKey } from 'categories/types';
 
 type SupportParams = {
 	source: string;
@@ -29,8 +30,8 @@ const SupportPage: React.FC = () => {
 	// if (!isAuthenticated)
 	//     return <div>loading...</div>;
 
-	const onSelectQuestion = async (categoryId: string, questionId: number) => {
-		navigate(`/support-cosmos/categories/${categoryId}_${questionId.toString()}`)
+	const onSelectQuestion = async (questionKey: IQuestionKey) => {
+		navigate(`/knowledge-cosmos/categories/${questionKey.parentCategory}_${questionKey.id}`)
 	}
 
 
@@ -75,7 +76,7 @@ const SupportPage: React.FC = () => {
 									source,
 									title: tekst
 								}))
-								navigate('/support-cosmos/categories/add_question')
+								navigate('/knowledge-cosmos/categories/add_question')
 							}}
 						>
 							{/* <FontAwesomeIcon icon={faPlus} size="sm" /> */}

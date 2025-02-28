@@ -46,9 +46,9 @@ const QuestionList = ({ title, parentCategory, level }: IParentInfo) => {
     if (categoryId != null) {
       if (categoryId === parentCategory! && questionId) {
           if (canEdit)
-            editQuestion(parseInt(questionId))
+            editQuestion({parentCategory, id: questionId})
           else
-            viewQuestion(parseInt(questionId))
+            viewQuestion({parentCategory, id: questionId})
       }
     }
   }, [viewQuestion, parentCategory, categoryId, questionId, canEdit]);

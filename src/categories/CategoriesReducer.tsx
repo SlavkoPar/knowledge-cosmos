@@ -2,16 +2,14 @@ import { Reducer } from 'react'
 import { Mode, ActionTypes, ICategoriesState, ICategory, IQuestion, CategoriesActions } from "categories/types";
 
 export const initialQuestion: IQuestion = {
-  id: 0, // real id will be given by DB
+  id: '', // real id will be given by DB
   parentCategory: '',
   categoryTitle: '',
   title: '',
-  level: 0,
   assignedAnswers: [],
   numOfAssignedAnswers: 0,
   source: 0,
   status: 0,
-  variations: [],
   archived: false
 }
 
@@ -19,6 +17,7 @@ export const initialCategory: ICategory = {
   // temp _id for inAdding, to server as list key
   // it will be removed on submitForm
   // real _id will be given by the MongoDB 
+  partitionKey: '',
   id: '',
   kind: 0,
   title: '',
@@ -348,7 +347,6 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
       const question: IQuestion = {
         ...initialQuestion,
         parentCategory: id,
-        level,
         inAdding: true
       }
       return {
@@ -469,7 +467,8 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
     }
 
     case ActionTypes.DELETE_QUESTION: {
-      const { id, parentCategory } = action.payload;
+      const { questionKey } = action.payload;
+      const { parentCategory, id }  = questionKey
       return {
         ...state,
         categories: state.categories.map(c => c.id === parentCategory

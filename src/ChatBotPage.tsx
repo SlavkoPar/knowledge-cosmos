@@ -9,12 +9,12 @@ import { useGlobalContext, useGlobalState } from 'global/GlobalProvider';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus, faQuestion } from '@fortawesome/free-solid-svg-icons'
 import CatList from 'global/Components/SelectCategory/CatList';
-import { ICategory, IQuestion } from 'categories/types';
+import { ICategory, IQuestion, IQuestionKey } from 'categories/types';
 import { ICat } from 'global/types';
 import AssignedAnswersChatBot from 'global/ChatBotPage/AssignedAnswersChatBot';
 import { INewQuestion, INextAnswer, useAI } from './useAI'
 import { IAnswer } from 'groups/types';
-import AnswerList from 'groups/components/answers/AnswerList';
+//import AnswerList from 'groups/components/answers/AnswerList';
 
 import Q from 'assets/Q.png';
 import A from 'assets/A.png';
@@ -38,7 +38,7 @@ const ChatBotPage: React.FC = () => {
 
 	const hook = useAI([]);
 
-	const [selectedQuestion, setSelectedQuestion] = useState<IQuestion | undefined>(undefined);
+	const [selectedQuestion, setSelectedQuestion] = useState<IQuestion | null>(null);
 
 	const [autoSuggestId, setAutoSuggestId] = useState<number>(1);
 	const [answerId, setAnswerId] = useState<number>(1);
@@ -116,8 +116,9 @@ const ChatBotPage: React.FC = () => {
 		//setPaymentMethod(value);
 	};
 
-	const onSelectQuestion = async (categoryId: string, questionId: number) => {
-		// navigate(`/support-cosmos/categories/${categoryId}_${questionId.toString()}`)
+	//categoryId: string, questionId: string
+	const onSelectQuestion = async (questionKey: IQuestionKey) => {
+		// navigate(`/knowledge-cosmos/categories/${categoryId}_${questionId.toString()}`)
 		// const question = await getQuestion(questionId);
 
 		// salji kasnije kad klikne na Fixed
@@ -147,7 +148,7 @@ const ChatBotPage: React.FC = () => {
 			}
 			setPastEvents((prevEvents) => [...prevEvents, props]);
 		}
-		const res: INewQuestion = await (await hook).setNewQuestion(questionId);
+		const res: INewQuestion = await (await hook).setNewQuestion(questionKey);
 		const { question, firstAnswer, hasMoreAnswers } = res; // as unknown as INewQuestion;
 		const answersRated = await getAnswersRated(dbp, question!.id!);
 		console.log({ answersRated });

@@ -1,26 +1,50 @@
 // Define the Global State
-import { IAssignedAnswer, ICategory, IQuestion } from 'categories/types';
+import { IAssignedAnswer, ICategory, IQuestion, IQuestionKey } from 'categories/types';
 import { IOption } from 'common/types';
 import { IAnswer } from 'groups/types';
 import { IDBPDatabase } from 'idb';
 import { IUser } from 'roles/types';
 
-export interface IDateAndBy {
+export interface IWhoWhen {
 	date: Date,
-	by: {
-		nickName: string
-	}
+	nickName: string
+}
+
+export interface IWhoWhenDto {
+	dateTime: Date,
+	nickName: string
 }
 
 export interface IRecord {
-	created?: IDateAndBy,
+	created?: IWhoWhen,
 	createdBy?: string,
-	modified?: IDateAndBy,
+	modified?: IWhoWhen,
 	modifiedBy?: string,
 	inViewing?: boolean,
 	inEditing?: boolean,
 	inAdding?: boolean,
 	archived: boolean
+}
+
+
+
+
+export interface IRecordDto {
+	created: IWhoWhenDto;
+	modified: IWhoWhenDto;
+	archived: boolean;
+}
+
+export class WhoWhen2DateAndBy {
+	constructor(whoWhenDto: IWhoWhenDto) {
+		if (whoWhenDto) {
+			this.dateAndBy = {
+				date: new Date(whoWhenDto.dateTime),
+				nickName: whoWhenDto.nickName
+			}
+		}
+	}
+	dateAndBy?: IWhoWhen = undefined;
 }
 
 
@@ -52,7 +76,7 @@ export enum ROLES {
 
 export interface ICat {
 	id: string;
-	parentCategory: string; // | null is a valid value so you can store data with null value in indexeddb 
+	parentCategory: string | null; // | null is a valid value so you can store data with null value in indexeddb 
 	// but it is not a valid key
 	title: string;
 	words: string[];
@@ -113,12 +137,12 @@ export interface IGlobalContext {
 	health: () => void;
 	getSubCats: ({ parentCategory, level }: IParentInfo) => Promise<any>;
 	getCatsByKind: (kind: number) => Promise<ICat[]>;
-	getQuestion: (id: number) => Promise<IQuestion | undefined>;
+	getQuestion: (questionKey: IQuestionKey) => Promise<IQuestion | null>;
 	joinAssignedAnswers: (assignedAnswers: IAssignedAnswer[]) => Promise<IAssignedAnswer[]>;
 	getAnswer: (id: number) => Promise<IAnswer | undefined>;
 	getMaxConversation: (dbp: IDBPDatabase) => Promise<number>;
 	addHistory: (dbp: IDBPDatabase | null, history: IHistory) => Promise<void>;
-	getAnswersRated: (dbp: IDBPDatabase | null, questionId: number) => Promise<IAnswerRating[]>;
+	getAnswersRated: (dbp: IDBPDatabase | null, questionId: string) => Promise<IAnswerRating[]>;
 }
 
 export enum GlobalActionTypes {
@@ -181,7 +205,7 @@ export type GlobalPayload = {
 	[GlobalActionTypes.UN_AUTHENTICATE]: undefined;
 
 	[GlobalActionTypes.SET_DBP]: {
-		dbp: IDBPDatabase
+		dbp: IDBPDatabase | null
 	};
 
 	[GlobalActionTypes.SET_ERROR]: {
@@ -195,7 +219,7 @@ export type GlobalPayload = {
 	[GlobalActionTypes.SET_REGISTRATION_CONFIRMED]: undefined;
 
 	[GlobalActionTypes.SET_ALL_CATEGORIES]: {
-		allCategories: Map<string, ICat>
+		categories: Map<string, ICategory> // ICat>
 	};
 
 	[GlobalActionTypes.SET_QUESTION_AFTER_ASSIGN_ANSWER]: {
@@ -309,7 +333,7 @@ export interface IRoleData {
 export interface IHistory {
 	conversation?: number;
 	client: string;
-	questionId: number;
+	questionId: string;
 	answerId: number;
 	fixed: boolean | undefined; // when client didn't click on 'Fixed' or 'Not fixed' buttons
 	created: Date

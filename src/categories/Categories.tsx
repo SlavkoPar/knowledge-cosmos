@@ -86,7 +86,7 @@ const Providered = ({ categoryId_questionId }: IProps) => {
                 <Row className="my-1">
                     <Col xs={12} md={5}>
                         <div>
-                            <CategoryList parentCategory={'null'} level={1} title="root" />
+                            <CategoryList parentCategory={null} level={1} title="root" />
                         </div>
                     </Col>
                     <Col xs={0} md={7}>

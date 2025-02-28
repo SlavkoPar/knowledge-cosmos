@@ -15,9 +15,7 @@ const EditCategory = ({ inLine }: { inLine: boolean }) => {
             ...categoryObject,
             modified: {
                 date: new Date(),
-                by: {
-                    nickName: globalState.authUser.nickName
-                }
+                nickName: globalState.authUser.nickName
             }
         }
         updateCategory(object, true /* closeForm */)

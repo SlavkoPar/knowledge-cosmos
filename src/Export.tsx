@@ -16,6 +16,7 @@ const Export: React.FC<IExport> = (props: IExport) => {
   const { exportToJSON } = useGlobalContext();
 
   const category: ICategory = {
+    partitionKey: '',
     id: "null",
     kind: 0,
     parentCategory: "",

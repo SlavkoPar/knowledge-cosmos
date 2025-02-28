@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useGlobalState } from 'global/GlobalProvider'
 
-import AnswerForm from "groups/components/answers/AnswerForm";
+//import AnswerForm from "groups/components/answers/AnswerForm"; PRE
 import { FormMode, IAnswer } from "groups/types";
 import { useCategoryContext } from "categories/CategoryProvider";
 
@@ -27,9 +27,7 @@ const AddAnswer = ({ answer, closeModal, onAnswerCreated }: IProps) => {
             //_id: undefined,
             created: {
                 date: new Date(),
-                by: {
-                    nickName
-                }
+                nickName
             }
         }
         const answer = await createAnswer(object);
@@ -37,23 +35,16 @@ const AddAnswer = ({ answer, closeModal, onAnswerCreated }: IProps) => {
     }
 
     return (
+        null //PRE
         // <AnswerForm
-        //     initialValues={formValues}
+        //     answer={formValues}
         //     mode={FormMode.adding}
-        //     submitAnswer={submitAnswer}
+        //     submitForm={submitAnswer}
         //     closeModal={closeModal}
+        //     showCloseButton={true}
         // >
         //     Create Answer
         // </AnswerForm >
-        <AnswerForm
-            answer={formValues}
-            mode={FormMode.adding}
-            submitForm={submitAnswer}
-            closeModal={closeModal}
-            showCloseButton={true}
-        >
-            Create Answer
-        </AnswerForm >
     )
 }
 

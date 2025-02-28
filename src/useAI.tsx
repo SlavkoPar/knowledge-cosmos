@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
 
-import { ICategory, IQuestion } from 'categories/types';
+import { ICategory, IQuestion, IQuestionKey } from 'categories/types';
 import { useGlobalContext } from "global/GlobalProvider";
 import { IAnswer } from "groups/types";
 
 export interface INewQuestion {
-  question: IQuestion | undefined;
+  question: IQuestion | null;
   firstAnswer: IAnswer | undefined;
   hasMoreAnswers: boolean;
 }
@@ -19,7 +19,7 @@ export const useAI = async (categories: ICategory[]) => {
 
   const { getCatsByKind, getQuestion, getAnswer } = useGlobalContext();
 
-  const [question, setQuestion] = useState<IQuestion | undefined>(undefined);
+  const [question, setQuestion] = useState<IQuestion | null>(null);
   const [answer, setAnswer] = useState<IAnswer | undefined>(undefined);
   const [index, setIndex] = useState<number>(0);
 
@@ -32,8 +32,8 @@ export const useAI = async (categories: ICategory[]) => {
     })()
   }, [])
 
-  const setNewQuestion = async (questionId: number): Promise<INewQuestion> => {
-    const question = await getQuestion(questionId);
+  const setNewQuestion = async (questionKey: IQuestionKey) : Promise<INewQuestion> => {
+    const question = await getQuestion(questionKey);
     setQuestion(question);
     let hasMoreAnswers = false;
     let firstAnswer: IAnswer | undefined = undefined;
