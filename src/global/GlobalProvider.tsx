@@ -381,6 +381,7 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
   const addInitialData = async (dbp: IDBPDatabase): Promise<void> => {
     //new Promise<void>(async (resolve) => {
     // Categries -> Questions
+    /*
     try {
       let level = 1;
       let i = 0;
@@ -397,6 +398,7 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
     catch (err) {
       console.log('error', err);
     }
+    */
 
     // Groups -> Answers
     try {
@@ -456,7 +458,10 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
     // }
   }
 
-  const loadAllCategories = useCallback(async (): Promise<any> => {
+  // ---------------------------
+  // load all short categories
+  // ---------------------------
+  const loadCats = useCallback(async (): Promise<any> => {
     try {
       const url = `https://localhost:7005/api/Category`;
       axios
@@ -468,22 +473,36 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
           }
         })
         .then(({ data }) => {
-          console.log({data})
+          console.log({ data })
 
           const categories = new Map<string, ICategory>();
+          const cats = new Map<string, ICat>();
           console.timeEnd();
           data.forEach((categoryDto: ICategoryDto) => categories.set(categoryDto.id, new Category(categoryDto).category));
-          categories.forEach((category, id) => {
+          //
+          categories.forEach(category => {
+            const { id, parentCategory, title, variations, hasSubCategories, kind } = category;
             let titlesUpTheTree = id;
-            let parentCategory = category.parentCategory;
-            while (parentCategory !== null) {
-              const cat2 = categories.get(parentCategory)!;
+            let parentCat = parentCategory;
+            while (parentCat) {
+              const cat2 = categories.get(parentCat)!;
               titlesUpTheTree = cat2!.id + ' / ' + titlesUpTheTree;
-              parentCategory = cat2.parentCategory;
+              parentCat = cat2.parentCategory;
             }
             category.titlesUpTheTree = titlesUpTheTree;
+            const cat: ICat = {
+              id,
+              parentCategory: parentCat,
+              title,
+              words: title.toLowerCase().replaceAll('?', '').split(' ').map((s: string) => s.trim()).filter(w => w.length > 1),
+              titlesUpTheTree: '',
+              variations,
+              hasSubCategories,
+              kind
+            }
+            cats.set(id, cat);
           })
-          dispatch({ type: GlobalActionTypes.SET_ALL_CATEGORIES, payload: { categories } });
+          dispatch({ type: GlobalActionTypes.SET_ALL_CATEGORIES, payload: { cats } });
         })
     }
     catch (error: any) {
@@ -588,7 +607,7 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
         const regUser: IRegisterUser = { ...userData, level: 1, confirmed: false }
         await registerUser(regUser, true, dbp);
       }
-      await loadAllCategories();
+      await loadCats();
       await dispatch({ type: GlobalActionTypes.SET_DBP, payload: { dbp } });
       // else {
       //   signInUser({nickName: 'Boss', password: 'Boss12345'})
@@ -668,9 +687,9 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
 
   const getCatsByKind = async (kind: number): Promise<ICat[]> => {
     try {
-      const { allCategories } = globalState;
-      const cats: ICat[] = [];
-      allCategories.forEach((c, id) => {
+      const { cats } = globalState;
+      const categories: ICat[] = [];
+      cats.forEach((c, id) => {
         if (c.kind === kind) {
           const cat: ICat = {
             id,
@@ -682,10 +701,10 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
             hasSubCategories: false,
             kind
           }
-          cats.push(cat);
+          categories.push(cat);
         }
       })
-      return cats;
+      return categories;
     }
     catch (error: any) {
       console.log(error)
@@ -898,7 +917,7 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
 
   return (
     <GlobalContext.Provider value={{
-      globalState, OpenDB, loadAllCategories, registerUser, signInUser, getUser, exportToJSON, health,
+      globalState, OpenDB, loadCats, registerUser, signInUser, getUser, exportToJSON, health,
       getSubCats, getCatsByKind, getQuestion, joinAssignedAnswers, getAnswer,
       getMaxConversation, addHistory, getAnswersRated
     }}>

@@ -6,8 +6,7 @@ import useInfiniteScroll from "react-infinite-scroll-hook";
 import { List, ListItem, Loading } from "common/components/InfiniteList";
 import QuestionRow from "categories/components/questions/QuestionRow";
 
-const QuestionList = ({ title, parentCategory, level }: IParentInfo) => {
-
+const QuestionList = ({ title, partitionKey, parentCategory, level }: IParentInfo) => {
   const pageSize = 100;
   const { canEdit } = useGlobalState();
 
@@ -16,12 +15,18 @@ const QuestionList = ({ title, parentCategory, level }: IParentInfo) => {
   const { categoryId, questionId } = parentNodes!;
 
   const category = categories.find(c => c.id === parentCategory)!
-  const { questions, numOfQuestions, hasMore } = category;
+  const { questions, numOfQuestions, hasMoreQuestions: hasMore } = category;
 
   async function loadMore() {
     try {
-      const includeQuestionId = parentNodes.questionId ? parseInt(parentNodes.questionId) : undefined;
-      await loadCategoryQuestions({ parentCategory, startCursor: questions.length, level: 0, includeQuestionId });
+      const parentInfo: IParentInfo = {
+        partitionKey,
+        parentCategory,
+        startCursor: questions.length,
+        includeQuestionId: parentNodes.questionId ?? null
+        //includeQuestionId: parentNodes.questionId ? parseInt(parentNodes.questionId) : null
+      }
+      await loadCategoryQuestions(parentInfo);
     }
     catch (error) {
     }
@@ -45,10 +50,10 @@ const QuestionList = ({ title, parentCategory, level }: IParentInfo) => {
   useEffect(() => {
     if (categoryId != null) {
       if (categoryId === parentCategory! && questionId) {
-          if (canEdit)
-            editQuestion({parentCategory, id: questionId})
-          else
-            viewQuestion({parentCategory, id: questionId})
+        if (canEdit)
+          editQuestion({ parentCategory, id: questionId })
+        else
+          viewQuestion({ parentCategory, id: questionId })
       }
     }
   }, [viewQuestion, parentCategory, categoryId, questionId, canEdit]);

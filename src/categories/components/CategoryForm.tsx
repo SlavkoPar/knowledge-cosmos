@@ -22,7 +22,7 @@ const CategoryForm = ({ inLine, mode, category, submitForm, children }: ICategor
   const editing = mode === FormMode.editing;
   const adding = mode === FormMode.adding;
 
-  const { id, title, variations, questions, kind } = category;
+  const { partitionKey, id, title, variations, questions, kind } = category;
 
   if (!document.getElementById('div-details')) {
 
@@ -150,7 +150,7 @@ const CategoryForm = ({ inLine, mode, category, submitForm, children }: ICategor
         <Form.Group>
           <Form.Label className="m-1 mb-0">Questions ({`${formik.values.numOfQuestions}`}) </Form.Label>
           {showQuestions &&
-            <QuestionList level={1} parentCategory={id} title={title} />
+            <QuestionList level={1} partitionKey={partitionKey} parentCategory={id} title={title}  />
           }
         </Form.Group>
 

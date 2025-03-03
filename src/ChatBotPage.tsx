@@ -48,7 +48,7 @@ const ChatBotPage: React.FC = () => {
 	const [conversation, setConversation] = useState<number | undefined>(undefined);
 
 	const { getCatsByKind, getMaxConversation, addHistory, getAnswersRated } = useGlobalContext();
-	const { dbp, canEdit, authUser, isDarkMode, variant, bg, allCategories } = useGlobalState();
+	const { dbp, canEdit, authUser, isDarkMode, variant, bg, cats } = useGlobalState();
 
 	const setParentCategory = (cat: ICategory) => {
 		alert(cat.title)
@@ -86,7 +86,7 @@ const ChatBotPage: React.FC = () => {
 			setCatOptions(await getCatsByKind(2));
 			setCatUsage(await getCatsByKind(3));
 		})()
-	}, [allCategories])
+	}, [cats])
 
 
 	if (catsOptions.length === 0)
@@ -343,7 +343,7 @@ const ChatBotPage: React.FC = () => {
 									dbp={dbp!}
 									tekst={tekst}
 									onSelectQuestion={onSelectQuestion}
-									allCategories={allCategories}
+									allCategories={cats}
 								/>
 							}
 						</div>

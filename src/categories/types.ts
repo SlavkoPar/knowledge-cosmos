@@ -76,10 +76,22 @@ export interface IQuestion extends IRecord {
 	included?: boolean;
 }
 
-export interface IQuestionKey {
+export interface ICategoryKey {
+	partitionKey: string;
 	id: string;
-	parentCategory: string;
 }
+
+export interface ICategoryKeyExtended extends ICategoryKey {
+	title: string;
+}
+
+
+export interface IQuestionKey {
+	parentCategory: string;
+	id: string;
+}
+
+
 
 
 export interface IVariation {
@@ -98,11 +110,11 @@ export interface ICategory extends IRecord {
 	variations: string[];
 	questions: IQuestion[];
 	numOfQuestions: number;
-	hasMore?: boolean;
+	hasMoreQuestions?: boolean;
 	isExpanded?: boolean;
 	hasSubCategories: boolean;
 	categories?: ICategory[]; // used for export to json
-	titlesUpTheTree?: string; 
+	titlesUpTheTree?: string;
 }
 
 
@@ -177,6 +189,7 @@ export interface ICategoryDto extends IRecordDto {
 	numOfQuestions: number;
 	hasSubCategories: boolean;
 	questions: IQuestionDto[];
+	hasMoreQuestions: boolean;
 }
 
 export interface ICategoryInfo {
@@ -186,20 +199,21 @@ export interface ICategoryInfo {
 
 
 export interface IParentInfo {
+	partitionKey: string | null,
 	parentCategory: string | null,
-	level: number,
+	startCursor?: number,
+	includeQuestionId?: string | null
+	level?: number,
 	title?: string, // to easier follow getting the list of sub-categories
 	inAdding?: boolean,
-	startCursor?: number,
-	includeQuestionId?: number
 }
 
 
 export interface ICategoriesState {
 	mode: string | null;
 	categories: ICategory[];
-	currentCategoryExpanded: string;
-	lastCategoryExpanded: string | null;
+	currentCategoryExpanded: ICategoryKey | null;
+	lastCategoryExpanded: ICategoryKey | null;
 	categoryId_questionId_done: string | null;
 	parentNodes: IParentCategories;
 	loading: boolean;
@@ -209,19 +223,19 @@ export interface ICategoriesState {
 
 export interface ICategoriesContext {
 	state: ICategoriesState,
-	reloadCategoryNode: (categoryId: string, questionId: string | null) => Promise<any>;
-	getSubCategories: ({ parentCategory, level }: IParentInfo) => void,
+	reloadCategoryNode: (categoryKey: ICategoryKey, questionId: string | null) => Promise<any>;
+	getSubCategories: (categoryKey: ICategoryKey) => void,
 	createCategory: (category: ICategory) => void,
-	viewCategory: (id: string, partitionKey: string) => void,
-	editCategory: (id: string, partitionKey: string) => void,
+	viewCategory: (categoryKey: ICategoryKey) => void,
+	editCategory: (categoryKey: ICategoryKey) => void,
 	updateCategory: (category: ICategory, closeForm: boolean) => void,
-	deleteCategory: (id: string) => void,
+	deleteCategory: (categoryKey: ICategoryKey) => void,
 	deleteCategoryVariation: (id: string, name: string) => void,
 	expandCategory: (category: ICategory, expand: boolean) => void,
 	//////////////
 	// questions
 	//getCategoryQuestions: ({ parentCategory, level, inAdding }: IParentInfo) => void,
-	loadCategoryQuestions: ({ parentCategory }: IParentInfo) => void,
+	loadCategoryQuestions: (parentInfo: IParentInfo) => void,
 	createQuestion: (question: IQuestion, fromModal: boolean) => Promise<any>;
 	viewQuestion: (iquestionKey: IQuestionKey) => void;
 	editQuestion: (questionKey: IQuestionKey) => void;
@@ -253,7 +267,9 @@ export interface IQuestionFormProps {
 export interface IParentCategories {
 	categoryId: string | null;
 	questionId: string | null;
-	parentNodesIds: string[] | null;
+	//parentNodesIds: string[] | null;
+	parentNodesIds: ICategoryKeyExtended[] | null;
+
 }
 
 
@@ -347,7 +363,7 @@ export type CategoriesPayload = {
 	[ActionTypes.CANCEL_CATEGORY_FORM]: undefined;
 
 	[ActionTypes.SET_EXPANDED]: {
-		id: string;
+		categoryKey: ICategoryKey;
 		expanding: boolean;
 	}
 
@@ -360,7 +376,7 @@ export type CategoriesPayload = {
 	[ActionTypes.LOAD_CATEGORY_QUESTIONS]: {
 		parentCategory: string | null,
 		questions: IQuestion[],
-		hasMore: boolean
+		hasMoreQuestions: boolean
 	};
 
 	[ActionTypes.ADD_QUESTION]: {

@@ -76,8 +76,7 @@ export enum ROLES {
 
 export interface ICat {
 	id: string;
-	parentCategory: string | null; // | null is a valid value so you can store data with null value in indexeddb 
-	// but it is not a valid key
+	parentCategory: string | null;
 	title: string;
 	words: string[];
 	titlesUpTheTree: string; // traverse up the tree, until root
@@ -108,7 +107,7 @@ export interface IGlobalState {
 	bg: string,
 	loading: boolean;
 	error?: Error;
-	allCategories: Map<string, ICat>;
+	cats: Map<string, ICat>;
 }
 
 export interface IGlobalStateFromLocalStorage {
@@ -132,7 +131,7 @@ export interface IGlobalContext {
 	registerUser: (regUser: IRegisterUser, isOwner: boolean, dbp: IDBPDatabase | null) => Promise<any>;
 	signInUser: (loginUser: ILoginUser) => Promise<any>;
 	OpenDB: () => Promise<any>;
-	loadAllCategories: (dbp: IDBPDatabase) => void;
+	loadCats: (dbp: IDBPDatabase) => void;
 	exportToJSON: (category: ICategory, parentCategory: string) => void;
 	health: () => void;
 	getSubCats: ({ parentCategory, level }: IParentInfo) => Promise<any>;
@@ -219,7 +218,7 @@ export type GlobalPayload = {
 	[GlobalActionTypes.SET_REGISTRATION_CONFIRMED]: undefined;
 
 	[GlobalActionTypes.SET_ALL_CATEGORIES]: {
-		categories: Map<string, ICategory> // ICat>
+		cats: Map<string, ICat>
 	};
 
 	[GlobalActionTypes.SET_QUESTION_AFTER_ASSIGN_ANSWER]: {

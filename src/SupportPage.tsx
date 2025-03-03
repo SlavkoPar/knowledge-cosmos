@@ -35,7 +35,7 @@ const SupportPage: React.FC = () => {
 	}
 
 
-	const { dbp, canEdit, authUser, isDarkMode, variant, bg, allCategories } = useGlobalState();
+	const { dbp, canEdit, authUser, isDarkMode, variant, bg, cats } = useGlobalState();
 
 	useEffect(() => {
 		(async () => {
@@ -59,7 +59,7 @@ const SupportPage: React.FC = () => {
 								dbp={dbp!}
 								tekst={tekst}
 								onSelectQuestion={onSelectQuestion}
-								allCategories={allCategories}
+								allCategories={cats}
 							/>
 						</div>
 						<Button

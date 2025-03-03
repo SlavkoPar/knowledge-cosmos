@@ -23,7 +23,7 @@ const initGlobalState: IGlobalState = {
     variant: 'dark',
     bg: 'dark',
     loading: false,
-    allCategories: new Map<string, ICat>
+    cats: new Map<string, ICat>()
 }
 
 let globalStateFromLocalStorage: IGlobalStateFromLocalStorage | undefined;
@@ -181,11 +181,11 @@ const reducer: Reducer<IGlobalState, GlobalActions> = (state, action) => {
             return { ...state, isDarkMode: true, variant: 'dark', bg: 'dark' };
 
         case GlobalActionTypes.SET_ALL_CATEGORIES: {
-            const { categories } = action.payload;
+            const { cats } = action.payload;
             //console.log("SET_CATEGORY_TAGS", allCategories)
             return {
                 ...state,
-                categories
+                cats
             };
         }
 

@@ -6,7 +6,9 @@ import {
   IAssignedAnswer, ICategoryDto, IQuestionDto,
   Category,
   Question,
-  IQuestionKey
+  IQuestionKey,
+  ICategoryKey,
+  ICategoryKeyExtended
 } from 'categories/types';
 
 import { initialCategoriesState, CategoriesReducer } from 'categories/CategoriesReducer';
@@ -30,8 +32,9 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
   const { parentNodes } = state;
   const { parentNodesIds } = parentNodes!;
 
-  const reloadCategoryNode = useCallback(async (categoryId: string, questionId: string | null): Promise<any> => {
+  const reloadCategoryNodeWAS = useCallback(async (categoryKey: ICategoryKey | null, questionId: string | null): Promise<any> => {
     try {
+      const { partitionKey, id: categoryId } = categoryKey!;
       const ids: { id: string, title: string }[] = [];
       let category = await dbp!.get("Categories", categoryId);
       if (category) {
@@ -43,30 +46,15 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
           ids.push({ id: category.id, title: category.title })
         }
       }
-      dispatch({
-        type: ActionTypes.SET_PARENT_CATEGORIES, payload: {
-          parentNodes: {
-            categoryId,
-            questionId,
-            parentNodesIds: ids.map(c => c.id)
-          }
-        }
-      })
-
-      // const res = await axios.get(`/api/categories/get-parent-categories/${categoryId}`);
-      // const { status, data } = res;
-      // if (status === 200) {
-      //   console.log('!!! get-parent-categories', { cId: categoryId.toString(), data })
-      //   dispatch({
-      //     type: ActionTypes.SET_PARENT_CATEGORIES, payload: {
-      //       parentNodes: {
-      //         categoryId,
-      //         questionId,
-      //         parentNodesIds: data.map((c: { _id: string, title: string }) => c._id)
-      //       }
+      // dispatch({
+      //   type: ActionTypes.SET_PARENT_CATEGORIES, payload: {
+      //     parentNodes: {
+      //       categoryId,
+      //       questionId,
+      //       parentNodesIds: ids.map(c => c.id)
       //     }
-      //   })
-      // }
+      //   }
+      // })
     }
     catch (err) {
       console.error(err);
@@ -75,23 +63,52 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
   }, [dispatch]);
 
 
-
-  const getSubCategories = useCallback(async ({ parentCategory, level }: IParentInfo) => {
-    //const url = `/api/categories/${wsId}-${parentCategory}`
+  const reloadCategoryNode = useCallback(async (categoryKey: ICategoryKey | null, questionId: string | null): Promise<any> => {
     try {
-      // const tx = dbp!.transaction('Categories')
-      // const index = tx.store.index('parentCategory_idx');
-      // const list: ICategory[] = [];
-      // for await (const cursor of index.iterate(parentCategory)) {
-      //   const category: ICategory = cursor.value;
-      //   console.log(category);
-      //   //const index = tx.store.index('parentCategory_idx');
-      //   // const arr = await index.getAllKeys(category.id);
-      //   // category.hasSubCategories = arr.length > 0;
-      //   list.push(category);
-      // }
-      // await tx.done;
-      const url = `https://localhost:7005/api/Category/${parentCategory}`;
+      const { partitionKey, id } = categoryKey!;
+      const upTheTree = true;
+      let url = `https://localhost:7005/api/Cat/${partitionKey}/${id}/${upTheTree}`;
+      //console.log(`FETCHING --->>> ${url}`)
+      //dispatch({ type: ActionTypes.SET_LOADING })
+      console.time()
+      axios
+        .get(url, {
+          withCredentials: false,
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': "*"
+          }
+        })
+        .then(({ data }) => {
+          console.timeEnd();
+          const ids: ICategoryKeyExtended[] = [];
+          data.forEach((categoryDto: ICategoryDto) => {
+            const { partitionKey, id, title } = categoryDto;
+            ids.push({ partitionKey, id, title })
+          });
+          dispatch({
+            type: ActionTypes.SET_PARENT_CATEGORIES, payload: {
+              parentNodes: {
+                categoryId: id,
+                questionId,
+                parentNodesIds: ids //.map(c => c.id)
+              }
+            }
+          })
+        })
+        .catch((error) => {
+          console.log('FETCHING --->>>', error);
+        });
+    }
+    catch (error: any) {
+      console.log(error)
+      dispatch({ type: ActionTypes.SET_ERROR, payload: { error } });
+    }
+  }, [dispatch]);
+
+  const getSubCategories = useCallback(async ({ partitionKey, id: parentCategory }: ICategoryKey) => {
+    try {
+      const url = `https://localhost:7005/api/Category/${partitionKey}/${parentCategory}`;
       //console.log(`FETCHING --->>> ${url}`)
       //dispatch({ type: ActionTypes.SET_LOADING })
       console.time()
@@ -109,7 +126,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
           data.forEach((categoryDto: ICategoryDto) => categories.push(new Category(categoryDto).category));
           const subCategories = categories.map((c: ICategory) => ({
             ...c,
-            isExpanded: parentNodesIds ? parentNodesIds.includes(c.id) : false
+            isExpanded: parentNodesIds ? parentNodesIds.map(x => x.id).includes(c.id) : false
           }))
           dispatch({ type: ActionTypes.SET_SUB_CATEGORIES, payload: { subCategories } });
         })
@@ -147,15 +164,11 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
     dispatch({ type, payload: { category: { ...category } } });
   };
 
-  const getCategory = async (id: string, partitionKey: string, type: ActionTypes.VIEW_CATEGORY | ActionTypes.EDIT_CATEGORY) => {
+  const getCategory = async (categoryKey: ICategoryKey, type: ActionTypes.VIEW_CATEGORY | ActionTypes.EDIT_CATEGORY) => {
     dispatch({ type: ActionTypes.SET_LOADING });
-    if (!dbp) { 
-      dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error("db is null") } });
-      return;
-    }
-
     try {
-      const url = `https://localhost:7005/api/Category/${id}/${partitionKey}/true`;
+      const { partitionKey, id } = categoryKey;
+      const url = `https://localhost:7005/api/Category/${partitionKey}/${id}/${PAGE_SIZE}/null`;
       //console.log(`FETCHING --->>> ${url}`)
       //dispatch({ type: ActionTypes.SET_LOADING })
       console.time()
@@ -182,7 +195,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
       console.log(error)
       dispatch({ type: ActionTypes.SET_ERROR, payload: { error } });
     }
-    
+
     // const category: ICategory = await dbp.get("Categories", id);
     // //      hasMore: true
     // dispatch({
@@ -191,12 +204,12 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
     // });
   };
 
-  const viewCategory = useCallback((id: string, partitionKey: string) => {
-    getCategory(id, partitionKey, ActionTypes.VIEW_CATEGORY)
+  const viewCategory = useCallback((categoryKey: ICategoryKey) => {
+    getCategory(categoryKey, ActionTypes.VIEW_CATEGORY)
   }, []);
 
-  const editCategory = useCallback((id: string, partitionKey: string) => {
-    getCategory(id, partitionKey, ActionTypes.EDIT_CATEGORY)
+  const editCategory = useCallback((categoryKey: ICategoryKey) => {
+    getCategory(categoryKey, ActionTypes.EDIT_CATEGORY)
   }, []);
 
   const updateCategory = useCallback(async (c: ICategory, closeForm: boolean) => {
@@ -224,7 +237,8 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
     }
   }, []);
 
-  const deleteCategory = async (id: string) => {
+  const deleteCategory = async (categoryKey: ICategoryKey) => {
+    const { partitionKey, id } = categoryKey
     try {
       const category = await dbp!.delete('Categories', id);
       console.log("Category successfully deleted");
@@ -260,12 +274,12 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
 
 
   const expandCategory = async (category: ICategory, expanding: boolean) => {
-    const { id, numOfQuestions, questions } = category;
+    const { partitionKey, id, numOfQuestions, questions } = category;
     try {
       // if (numOfQuestions > 0 && questions.length === 0) {
       //   await loadCategoryQuestions({ parentCategory: id, startCursor: 0, level: 0 });
       // }
-      dispatch({ type: ActionTypes.SET_EXPANDED, payload: { id, expanding } });
+      dispatch({ type: ActionTypes.SET_EXPANDED, payload: { categoryKey: { partitionKey, id }, expanding } });
     }
     catch (error: any) {
       console.log('error', error);
@@ -278,15 +292,15 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
   // Questions
   //
 
-  const pageSize = 12;
-  const loadCategoryQuestions = useCallback(async ({ parentCategory, startCursor, includeQuestionId }: IParentInfo)
+  const PAGE_SIZE = 12;
+  const loadCategoryQuestionsWAS = useCallback(async ({ parentCategory, startCursor, includeQuestionId }: IParentInfo)
     : Promise<any> => {
     const questions: IQuestion[] = [];
     try {
       dispatch({ type: ActionTypes.SET_CATEGORY_QUESTIONS_LOADING, payload: { questionLoading: true } }) // id: parentCategory,
       let n = 0;
       let included = false;
-      let hasMore = false;
+      let hasMoreQuestions = false;
       let advanced = false;
       console.time();
       const tx = dbp!.transaction('Questions', 'readonly');
@@ -303,8 +317,8 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
           }
           questions.push({ ...cursor.value, id, included });
           n++;
-          if (n >= pageSize && (includeQuestionId ? included : true)) {
-            hasMore = true;
+          if (n >= PAGE_SIZE && (includeQuestionId ? included : true)) {
+            hasMoreQuestions = true;
             break;
           }
         }
@@ -312,7 +326,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
       await tx.done;
       console.log('>>>loadCategoryQuestions of:', parentCategory, questions)
       console.timeEnd();
-      await dispatch({ type: ActionTypes.LOAD_CATEGORY_QUESTIONS, payload: { parentCategory, questions, hasMore } });
+      await dispatch({ type: ActionTypes.LOAD_CATEGORY_QUESTIONS, payload: { parentCategory, questions, hasMoreQuestions } });
     }
     catch (error: any) {
       console.log(error);
@@ -321,6 +335,56 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
     }
     return true;
 
+  }, []);
+
+  const loadCategoryQuestions = useCallback(async ({ parentCategory, startCursor, includeQuestionId }: IParentInfo)
+    : Promise<any> => {
+    const questions: IQuestion[] = [];
+    try {
+      dispatch({ type: ActionTypes.SET_CATEGORY_QUESTIONS_LOADING, payload: { questionLoading: true } }) // id: parentCategory,
+      try {
+        //const { parentCategory, id } = questionKey;
+        const url = `https://localhost:7005/api/Question/${parentCategory}/${startCursor}/${PAGE_SIZE}/null`;
+        //console.log(`FETCHING --->>> ${url}`)
+        //dispatch({ type: ActionTypes.SET_LOADING })
+        console.time()
+        axios
+          .get(url, {
+            withCredentials: false,
+            headers: {
+              'Content-Type': 'application/json',
+              'Access-Control-Allow-Origin': "*"
+            }
+          })
+          .then(async ({ data }) => {
+            const categoryDto: ICategoryDto = data;
+            const { questions: questionDtos, hasMoreQuestions } = categoryDto;
+            //const category = new Category(data).category;
+            console.timeEnd();
+            questionDtos.forEach((questionDto: IQuestionDto) => {
+              const question = new Question(questionDto, parentCategory!).question;
+              question.categoryTitle = 'nadji me';
+              questions.push(question)
+            })
+            await dispatch({ type: ActionTypes.LOAD_CATEGORY_QUESTIONS, payload: { parentCategory, questions, hasMoreQuestions } });
+          })
+          .catch((error) => {
+            console.log('FETCHING --->>>', error);
+          });
+      }
+      catch (error: any) {
+        console.log(error)
+        dispatch({ type: ActionTypes.SET_ERROR, payload: { error } });
+      }
+      console.log('>>>loadCategoryQuestions of:', parentCategory, questions)
+      console.timeEnd();
+    }
+    catch (error: any) {
+      console.log(error);
+      dispatch({ type: ActionTypes.SET_ERROR, payload: error });
+      dispatch({ type: ActionTypes.SET_CATEGORY_QUESTIONS_LOADING, payload: { questionLoading: false } })
+    }
+    return true;
   }, []);
 
 
@@ -353,55 +417,54 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
 
   const getQuestion = async (questionKey: IQuestionKey, type: ActionTypes.VIEW_QUESTION | ActionTypes.EDIT_QUESTION) => {
     // const url = `/api/questions/get-question/${id}`;
+    //try {
+    //const question: IQuestion = await dbp!.get("Questions", id);
+    //const { parentCategory } = question;
+    //const category: ICategory = await dbp!.get("Categories", parentCategory)
+    //question.id = id;
     try {
-      //const question: IQuestion = await dbp!.get("Questions", id);
-      //const { parentCategory } = question;
-      //const category: ICategory = await dbp!.get("Categories", parentCategory)
-      //question.id = id;
-      try {
-        const { parentCategory, id } = questionKey;
-        const url = `https://localhost:7005/api/Question/${parentCategory}/${id}`;
-        //console.log(`FETCHING --->>> ${url}`)
-        //dispatch({ type: ActionTypes.SET_LOADING })
-        console.time()
-        axios
-          .get(url, {
-            withCredentials: false,
-            headers: {
-              'Content-Type': 'application/json',
-              'Access-Control-Allow-Origin': "*"
-            }
-          })
-          .then(({ data: questionDto }) => {
-            const categories: ICategory[] = [];
-            console.timeEnd();
-            const question: IQuestion = new Question(questionDto, parentCategory).question;
-            question.categoryTitle = 'nadji me';
-            dispatch({ type, payload: { question } });
-          })
-          .catch((error) => {
-            console.log('FETCHING --->>>', error);
-          });
-      }
-      catch (error: any) {
-        console.log(error)
-        dispatch({ type: ActionTypes.SET_ERROR, payload: { error } });
-      }
-
-      // const { fromUserAssignedAnswer } = question;
-      // if (fromUserAssignedAnswer) {
-      //   question.questionAnswers.forEach(questionAnswer => {
-      //     const user = fromUserAssignedAnswer!.find((fromUser: IFromUserAssignedAnswer) =>
-      //       fromUser.id === questionAnswer.assigned.by.userId);
-      //     questionAnswer.user.createdBy = user ? user.createdBy : 'unknown'
-      //   })
-      //   delete question.fromUserAssignedAnswer;
-      // }
+      const { parentCategory, id } = questionKey;
+      const url = `https://localhost:7005/api/Question/${parentCategory}/${id}`;
+      //console.log(`FETCHING --->>> ${url}`)
+      //dispatch({ type: ActionTypes.SET_LOADING })
+      console.time()
+      axios
+        .get(url, {
+          withCredentials: false,
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': "*"
+          }
+        })
+        .then(({ data: questionDto }) => {
+          const categories: ICategory[] = [];
+          console.timeEnd();
+          const question: IQuestion = new Question(questionDto, parentCategory).question;
+          question.categoryTitle = 'nadji me';
+          dispatch({ type, payload: { question } });
+        })
+        .catch((error) => {
+          console.log('FETCHING --->>>', error);
+        });
     }
     catch (error: any) {
-      console.log(error);
-      dispatch({ type: ActionTypes.SET_ERROR, payload: error });
+      console.log(error)
+      dispatch({ type: ActionTypes.SET_ERROR, payload: { error } });
     }
+    // const { fromUserAssignedAnswer } = question;
+    // if (fromUserAssignedAnswer) {
+    //   question.questionAnswers.forEach(questionAnswer => {
+    //     const user = fromUserAssignedAnswer!.find((fromUser: IFromUserAssignedAnswer) =>
+    //       fromUser.id === questionAnswer.assigned.by.userId);
+    //     questionAnswer.user.createdBy = user ? user.createdBy : 'unknown'
+    //   })
+    //   delete question.fromUserAssignedAnswer;
+    // }
+    // }
+    // catch (error: any) {
+    //   console.log(error);
+    //   dispatch({ type: ActionTypes.SET_ERROR, payload: error });
+    // }
 
     //console.log(`FETCHING --->>> ${url}`)
     // dispatch({ type: ActionTypes.SET_LOADING })
@@ -518,7 +581,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
       // newAssignedAnwser.answer.title = answer.title;
       // obj.assignedAnswers = [...question.assignedAnswers, newAssignedAnwser];;
       // dispatch({ type: ActionTypes.SET_QUESTION, payload: { question: obj } });
-      dispatch({ type: ActionTypes.SET_QUESTION_AFTER_ASSIGN_ANSWER, payload: { question: {...obj } } });
+      dispatch({ type: ActionTypes.SET_QUESTION_AFTER_ASSIGN_ANSWER, payload: { question: { ...obj } } });
     }
     catch (error: any) {
       console.log('error', error);
@@ -540,7 +603,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
       }
       await dbp!.put('Questions', obj, questionId);
       console.log("Question Answer successfully assigned");
-      dispatch({ type: ActionTypes.SET_QUESTION_AFTER_ASSIGN_ANSWER, payload: { question: {...obj} } });
+      dispatch({ type: ActionTypes.SET_QUESTION_AFTER_ASSIGN_ANSWER, payload: { question: { ...obj } } });
       return obj;
     }
     catch (error: any) {

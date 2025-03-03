@@ -7,7 +7,7 @@ import QPlus from 'assets/QPlus.png';
 import { ListGroup, Button, Badge } from "react-bootstrap";
 
 import { useGlobalState } from 'global/GlobalProvider'
-import { ActionTypes, ICategoryInfo, Mode } from "categories/types";
+import { ActionTypes, ICategoryInfo, ICategoryKey, IParentInfo, Mode } from "categories/types";
 import { useCategoryContext, useCategoryDispatch } from 'categories/CategoryProvider'
 import { useHover } from 'common/components/useHover';
 import { ICategory } from 'categories/types'
@@ -19,7 +19,15 @@ import ViewCategory from "categories/components/ViewCategory";
 import QuestionList from './questions/QuestionList';
 
 const CategoryRow = ({ category }: { category: ICategory }) => {
-    const { id, partitionKey, title, level, inViewing, inEditing, inAdding, hasSubCategories, questions, numOfQuestions, isExpanded } = category;
+    const { partitionKey, id, title, level, inViewing, inEditing, inAdding, hasSubCategories, questions, numOfQuestions, isExpanded } = category;
+    const categoryKey: ICategoryKey = { partitionKey, id }
+    const parentInfo: IParentInfo = { 
+        partitionKey,
+        parentCategory: id,
+        includeQuestionId: null,
+        level,
+        title 
+    }
 
     const { canEdit, isDarkMode, variant, bg } = useGlobalState();
 
@@ -31,7 +39,7 @@ const CategoryRow = ({ category }: { category: ICategory }) => {
     const showQuestions = numOfQuestions > 0 || questions.find(q => q.inAdding) // && !questions.find(q => q.inAdding); // We don't have questions loaded
 
     const del = () => {
-        deleteCategory(id);
+        deleteCategory(categoryKey);
     };
 
     const expand = (id: string) => {
@@ -42,17 +50,17 @@ const CategoryRow = ({ category }: { category: ICategory }) => {
         //     dispatch({ type: ActionTypes.CLEAN_SUB_TREE, payload: { id } })
     }
 
-    const edit = (id: string) => {
+    const edit = () => {
         // Load data from server and reinitialize category
-        editCategory(id, partitionKey);
+        editCategory(categoryKey);
     }
 
-    const onSelectCategory = (id: string) => {
+    const onSelectCategory = () => {
         // Load data from server and reinitialize category
         if (canEdit)
-            editCategory(id, partitionKey);
+            editCategory(categoryKey);
         else
-            viewCategory(id, partitionKey);
+            viewCategory(categoryKey);
     }
 
     const [hoverRef, hoverProps] = useHover();
@@ -74,7 +82,7 @@ const CategoryRow = ({ category }: { category: ICategory }) => {
                 size="sm"
                 className={`py-0 mx-0 text-decoration-none ${(inViewing || inEditing) ? 'fw-bold' : ''}`}
                 title={id!.toString()}
-                onClick={() => onSelectCategory(id!)}
+                onClick={onSelectCategory}
                 disabled={alreadyAdding}
             >
                 {title}
@@ -181,9 +189,9 @@ const CategoryRow = ({ category }: { category: ICategory }) => {
                 >
                     {isExpanded &&
                         <>
-                            <CategoryList level={level + 1} parentCategory={id} title={title} />
+                            <CategoryList level={level + 1} partitionKey={partitionKey} parentCategory={id} title={title} />
                             {showQuestions &&
-                                <QuestionList level={level + 1} parentCategory={id} title={title} />
+                                <QuestionList level={level + 1} partitionKey={partitionKey} parentCategory={id} title={title}  />
                             }
                         </>
                     }

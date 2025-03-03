@@ -27,7 +27,7 @@ export const initialCategory: ICategory = {
   hasSubCategories: false,
   questions: [],
   numOfQuestions: 0,
-  hasMore: false,
+  hasMoreQuestions: false,
   isExpanded: false,
   archived: false
 }
@@ -35,7 +35,7 @@ export const initialCategory: ICategory = {
 export const initialState: ICategoriesState = {
   mode: Mode.NULL,
   categories: [],
-  currentCategoryExpanded: '',
+  currentCategoryExpanded: null,
   lastCategoryExpanded: null,
   categoryId_questionId_done: null,
   parentNodes: {
@@ -184,10 +184,11 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
       const category: ICategory = {
         ...initialCategory,
         title: '',
-        level: level + 1,
+        level: 765, //level + 1,  //TODO
         parentCategory: parentCategory ?? 'null',
         inAdding: true
       }
+
       return {
         ...state,
         categories: [...state.categories, category],
@@ -234,7 +235,8 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
       return {
         ...state,
         categories: state.categories.map(c => c.id === category.id
-          ? { ...category, questions: c.questions, inViewing: true, isExpanded: c.isExpanded } // category.questions are inside of object
+          //? { ...category, questions: c.questions, inViewing: true, isExpanded: c.isExpanded } // category.questions are inside of object
+          ? { ...category, inViewing: true, isExpanded: c.isExpanded } // category.questions are inside of object
           : { ...c, inViewing: false }
         ),
         mode: Mode.ViewingCategory,
@@ -247,7 +249,8 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
       return {
         ...state,
         categories: state.categories.map(c => c.id === category.id
-          ? { ...category, questions: c.questions, inEditing: true, isExpanded: false } //c.isExpanded }
+          //? { ...category, questions: c.questions, inEditing: true, isExpanded: false } //c.isExpanded }
+          ? { ...category, inEditing: true, isExpanded: false } //c.isExpanded }
           : { ...c, inEditing: false }
         ),
         mode: Mode.EditingCategory,
@@ -256,7 +259,7 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
     }
 
     case ActionTypes.LOAD_CATEGORY_QUESTIONS: {
-      const { parentCategory, questions, hasMore } = action.payload; // category doesn't contain inViewing, inEditing, inAdding 
+      const { parentCategory, questions, hasMoreQuestions } = action.payload; // category doesn't contain inViewing, inEditing, inAdding 
       const category = state.categories.find(c => c.id === parentCategory);
       //if (questions.length > 0 && category!.questions.map(q => q.id).includes(questions[0].id)) {
       // privremeno  TODO  uradi isto i u group/answers
@@ -284,7 +287,7 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
                 inEditing: state.mode === Mode.EditingQuestion
               }
               : q))),
-            hasMore,
+            hasMoreQuestions,
             inViewing: c.inViewing,
             inEditing: c.inEditing,
             inAdding: c.inAdding,
@@ -318,7 +321,8 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
     }
 
     case ActionTypes.SET_EXPANDED: {
-      const { id, expanding } = action.payload;
+      const { categoryKey, expanding } = action.payload;
+      const { partitionKey, id } = categoryKey;
       let { categories } = state;
       if (!expanding) {
         const arr = markForClean(categories, id!)
@@ -335,7 +339,7 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
           : c
         ),
         mode: expanding ? Mode.NULL : state.mode,// expanding ? state.mode : Mode.NULL,  // TODO  close form only if inside of colapsed node
-        currentCategoryExpanded: expanding ? id : state.currentCategoryExpanded
+        currentCategoryExpanded: expanding ? categoryKey : state.currentCategoryExpanded
       };
     }
 
@@ -468,7 +472,7 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
 
     case ActionTypes.DELETE_QUESTION: {
       const { questionKey } = action.payload;
-      const { parentCategory, id }  = questionKey
+      const { parentCategory, id } = questionKey
       return {
         ...state,
         categories: state.categories.map(c => c.id === parentCategory

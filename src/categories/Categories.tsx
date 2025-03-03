@@ -54,7 +54,7 @@ const Providered = ({ categoryId_questionId }: IProps) => {
                     const arr = categoryId_questionId.split('_');
                     const categoryId = arr[0];
                     const questionId = arr[1];
-                    await reloadCategoryNode(categoryId, questionId);
+                    await reloadCategoryNode({ partitionKey: 'TODO', id:categoryId}, questionId);
                 }
             }
             else if (lastCategoryExpanded) {
@@ -65,7 +65,7 @@ const Providered = ({ categoryId_questionId }: IProps) => {
 
     if (categoryId_questionId !== 'add_question') {
         if (lastCategoryExpanded || (categoryId_questionId && categoryId_questionId !== categoryId_questionId_done))
-            return <div>`loading...${lastCategoryExpanded} ${categoryId_questionId} ${categoryId_questionId_done}`</div>
+            return <div>`loading...${lastCategoryExpanded?.id} ${categoryId_questionId} ${categoryId_questionId_done}`</div>
     }
 
     return (
@@ -86,7 +86,7 @@ const Providered = ({ categoryId_questionId }: IProps) => {
                 <Row className="my-1">
                     <Col xs={12} md={5}>
                         <div>
-                            <CategoryList parentCategory={null} level={1} title="root" />
+                            <CategoryList partitionKey={null} parentCategory={null} level={1} title="root" />
                         </div>
                     </Col>
                     <Col xs={0} md={7}>
