@@ -15,7 +15,7 @@ const QuestionList = ({ title, partitionKey, parentCategory, level }: IParentInf
   const { categoryId, questionId } = parentNodes!;
 
   const category = categories.find(c => c.id === parentCategory)!
-  const { questions, numOfQuestions, hasMoreQuestions: hasMore } = category;
+  const { questions, numOfQuestions, hasMoreQuestions } = category;
 
   async function loadMore() {
     try {
@@ -35,13 +35,13 @@ const QuestionList = ({ title, partitionKey, parentCategory, level }: IParentInf
   }
 
   useEffect(() => {
-    if (numOfQuestions > 0 && questions.length === 0)
+    if (numOfQuestions > 0) // TODO && questions.length === 0)
       loadMore();
   }, [])
 
   const [infiniteRef, { rootRef }] = useInfiniteScroll({
     loading: questionLoading,
-    hasNextPage: hasMore!,
+    hasNextPage: hasMoreQuestions!,
     onLoadMore: loadMore,
     disabled: Boolean(error),
     rootMargin: '0px 0px 100px 0px',
@@ -79,7 +79,7 @@ const QuestionList = ({ title, partitionKey, parentCategory, level }: IParentInf
             />
           </ListItem>
         })}
-        {hasMore && (
+        {hasMoreQuestions && (
           <ListItem ref={infiniteRef}>
             <Loading />
           </ListItem>

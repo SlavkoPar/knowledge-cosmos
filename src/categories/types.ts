@@ -121,15 +121,15 @@ export interface ICategory extends IRecord {
 export class Question {
 	constructor(dto: IQuestionDto, parentCategory: string) {
 		this.question = {
-			parentCategory,
-			id: dto.id,
-			title: dto.title,
-			assignedAnswers: [], // TODO
+			parentCategory: dto.ParentCategory,
+			id: dto.Id,
+			title: dto.Title,
+			assignedAnswers: [], //dto.AssignedAnswers, // TODO
 			numOfAssignedAnswers: 0,
-			source: dto.source,
-			status: dto.status,
-			created: new WhoWhen2DateAndBy(dto.created).dateAndBy,
-			modified: new WhoWhen2DateAndBy(dto.modified).dateAndBy,
+			source: dto.Source,
+			status: dto.Status,
+			created: new WhoWhen2DateAndBy(dto.Created).dateAndBy,
+			modified: new WhoWhen2DateAndBy(dto.Modified).dateAndBy,
 			archived: false
 		}
 	}
@@ -139,25 +139,23 @@ export class Question {
 
 export class Category {
 	constructor(dto: ICategoryDto) {
-		let questions: IQuestion[] = [];
-		if (dto.questions) {
-			questions = dto.questions.map(questionDto => new Question(questionDto, dto.id).question);
-		}
 		this.category = {
-			partitionKey: dto.partitionKey,
-			id: dto.id,
-			kind: dto.kind,
-			parentCategory: dto.parentCategory,
-			title: dto.title,
+			partitionKey: dto.PartitionKey,
+			id: dto.Id,
+			kind: dto.Kind,
+			parentCategory: dto.ParentCategory,
+			title: dto.Title,
 			// words: string[];
-			level: dto.level,
-			variations: dto.variations,
-			numOfQuestions: dto.numOfQuestions,
-			hasSubCategories: dto.hasSubCategories,
-			created: new WhoWhen2DateAndBy(dto.created).dateAndBy,
-			modified: new WhoWhen2DateAndBy(dto.modified).dateAndBy,
+			level: dto.Level,
+			variations: dto.Variations,
+			numOfQuestions: dto.NumOfQuestions,
+			hasSubCategories: dto.HasSubCategories,
+			created: new WhoWhen2DateAndBy(dto.Created).dateAndBy,
+			modified: new WhoWhen2DateAndBy(dto.Modified).dateAndBy,
 			archived: false,
-			questions
+			questions: dto.Questions
+				? dto.Questions.map(questionDto => new Question(questionDto, dto.Id).question)
+				: []
 		}
 	}
 	category: ICategory
@@ -166,37 +164,36 @@ export class Category {
 
 export interface IQuestionDto extends IRecordDto {
 	//partitionKey: string;
-	id: string;
-	parentCategory: string;
+	Id: string;
+	ParentCategory: string;
 	// but it is not a valid key
-	title: string;
-	assignedAnswers: number[];
-	variations: string[];
-	source: number;
-	status: number;
+	Title: string;
+	AssignedAnswers: number[];
+	// Variations: string[];
+	Source: number;
+	Status: number;
 }
 
 export interface ICategoryDto extends IRecordDto {
-	partitionKey: string;
-	id: string;
-	kind: number;
-	parentCategory: string | null;
+	PartitionKey: string;
+	Id: string;
+	Kind: number;
+	ParentCategory: string | null;
 	// but it is not a valid key
-	title: string;
+	Title: string;
 	// words: string[];
-	level: number;
-	variations: string[];
-	numOfQuestions: number;
-	hasSubCategories: boolean;
-	questions: IQuestionDto[];
-	hasMoreQuestions: boolean;
+	Level: number;
+	Variations: string[];
+	NumOfQuestions: number;
+	HasSubCategories: boolean;
+	Questions: IQuestionDto[];
+	HasMoreQuestions: boolean;
 }
 
 export interface ICategoryInfo {
 	id: string,
 	level: number
 }
-
 
 export interface IParentInfo {
 	partitionKey: string | null,

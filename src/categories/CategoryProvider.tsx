@@ -66,8 +66,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
   const reloadCategoryNode = useCallback(async (categoryKey: ICategoryKey | null, questionId: string | null): Promise<any> => {
     try {
       const { partitionKey, id } = categoryKey!;
-      const upTheTree = true;
-      let url = `https://localhost:7005/api/Cat/${partitionKey}/${id}/${upTheTree}`;
+      let url = `https://localhost:7005/api/Cat/${partitionKey}/${id}`;
       //console.log(`FETCHING --->>> ${url}`)
       //dispatch({ type: ActionTypes.SET_LOADING })
       console.time()
@@ -83,7 +82,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
           console.timeEnd();
           const ids: ICategoryKeyExtended[] = [];
           data.forEach((categoryDto: ICategoryDto) => {
-            const { partitionKey, id, title } = categoryDto;
+            const { PartitionKey: partitionKey, Id: id, Title: title } = categoryDto;
             ids.push({ partitionKey, id, title })
           });
           dispatch({
@@ -358,15 +357,17 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
           })
           .then(async ({ data }) => {
             const categoryDto: ICategoryDto = data;
-            const { questions: questionDtos, hasMoreQuestions } = categoryDto;
-            //const category = new Category(data).category;
+            const { Questions: questionDtos, HasMoreQuestions: hasMoreQuestions } = categoryDto;
             console.timeEnd();
             questionDtos.forEach((questionDto: IQuestionDto) => {
               const question = new Question(questionDto, parentCategory!).question;
               question.categoryTitle = 'nadji me';
-              questions.push(question)
+              questions.push(question);
             })
-            await dispatch({ type: ActionTypes.LOAD_CATEGORY_QUESTIONS, payload: { parentCategory, questions, hasMoreQuestions } });
+            await dispatch({
+              type: ActionTypes.LOAD_CATEGORY_QUESTIONS,
+              payload: { parentCategory, questions, hasMoreQuestions }
+            });
           })
           .catch((error) => {
             console.log('FETCHING --->>>', error);

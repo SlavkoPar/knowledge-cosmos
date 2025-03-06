@@ -473,12 +473,11 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
           }
         })
         .then(({ data }) => {
-          console.log({ data })
-
+          // console.log({ data })
           const categories = new Map<string, ICategory>();
           const cats = new Map<string, ICat>();
           console.timeEnd();
-          data.forEach((categoryDto: ICategoryDto) => categories.set(categoryDto.id, new Category(categoryDto).category));
+          data.forEach((categoryDto: ICategoryDto) => categories.set(categoryDto.Id, new Category(categoryDto).category));
           //
           categories.forEach(category => {
             const { id, parentCategory, title, variations, hasSubCategories, kind } = category;

@@ -30,9 +30,9 @@ export interface IRecord {
 
 
 export interface IRecordDto {
-	created: IWhoWhenDto;
-	modified: IWhoWhenDto;
-	archived: boolean;
+	Created: IWhoWhenDto;
+	Modified: IWhoWhenDto;
+	Archived: boolean;
 }
 
 export class WhoWhen2DateAndBy {
