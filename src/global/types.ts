@@ -1,6 +1,6 @@
 // Define the Global State
-import { IAssignedAnswer, ICategory, IQuestion, IQuestionKey } from 'categories/types';
-import { IOption } from 'common/types';
+import { IAssignedAnswer, ICategory, IQuest, IQuestion, IQuestionKey } from 'categories/types';
+//import { IOption } from 'common/types';
 import { IAnswer } from 'groups/types';
 import { IDBPDatabase } from 'idb';
 import { IUser } from 'roles/types';
@@ -108,6 +108,7 @@ export interface IGlobalState {
 	loading: boolean;
 	error?: Error;
 	cats: Map<string, ICat>;
+	catsLoaded?: number;
 }
 
 export interface IGlobalStateFromLocalStorage {
@@ -131,11 +132,12 @@ export interface IGlobalContext {
 	registerUser: (regUser: IRegisterUser, isOwner: boolean, dbp: IDBPDatabase | null) => Promise<any>;
 	signInUser: (loginUser: ILoginUser) => Promise<any>;
 	OpenDB: () => Promise<any>;
-	loadCats: (dbp: IDBPDatabase) => void;
+	loadCats: () => void;
 	exportToJSON: (category: ICategory, parentCategory: string) => void;
 	health: () => void;
 	getSubCats: ({ parentCategory, level }: IParentInfo) => Promise<any>;
 	getCatsByKind: (kind: number) => Promise<ICat[]>;
+	searchQuestions: (filter: string, count: number) => Promise<IQuest[]>;
 	getQuestion: (questionKey: IQuestionKey) => Promise<IQuestion | null>;
 	joinAssignedAnswers: (assignedAnswers: IAssignedAnswer[]) => Promise<IAssignedAnswer[]>;
 	getAnswer: (id: number) => Promise<IAnswer | undefined>;
@@ -296,6 +298,7 @@ export interface ICategoryData {
 	categories?: ICategoryData[],
 	questions?: IQuestionData[]
 }
+
 
 ////////////////////
 // Group -> answers

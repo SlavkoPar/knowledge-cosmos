@@ -28,20 +28,20 @@ const QuestionRow = ({ question, categoryInAdding }: { question: IQuestion, cate
     const alreadyAdding = state.mode === Mode.AddingQuestion;
 
     const del = () => {
-        deleteQuestion({parentCategory, id});
+        deleteQuestion({ parentCategory, id });
     };
 
-    const edit = (id: string) => {
+    const edit = (Id: string) => {
         // Load data from server and reinitialize question
-        editQuestion({parentCategory, id});
+        editQuestion({ parentCategory, id });
     }
 
     const onSelectQuestion = (id: string) => {
         // Load data from server and reinitialize question
         if (canEdit)
-            editQuestion({parentCategory, id});
+            editQuestion({ parentCategory, id });
         else
-            viewQuestion({parentCategory, id});
+            viewQuestion({ parentCategory, id });
     }
 
     const [hoverRef, hoverProps] = useHover();
@@ -113,7 +113,7 @@ const QuestionRow = ({ question, categoryInAdding }: { question: IQuestion, cate
                 <AddQuestion question={question} inLine={true} showCloseButton={true} source={0} />
             )
                 : ((inEditing && state.mode === Mode.EditingQuestion) ||
-                   (inViewing && state.mode === Mode.ViewingQuestion)) ? (
+                    (inViewing && state.mode === Mode.ViewingQuestion)) ? (
                     <>
                         {/* <div class="d-lg-none">hide on lg and wider screens</div> */}
                         <div id='div-question' className="ms-0 d-md-none w-100">

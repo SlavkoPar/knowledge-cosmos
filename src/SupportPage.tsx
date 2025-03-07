@@ -4,7 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom' // useRouteMatch
 import { AutoSuggestQuestions } from 'categories/AutoSuggestQuestions';
 
 import { Button, Col, Container, Row } from 'react-bootstrap';
-import { useGlobalState } from 'global/GlobalProvider';
+import { useGlobalContext, useGlobalState } from 'global/GlobalProvider';
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 //import { faPlus } from '@fortawesome/free-solid-svg-icons'
@@ -22,7 +22,6 @@ const SupportPage: React.FC = () => {
 	let { source, tekst/*, email*/ } = useParams<SupportParams>();
 	let navigate = useNavigate();
 
-
 	// TODO do we need this?
 	// const globalState = useGlobalState();
 	// const {isAuthenticated} = globalState;
@@ -30,23 +29,25 @@ const SupportPage: React.FC = () => {
 	// if (!isAuthenticated)
 	//     return <div>loading...</div>;
 
+	const { loadCats, searchQuestions } = useGlobalContext();
+	const { dbp, canEdit, authUser, isDarkMode, variant, bg, cats, catsLoaded } = useGlobalState();
+
 	const onSelectQuestion = async (questionKey: IQuestionKey) => {
 		navigate(`/knowledge-cosmos/categories/${questionKey.parentCategory}_${questionKey.id}`)
 	}
 
-
-	const { dbp, canEdit, authUser, isDarkMode, variant, bg, cats } = useGlobalState();
 
 	useEffect(() => {
 		(async () => {
 			//if (isAuthenticated) {
 			//await OpenDB();
 			//}
+			await loadCats();
 		})()
-	}, [dbp]) // , isAuthenticated
+	}, []) // , isAuthenticated
 
 
-	if (!dbp)
+	if (!catsLoaded)
 		return null;
 
 	return (
@@ -56,10 +57,10 @@ const SupportPage: React.FC = () => {
 					<div className="d-flex justify-content-start align-items-center">
 						<div className="w-75">
 							<AutoSuggestQuestions
-								dbp={dbp!}
 								tekst={tekst}
 								onSelectQuestion={onSelectQuestion}
 								allCategories={cats}
+								searchQuestions={searchQuestions}
 							/>
 						</div>
 						<Button

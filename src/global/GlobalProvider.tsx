@@ -17,7 +17,7 @@ import {
 
 import { globalReducer, initialGlobalState } from "global/globalReducer";
 
-import { Category, IAssignedAnswer, ICategory, ICategoryDto, IQuestion, IQuestionKey, Question } from "categories/types";
+import { Category, IAssignedAnswer, ICategory, ICategoryDto, IQuest, IQuestDto, IQuestion, IQuestionKey, Question } from "categories/types";
 import { IGroup, IAnswer } from "groups/types";
 import { IRole, IUser } from 'roles/types';
 
@@ -32,6 +32,7 @@ import roleData from './roles-users.json';
 import historyData from './history.json';
 import { forEachChild } from "typescript";
 import axios from "axios";
+import { title } from "process";
 
 const GlobalContext = createContext<IGlobalContext>({} as any);
 const GlobalDispatchContext = createContext<Dispatch<any>>(() => null);
@@ -462,89 +463,97 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
   // load all short categories
   // ---------------------------
   const loadCats = useCallback(async (): Promise<any> => {
-    try {
-      const url = `https://localhost:7005/api/Category`;
-      axios
-        .get(url, {
-          withCredentials: false,
-          headers: {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': "*"
-          }
-        })
-        .then(({ data }) => {
-          // console.log({ data })
-          const categories = new Map<string, ICategory>();
-          const cats = new Map<string, ICat>();
-          console.timeEnd();
-          data.forEach((categoryDto: ICategoryDto) => categories.set(categoryDto.Id, new Category(categoryDto).category));
-          //
-          categories.forEach(category => {
-            const { id, parentCategory, title, variations, hasSubCategories, kind } = category;
-            let titlesUpTheTree = id;
-            let parentCat = parentCategory;
-            while (parentCat) {
-              const cat2 = categories.get(parentCat)!;
-              titlesUpTheTree = cat2!.id + ' / ' + titlesUpTheTree;
-              parentCat = cat2.parentCategory;
+    const { catsLoaded } = globalState;
+    if (catsLoaded) {
+      var diffMs = (Date.now() - catsLoaded!); // milliseconds between
+      var diffMins = Math.round(((diffMs % 86400000) % 3600000) / 60000); // minutes
+      console.log({ diffMins })
+      if (diffMins < 30)
+        return;
+    }
+    return new Promise((resolve) => {
+      try {
+        const url = `https://localhost:7005/api/Category`;
+        axios
+          .get(url, {
+            withCredentials: false,
+            headers: {
+              'Content-Type': 'application/json',
+              'Access-Control-Allow-Origin': "*"
             }
-            category.titlesUpTheTree = titlesUpTheTree;
-            const cat: ICat = {
-              id,
-              parentCategory: parentCat,
-              title,
-              words: title.toLowerCase().replaceAll('?', '').split(' ').map((s: string) => s.trim()).filter(w => w.length > 1),
-              titlesUpTheTree: '',
-              variations,
-              hasSubCategories,
-              kind
-            }
-            cats.set(id, cat);
           })
-          dispatch({ type: GlobalActionTypes.SET_ALL_CATEGORIES, payload: { cats } });
-        })
-    }
-    catch (error: any) {
-      console.log(error)
-      dispatch({ type: GlobalActionTypes.SET_ERROR, payload: { error } });
-    }
-
-    //const tx = dbp.transaction('Categories');
-    //const allCategories: Map<string, ICat> = new Map<string, ICat>();
-    // for await (const cursor of tx.store.iterate()) {
-    //   let category: ICategory = cursor.value;
-    //   const { id, parentCategory, title, variations, hasSubCategories, kind } = category;
-    //   const cat: ICat = {
-    //     id,
-    //     parentCategory,
-    //     title,
-    //     words: title.toLowerCase().replaceAll('?', '').split(' ').map((s: string) => s.trim()).filter(w => w.length > 1),
-    //     titlesUpTheTree: '',
-    //     variations,
-    //     hasSubCategories,
-    //     kind
-    //   }
-    //   allCategories.set(id, cat);
-    // }
-    //await tx.done;
-
-    //let values = allCategories.values();
-    //while (true) {
-    //let result = values.next();
-    //if (result.done) break;
-    //let cat = result.value as unknown as ICat;
-    // let titlesUpTheTree = cat.id;
-    // let cat2 = cat;
-    // while (cat2.parentCategory !== null) {
-    //   cat2 = allCategories.get(cat2.parentCategory)!;
-    //   titlesUpTheTree = cat2!.id + ' / ' + titlesUpTheTree;
-    // }
-    // cat.titlesUpTheTree = titlesUpTheTree;
-    //}
-    //dispatch({ type: GlobalActionTypes.SET_ALL_CATEGORIES, payload: { allCategories } });
-    //}
-
+          .then(({ data }) => {
+            // console.log({ data })
+            const categories = new Map<string, ICategory>();
+            const cats = new Map<string, ICat>();
+            console.timeEnd();
+            data.forEach((categoryDto: ICategoryDto) => categories.set(categoryDto.Id, new Category(categoryDto).category));
+            //
+            categories.forEach(category => {
+              const { id, parentCategory, title, variations, hasSubCategories, kind } = category;
+              let titlesUpTheTree = id;
+              let parentCat = parentCategory;
+              while (parentCat) {
+                const cat2 = categories.get(parentCat)!;
+                titlesUpTheTree = cat2!.id + ' / ' + titlesUpTheTree;
+                parentCat = cat2.parentCategory;
+              }
+              category.titlesUpTheTree = titlesUpTheTree;
+              const cat: ICat = {
+                id: id,
+                parentCategory: parentCat,
+                title: title,
+                words: title.toLowerCase().replaceAll('?', '').split(' ').map((s: string) => s.trim()).filter(w => w.length > 1),
+                titlesUpTheTree: '',
+                variations: variations,
+                hasSubCategories: hasSubCategories,
+                kind: kind
+              }
+              cats.set(id, cat);
+            })
+            dispatch({ type: GlobalActionTypes.SET_ALL_CATEGORIES, payload: { cats } });
+          })
+      }
+      catch (error: any) {
+        console.log(error)
+        dispatch({ type: GlobalActionTypes.SET_ERROR, payload: { error } });
+      }
+    });
   }, [dispatch]);
+
+
+  //const searchQuestions = useCallback(async (filter: string, count: number): Promise<any> => {
+  const searchQuestions = async (filter: string, count: number): Promise<any> => {
+    return new Promise((resolve) => {
+      try {
+        console.time();
+        const filterEncoded = encodeURIComponent(filter);
+        const url = `https://localhost:7005/api/Question/${filterEncoded}/${count}/null`;
+        axios
+          .get(url, {
+            withCredentials: false,
+            headers: {
+              'Content-Type': 'application/json',
+              'Access-Control-Allow-Origin': "*"
+            }
+          })
+          .then(({ data: listQuestDto }) => {
+            console.timeEnd();
+            const listQuest: IQuest[] = listQuestDto.map((q: IQuestDto) => ({
+              title: q.Title,
+              parentCategory: q.ParentCategory,
+              id: q.Id
+            }))
+            resolve(listQuest);
+          })
+      }
+      catch (error: any) {
+        console.log(error)
+        //dispatch({ type: GlobalActionTypes.SET_ERROR, payload: { error } });
+      }
+    });
+  }
+  //}, [dispatch]);
 
   const OpenDB = useCallback(async (): Promise<any> => {
     try {
@@ -606,7 +615,7 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
         const regUser: IRegisterUser = { ...userData, level: 1, confirmed: false }
         await registerUser(regUser, true, dbp);
       }
-      await loadCats();
+      // await loadCats();
       await dispatch({ type: GlobalActionTypes.SET_DBP, payload: { dbp } });
       // else {
       //   signInUser({nickName: 'Boss', password: 'Boss12345'})
@@ -691,14 +700,14 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
       cats.forEach((c, id) => {
         if (c.kind === kind) {
           const cat: ICat = {
-            id,
+            id: id,
             title: c.title,
             words: [],
             parentCategory: "",
             titlesUpTheTree: "",
             variations: [],
             hasSubCategories: false,
-            kind
+            kind: kind
           }
           categories.push(cat);
         }
@@ -917,7 +926,8 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
   return (
     <GlobalContext.Provider value={{
       globalState, OpenDB, loadCats, registerUser, signInUser, getUser, exportToJSON, health,
-      getSubCats, getCatsByKind, getQuestion, joinAssignedAnswers, getAnswer,
+      getSubCats, getCatsByKind,
+      searchQuestions, getQuestion, joinAssignedAnswers, getAnswer,
       getMaxConversation, addHistory, getAnswersRated
     }}>
       <GlobalDispatchContext.Provider value={dispatch}>

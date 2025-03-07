@@ -23,7 +23,8 @@ const initGlobalState: IGlobalState = {
     variant: 'dark',
     bg: 'dark',
     loading: false,
-    cats: new Map<string, ICat>()
+    cats: new Map<string, ICat>(),
+    catsLoaded: undefined
 }
 
 let globalStateFromLocalStorage: IGlobalStateFromLocalStorage | undefined;
@@ -185,7 +186,8 @@ const reducer: Reducer<IGlobalState, GlobalActions> = (state, action) => {
             //console.log("SET_CATEGORY_TAGS", allCategories)
             return {
                 ...state,
-                cats
+                cats,
+                catsLoaded: Date.now()
             };
         }
 

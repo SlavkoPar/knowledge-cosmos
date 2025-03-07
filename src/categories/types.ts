@@ -92,8 +92,6 @@ export interface IQuestionKey {
 }
 
 
-
-
 export interface IVariation {
 	name: string;
 }
@@ -137,6 +135,7 @@ export class Question {
 }
 
 
+
 export class Category {
 	constructor(dto: ICategoryDto) {
 		this.category = {
@@ -173,6 +172,20 @@ export interface IQuestionDto extends IRecordDto {
 	Source: number;
 	Status: number;
 }
+
+export interface IQuestDto {
+	ParentCategory: string;
+	Title: string;
+	Id: string;
+}
+
+export interface IQuest {
+	parentCategory: string;
+	title: string;
+	id: string;
+	categoryTitle?: string;
+}
+
 
 export interface ICategoryDto extends IRecordDto {
 	PartitionKey: string;

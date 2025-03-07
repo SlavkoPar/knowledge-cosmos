@@ -47,8 +47,8 @@ const ChatBotPage: React.FC = () => {
 	const [hasMoreAnswers, setHasMoreAnswers] = useState<boolean>(false);
 	const [conversation, setConversation] = useState<number | undefined>(undefined);
 
-	const { getCatsByKind, getMaxConversation, addHistory, getAnswersRated } = useGlobalContext();
-	const { dbp, canEdit, authUser, isDarkMode, variant, bg, cats } = useGlobalState();
+	const { loadCats, getCatsByKind, getMaxConversation, addHistory, getAnswersRated, searchQuestions } = useGlobalContext();
+	const { dbp, canEdit, authUser, isDarkMode, variant, bg, cats, catsLoaded } = useGlobalState();
 
 	const setParentCategory = (cat: ICategory) => {
 		alert(cat.title)
@@ -80,16 +80,21 @@ const ChatBotPage: React.FC = () => {
 		hasMoreAnswers?: boolean
 	}
 	// const deca: JSX.Element[] = [];
+	useEffect(() => {
+		(async () => {
+			await loadCats();
+		})()
+	}, [])
 
 	useEffect(() => {
 		(async () => {
 			setCatOptions(await getCatsByKind(2));
 			setCatUsage(await getCatsByKind(3));
 		})()
-	}, [cats])
+	}, [catsLoaded])
 
 
-	if (catsOptions.length === 0)
+	if (!catsLoaded || catsOptions.length === 0)
 		return <div>loading...</div>
 
 	const onOptionChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -340,10 +345,10 @@ const ChatBotPage: React.FC = () => {
 							}
 							{!isDisabled &&
 								<AutoSuggestQuestions
-									dbp={dbp!}
 									tekst={tekst}
 									onSelectQuestion={onSelectQuestion}
 									allCategories={cats}
+									searchQuestions={searchQuestions}
 								/>
 							}
 						</div>
@@ -365,7 +370,7 @@ const ChatBotPage: React.FC = () => {
 				</div>
 				<div className='text-center'>
 					{/* <ListGroup horizontal> */}
-					{catsOptions.map(({ id, title }: ICat) => (
+					{catsOptions.map(({ id: id, title: title }: ICat) => (
 						// <ListGroup.Item>
 						<Form.Check // prettier-ignore
 							id={id}
@@ -389,7 +394,7 @@ const ChatBotPage: React.FC = () => {
 						Select services for which you need support
 					</div>
 					<div className='text-center'>
-						{catsUsage.map(({ id, title }: ICat) => (
+						{catsUsage.map(({ id: id, title: title }: ICat) => (
 							<Form.Check // prettier-ignore
 								id={id}
 								label={title}

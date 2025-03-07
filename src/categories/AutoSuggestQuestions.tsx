@@ -6,24 +6,9 @@ import { isMobile } from 'react-device-detect'
 
 import { debounce, escapeRegexCharacters } from 'common/utilities'
 import './AutoSuggestQuestions.css'
-import { IDBPCursorWithValue, IDBPCursorWithValueIteratorValue, IDBPDatabase } from 'idb';
-import { IQuestion, IQuestionKey } from 'categories/types';
+import { IQuest, IQuestionKey } from 'categories/types';
 import { ICat } from 'global/types';
-import { title } from 'process';
-import QuestionRow from './components/questions/QuestionRow';
 
-// interface IQuestionShort {
-// 	id: number;
-// 	parentCategory: string;
-// 	title: string;
-// }
-
-interface IQuest {
-	id: string;
-	title: string;
-	parentCategory: string;
-	categoryTitle: string;
-}
 
 interface ICatMy {
 	id: string,
@@ -32,7 +17,6 @@ interface ICatMy {
 	categoryTitle: string,
 	quests: IQuest[]
 }
-
 
 interface ICatSection {
 	categoryId: string,
@@ -58,16 +42,16 @@ interface ICatIdTitle {
 const QuestionAutosuggestMulti = Autosuggest as { new(): Autosuggest<IQuest, ICatMy> };
 
 export class AutoSuggestQuestions extends React.Component<{
-	dbp: IDBPDatabase,
 	tekst: string | undefined,
 	onSelectQuestion: (questionKey: IQuestionKey) => void,
-	allCategories: Map<string, ICat>
+	allCategories: Map<string, ICat>,
+	searchQuestions: (filter: string, count: number) => Promise<IQuest[]>
 }, any> {
 	// region Fields
 	state: any;
 	isMob: boolean;
-	dbp: IDBPDatabase;
 	allCategories: Map<string, ICat>;
+	searchQuestions: (filter: string, count: number) => Promise<IQuest[]>;
 	debouncedLoadSuggestions: (value: string) => void;
 	//inputAutosuggest: React.RefObject<HTMLInputElement>;
 	// endregion region Constructor
@@ -80,8 +64,8 @@ export class AutoSuggestQuestions extends React.Component<{
 			highlighted: ''
 		};
 		//this.inputAutosuggest = createRef<HTMLInputElement>();
-		this.dbp = props.dbp;
 		this.allCategories = props.allCategories;
+		this.searchQuestions = props.searchQuestions;
 		this.isMob = isMobile;
 		this.loadSuggestions = this.loadSuggestions.bind(this);
 		this.debouncedLoadSuggestions = debounce(this.loadSuggestions, 300);
@@ -171,52 +155,40 @@ export class AutoSuggestQuestions extends React.Component<{
 		return arr;
 	}
 
-	protected async getSuggestions(value: string): Promise<ICatSection[]> {
-		const escapedValue = escapeRegexCharacters(value.trim());
+	protected async getSuggestions(search: string): Promise<ICatSection[]> {
+		const escapedValue = escapeRegexCharacters(search.trim());
 		if (escapedValue === '') {
 			return [];
 		}
-		if (!this.dbp || value.length < 2)
+		if (search.length < 2)
 			return [];
-
-		const searchWords = value.toLowerCase().replaceAll('?', '').split(' ').map((s: string) => s.trim());
 
 		const catQuests = new Map<string, IQuest[]>();
 
-		const tx = this.dbp!.transaction(['Categories', 'Questions'], 'readonly');
-		const index = tx.objectStore('Questions').index('words_idx');
 		const questionKeys: IQuestionKey[] = [];
 		try {
-			let i = 0;
-			// 1) Find all questions that starts with one of the words
-			while (i < searchWords.length) {
-				const w = searchWords[i];
-				if (w.length >= 2) {
-					for await (const cursor of index.iterate(IDBKeyRange.bound(w, `${w}zzzzz`, false, true))) {
-						const q: IQuestion = { ...cursor!.value, id: parseInt(cursor!.primaryKey.toString()) }
-						const { id, parentCategory, title } = q;
-						const questionKey = { parentCategory, id }
-						if (!questionKeys.includes(questionKey)) {
-							questionKeys.push(questionKey);
+			var questDtoList: IQuest[] = await this.searchQuestions(search, 18);
+			questDtoList.forEach((quest: IQuest) => {
+				const { id, parentCategory, title } = quest;
+				const questionKey = { parentCategory, id }
+				if (!questionKeys.includes(questionKey)) {
+					questionKeys.push(questionKey);
 
-							// 2) Group questions by parentCategory
-							const quest: IQuest = {
-								id: id!,
-								parentCategory,
-								title,
-								categoryTitle: ''
-							}
-							if (!catQuests.has(parentCategory)) {
-								catQuests.set(parentCategory, [quest]);
-							}
-							else {
-								catQuests.get(parentCategory)!.push(quest);
-							}
-						}
+					// 2) Group questions by parentCategory
+					const quest: IQuest = {
+						id,
+						parentCategory,
+						title,
+						categoryTitle: ''
+					}
+					if (!catQuests.has(parentCategory)) {
+						catQuests.set(parentCategory, [quest]);
+					}
+					else {
+						catQuests.get(parentCategory)!.push(quest);
 					}
 				}
-				i++;
-			}
+			})
 		}
 		catch (error: any) {
 			console.debug(error)
@@ -224,6 +196,7 @@ export class AutoSuggestQuestions extends React.Component<{
 
 		////////////////////////////////////////////////////////////////////////////////
 		// Search for Categories title words, and add all the questions of the Category
+		/*
 		if (questionKeys.length === 0) {
 			try {
 				const tx = this.dbp!.transaction('Questions')
@@ -266,14 +239,13 @@ export class AutoSuggestQuestions extends React.Component<{
 				console.debug(error)
 			};
 		}
-
 		await tx.done;
+		*/
 
 		if (questionKeys.length === 0)
 			return [];
 
 		try {
-
 			////////////////////////////////////////////////////////////
 			// map
 			// 0 = {'DALJINSKI' => IQuestionRow[2]}
@@ -298,14 +270,14 @@ export class AutoSuggestQuestions extends React.Component<{
 					// console.log(quest);
 					if (variations.length > 0) {
 						let wordsIncludesTag = false;
-						searchWords.forEach(w => {
-							variations.forEach(variation => {
-								if (variation === w.toUpperCase()) {
-									wordsIncludesTag = true;
-									catSection.quests.push({ ...quest, title: quest.title + ' ' + variation });
-								}
-							})
-						})
+						// searchWords.forEach(w => {
+						// 	variations.forEach(variation => {
+						// 		if (variation === w.toUpperCase()) {
+						// 			wordsIncludesTag = true;
+						// 			catSection.quests.push({ ...quest, title: quest.title + ' ' + variation });
+						// 		}
+						// 	})
+						// })
 						if (!wordsIncludesTag) {
 							variations.forEach(variation => {
 								// console.log(quest);
