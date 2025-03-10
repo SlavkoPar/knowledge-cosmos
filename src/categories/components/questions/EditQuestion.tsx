@@ -24,7 +24,7 @@ const EditQuestion = ({ inLine }: { inLine: boolean }) => {
         const q = await updateQuestion(object);
         if (question!.parentCategory !== q.parentCategory) {
             dispatch({ type: ActionTypes.CLEAN_TREE, payload: { id: q.parentCategory } })
-            await reloadCategoryNode(q.parentCategory, q.id);
+            await reloadCategoryNode({ partitionKey: '', id: q.parentCategory}, q.id);
         }
     };
 

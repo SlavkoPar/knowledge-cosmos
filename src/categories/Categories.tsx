@@ -5,7 +5,8 @@ import { useParams } from 'react-router-dom';
 
 import { Mode, ActionTypes } from "./types";
 
-import { useGlobalState } from "global/GlobalProvider";
+import { useGlobalContext, useGlobalState } from 'global/GlobalProvider';
+
 import { CategoryProvider, useCategoryContext, useCategoryDispatch } from "./CategoryProvider";
 
 import CategoryList from "categories/components/CategoryList";
@@ -25,8 +26,9 @@ const Providered = ({ categoryId_questionId }: IProps) => {
     const { state, reloadCategoryNode } = useCategoryContext();
     const { lastCategoryExpanded, categoryId_questionId_done } = state;
 
-    const { isDarkMode, authUser } = useGlobalState();
-
+    const { isDarkMode, authUser, catsLoaded } = useGlobalState();
+    const { loadCats } = useGlobalContext();
+    
     const [modalShow, setModalShow] = useState(false);
     const handleClose = () => {
         setModalShow(false);
@@ -54,10 +56,12 @@ const Providered = ({ categoryId_questionId }: IProps) => {
                     const arr = categoryId_questionId.split('_');
                     const categoryId = arr[0];
                     const questionId = arr[1];
-                    await reloadCategoryNode({ partitionKey: 'TODO', id:categoryId}, questionId);
+                    await reloadCategoryNode({ partitionKey: '', id: categoryId }, questionId);
                 }
             }
             else if (lastCategoryExpanded) {
+                if (!catsLoaded)
+                    await loadCats()
                 await reloadCategoryNode(lastCategoryExpanded, null);
             }
         })()

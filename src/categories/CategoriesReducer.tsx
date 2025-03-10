@@ -322,7 +322,7 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
 
     case ActionTypes.SET_EXPANDED: {
       const { categoryKey, expanding } = action.payload;
-      const { partitionKey, id } = categoryKey;
+      const { partitionKey: partitionKey, id } = categoryKey;
       let { categories } = state;
       if (!expanding) {
         const arr = markForClean(categories, id!)
@@ -449,10 +449,11 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
         categories: state.categories.map(c => c.id === question.parentCategory
           ? {
             ...c,
-            questions: c.questions.map(q => q.id === question.id ? {
-              ...question,
-              inEditing: true
-            }
+            questions: c.questions.map(q => q.id === question.id 
+              ? {
+                ...question,
+                inEditing: true
+              }
               : {
                 ...q,
                 inEditing: false

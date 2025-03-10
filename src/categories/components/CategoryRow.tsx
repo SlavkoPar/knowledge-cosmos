@@ -20,13 +20,13 @@ import QuestionList from './questions/QuestionList';
 
 const CategoryRow = ({ category }: { category: ICategory }) => {
     const { partitionKey, id, title, level, inViewing, inEditing, inAdding, hasSubCategories, questions, numOfQuestions, isExpanded } = category;
-    const categoryKey: ICategoryKey = { partitionKey, id }
-    const parentInfo: IParentInfo = { 
+    const categoryKey: ICategoryKey = { partitionKey: partitionKey, id }
+    const parentInfo: IParentInfo = {
         partitionKey,
         parentCategory: id,
         includeQuestionId: null,
         level,
-        title 
+        title
     }
 
     const { canEdit, isDarkMode, variant, bg } = useGlobalState();
@@ -104,7 +104,7 @@ const CategoryRow = ({ category }: { category: ICategory }) => {
             } */}
 
             {/* TODO what about archive questions */}
-            {canEdit && !alreadyAdding && hoverProps.isHovered && numOfQuestions === 0 && 
+            {canEdit && !alreadyAdding && hoverProps.isHovered && numOfQuestions === 0 &&
                 <div className="position-absolute d-flex align-items-center top-0 end-0">
                     <Button variant='link' size="sm" className="py-0 mx-1 float-end"
                         onClick={del}
@@ -191,7 +191,7 @@ const CategoryRow = ({ category }: { category: ICategory }) => {
                         <>
                             <CategoryList level={level + 1} partitionKey={partitionKey} parentCategory={id} title={title} />
                             {showQuestions &&
-                                <QuestionList level={level + 1} partitionKey={partitionKey} parentCategory={id} title={title}  />
+                                <QuestionList level={level + 1} partitionKey={partitionKey} parentCategory={id} title={title} />
                             }
                         </>
                     }

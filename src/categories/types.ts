@@ -119,7 +119,7 @@ export interface ICategory extends IRecord {
 export class Question {
 	constructor(dto: IQuestionDto, parentCategory: string) {
 		this.question = {
-			parentCategory: dto.ParentCategory,
+			parentCategory: parentCategory,
 			id: dto.Id,
 			title: dto.Title,
 			assignedAnswers: [], //dto.AssignedAnswers, // TODO

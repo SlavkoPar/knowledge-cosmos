@@ -473,7 +473,7 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
     }
     return new Promise((resolve) => {
       try {
-        const url = `https://localhost:7005/api/Category`;
+        const url = `${process.env.REACT_APP_API_URL}/Category`;
         axios
           .get(url, {
             withCredentials: false,
@@ -490,7 +490,7 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
             data.forEach((categoryDto: ICategoryDto) => categories.set(categoryDto.Id, new Category(categoryDto).category));
             //
             categories.forEach(category => {
-              const { id, parentCategory, title, variations, hasSubCategories, kind } = category;
+              const { partitionKey, id, parentCategory, title, variations, hasSubCategories, kind } = category;
               let titlesUpTheTree = id;
               let parentCat = parentCategory;
               while (parentCat) {
@@ -500,7 +500,8 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
               }
               category.titlesUpTheTree = titlesUpTheTree;
               const cat: ICat = {
-                id: id,
+                partitionKey,
+                id,
                 parentCategory: parentCat,
                 title: title,
                 words: title.toLowerCase().replaceAll('?', '').split(' ').map((s: string) => s.trim()).filter(w => w.length > 1),
@@ -528,7 +529,7 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
       try {
         console.time();
         const filterEncoded = encodeURIComponent(filter);
-        const url = `https://localhost:7005/api/Question/${filterEncoded}/${count}/null`;
+        const url = `${process.env.REACT_APP_API_URL}/Question/${filterEncoded}/${count}/null`;
         axios
           .get(url, {
             withCredentials: false,
@@ -659,37 +660,38 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
     return arr;
   }
 
-  const getQuestion = async (questionKey: IQuestionKey): Promise<IQuestion | null> => {
-    try {
-      const { parentCategory, id } = questionKey;
-      const url = `https://localhost:7005/api/Question/${parentCategory}/${id}`;
-      //console.log(`FETCHING --->>> ${url}`)
-      //dispatch({ type: ActionTypes.SET_LOADING })
-      console.time()
-      axios
-        .get(url, {
-          withCredentials: false,
-          headers: {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': "*"
-          }
-        })
-        .then(({ data: questionDto }) => {
-          const categories: ICategory[] = [];
-          console.timeEnd();
-          const question: IQuestion = new Question(questionDto, parentCategory).question;
-          question.categoryTitle = 'nadji me';
-          return question;
-        })
-        .catch((error) => {
-          console.log('FETCHING --->>>', error);
-        });
-    }
-    catch (error: any) {
-      console.log(error);
-      dispatch({ type: GlobalActionTypes.SET_ERROR, payload: error });
-    }
-    return null
+  const getQuestion = async (questionKey: IQuestionKey): Promise<any> => {
+    return new Promise((resolve) => {
+      try {
+        const { parentCategory, id } = questionKey;
+        const url = `${process.env.REACT_APP_API_URL}/Question/${parentCategory}/${id}`;
+        //console.log(`FETCHING --->>> ${url}`)
+        //dispatch({ type: ActionTypes.SET_LOADING })
+        console.time()
+        axios
+          .get(url, {
+            withCredentials: false,
+            headers: {
+              'Content-Type': 'application/json',
+              'Access-Control-Allow-Origin': "*"
+            }
+          })
+          .then(({ data: questionDto }) => {
+            const categories: ICategory[] = [];
+            console.timeEnd();
+            const question: IQuestion = new Question(questionDto, parentCategory).question;
+            question.categoryTitle = 'nadji me';
+            resolve(question);
+          })
+          .catch((error) => {
+            console.log('FETCHING --->>>', error);
+          });
+      }
+      catch (error: any) {
+        console.log(error);
+        dispatch({ type: GlobalActionTypes.SET_ERROR, payload: error });
+      }
+    });
   }
 
 
@@ -699,9 +701,11 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
       const categories: ICat[] = [];
       cats.forEach((c, id) => {
         if (c.kind === kind) {
+          const { partitionKey, id, title } = c;
           const cat: ICat = {
+            partitionKey,
             id: id,
-            title: c.title,
+            title,
             words: [],
             parentCategory: "",
             titlesUpTheTree: "",
@@ -858,41 +862,41 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
   }
 
   const getAnswersRated = async (dbp: IDBPDatabase | null, questionId: string): Promise<IAnswerRating[]> => {
-    if (!dbp) {
-      dbp = globalState.dbp;
-    }
-    const tx = dbp!.transaction(['History', 'Answers'], 'readonly');
-    const index = tx.objectStore('History').index('question_conversation_answer_idx');
-    const map = new Map<number, IAnswerRating>();
-    for await (const cursor of index.iterate(IDBKeyRange.bound([questionId, 1000, 0], [questionId, 999999, 999999], false, true))) {
-      const history: IHistory = cursor!.value;
-      const { answerId, fixed } = history;
-      if (!map.has(answerId)) {
-        map.set(answerId, { fixed: fixed === true ? 1 : 0, notFixed: fixed === false ? 1 : 0, Undefined: fixed === undefined ? 1 : 0 });
-      }
-      else {
-        const answerRating = map.get(answerId);
-        switch (fixed) {
-          case true:
-            answerRating!.fixed++;
-            break;
-          case false:
-            answerRating!.notFixed++;
-            break;
-          case undefined:
-            answerRating!.Undefined++;
-            break;
-          default:
-            alert('unk rate')
-            break;
-        }
-        map.set(answerId, answerRating!);
-      }
-    }
+    // if (!dbp) {
+    //   dbp = globalState.dbp;
+    // }
+    // const tx = dbp!.transaction(['History', 'Answers'], 'readonly');
+    // const index = tx.objectStore('History').index('question_conversation_answer_idx');
+    // const map = new Map<number, IAnswerRating>();
+    // for await (const cursor of index.iterate(IDBKeyRange.bound([questionId, 1000, 0], [questionId, 999999, 999999], false, true))) {
+    //   const history: IHistory = cursor!.value;
+    //   const { answerId, fixed } = history;
+    //   if (!map.has(answerId)) {
+    //     map.set(answerId, { fixed: fixed === true ? 1 : 0, notFixed: fixed === false ? 1 : 0, Undefined: fixed === undefined ? 1 : 0 });
+    //   }
+    //   else {
+    //     const answerRating = map.get(answerId);
+    //     switch (fixed) {
+    //       case true:
+    //         answerRating!.fixed++;
+    //         break;
+    //       case false:
+    //         answerRating!.notFixed++;
+    //         break;
+    //       case undefined:
+    //         answerRating!.Undefined++;
+    //         break;
+    //       default:
+    //         alert('unk rate')
+    //         break;
+    //     }
+    //     map.set(answerId, answerRating!);
+    //   }
+    // }
     const arr: IAnswerRating[] = [];
-    map.forEach((value, key) => {
-      arr.push({ answerId: key, ...value })
-    })
+    // map.forEach((value, key) => {
+    //   arr.push({ answerId: key, ...value })
+    // })
     arr.sort(compareFn);
     return arr;
   }

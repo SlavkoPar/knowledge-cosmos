@@ -75,6 +75,7 @@ export enum ROLES {
 }
 
 export interface ICat {
+	partitionKey: string,
 	id: string;
 	parentCategory: string | null;
 	title: string;
