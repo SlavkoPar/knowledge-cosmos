@@ -1,13 +1,13 @@
 {
   "files": {
     "main.css": "/knowledge-cosmos/static/css/main.7c09fbfa.css",
-    "main.js": "/knowledge-cosmos/static/js/main.9204c535.js",
+    "main.js": "/knowledge-cosmos/static/js/main.536511c4.js",
     "index.html": "/knowledge-cosmos/index.html",
     "main.7c09fbfa.css.map": "/knowledge-cosmos/static/css/main.7c09fbfa.css.map",
-    "main.9204c535.js.map": "/knowledge-cosmos/static/js/main.9204c535.js.map"
+    "main.536511c4.js.map": "/knowledge-cosmos/static/js/main.536511c4.js.map"
   },
   "entrypoints": [
     "static/css/main.7c09fbfa.css",
-    "static/js/main.9204c535.js"
+    "static/js/main.536511c4.js"
   ]
 }
