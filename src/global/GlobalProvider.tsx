@@ -478,6 +478,7 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
           .get(url, {
             withCredentials: false,
             headers: {
+              'Authorization': '',
               'Content-Type': 'application/json',
               'Access-Control-Allow-Origin': "*"
             }
