@@ -40,12 +40,12 @@ const root = ReactDOM.createRoot(
 );
 root.render(
   // <React.StrictMode>
-  // <Main instance={msalInstance}/>
-  <GlobalProvider>
-    <Router>
-      <App />
-    </Router>
-  </GlobalProvider>
+  <Main instance={msalInstance}/>
+  // <GlobalProvider>
+  //   <Router>
+  //     <App />
+  //   </Router>
+  // </GlobalProvider>
   // </React.StrictMode>
 );
 

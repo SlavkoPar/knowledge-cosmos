@@ -36,7 +36,8 @@ const MainContent = () => {
             <AuthenticatedTemplate>
                 {activeAccount ? (
                     <Container>
-                        <IdTokenData idTokenClaims={activeAccount.idTokenClaims} />
+                    <span>Moj id token</span>
+                    <IdTokenData idTokenClaims={activeAccount.idTokenClaims} />
                     </Container>
                 ) : null}
             </AuthenticatedTemplate>

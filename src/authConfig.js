@@ -13,11 +13,18 @@ import { LogLevel } from '@azure/msal-browser';
 // },
 
 
+// auth: {
+//     clientId: 'Enter_the_Application_Id_Here', // This is the ONLY mandatory field that you need to supply.
+//     authority: 'https://Enter_the_Tenant_Subdomain_Here.ciamlogin.com/', // Replace the placeholder with your tenant subdomain 
+//     redirectUri: '/', // Points to window.location.origin. You must register this URI on Azure Portal/App Registration.
+//     postLogoutRedirectUri: '/', // Indicates the page to navigate after logout.
+//     navigateToLoginRequestUrl: false, // If "true", will navigate back to the original request location before processing the auth code response.
+// },
+
 export const msalConfig = {
 
-
     auth: {
-        clientId: 'b9eedfe8-b59c-4509-98ac-8c124dd1e59f', // This is the ONLY mandatory field that you need to supply.
+        clientId: 'eb4863e6-3789-478f-b432-dbeaefd7846f', // This is the ONLY mandatory field that you need to supply.
         authority: 'https://login.microsoftonline.com/2f4006c5-c4ea-4165-846f-914b5b75685b', // Replace the placeholder with your tenant info
         redirectUri: 'http://localhost:3000', ///redirect', // Points to window.location.origin. You must register this URI on Microsoft Entra admin center/App Registration.
         postLogoutRedirectUri: '/', // Indicates the page to navigate after logout.
@@ -61,7 +68,7 @@ export const msalConfig = {
 * https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-permissions-and-consent#openid-connect-scopes
 */
 export const loginRequest = {
-    scopes: ["User.Read"],
+    scopes: ["Knowledge.Read"],
 };
 
 /**
