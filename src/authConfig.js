@@ -1,41 +1,32 @@
-import { LogLevel } from '@azure/msal-browser';
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
+import { LogLevel } from "@azure/msal-browser";
 
 /**
-* Configuration object to be passed to MSAL instance on creation. 
-* For a full list of MSAL.js configuration parameters, visit:
-* https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/configuration.md 
-*/
-
-// auth: {
-//     clientId: "016e711e-f4f0-4c8f-a1b3-9f8569510972",
-//     authority: "https://login.microsoftonline.com/common",
-//     redirectUri: "http://localhost:3000/"
-// },
-
-
-// auth: {
-//     clientId: 'Enter_the_Application_Id_Here', // This is the ONLY mandatory field that you need to supply.
-//     authority: 'https://Enter_the_Tenant_Subdomain_Here.ciamlogin.com/', // Replace the placeholder with your tenant subdomain 
-//     redirectUri: '/', // Points to window.location.origin. You must register this URI on Azure Portal/App Registration.
-//     postLogoutRedirectUri: '/', // Indicates the page to navigate after logout.
-//     navigateToLoginRequestUrl: false, // If "true", will navigate back to the original request location before processing the auth code response.
-// },
-
+ * Configuration object to be passed to MSAL instance on creation.
+ * For a full list of MSAL.js configuration parameters, visit:
+ * https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/configuration.md
+ */
 export const msalConfig = {
-
     auth: {
-        clientId: 'eb4863e6-3789-478f-b432-dbeaefd7846f', // This is the ONLY mandatory field that you need to supply.
-        authority: 'https://login.microsoftonline.com/2f4006c5-c4ea-4165-846f-914b5b75685b', // Replace the placeholder with your tenant info
-        redirectUri: 'http://localhost:3000', ///redirect', // Points to window.location.origin. You must register this URI on Microsoft Entra admin center/App Registration.
+        clientId: 'f9c4f176-9e7f-424a-b417-86da612252b8', // This is the ONLY mandatory field that you need to supply.
+        authority: 'https://TrialTenant1qGo77oT.ciamlogin.com', ///9678d2de-0c68-47d5-80f3-d1b43b726b0e', // Replace the placeholder with your tenant subdomain
+        redirectUri: '/', // You must register this URI on Microsoft Entra admin center/App Registration. Defaults to window.location.origin
         postLogoutRedirectUri: '/', // Indicates the page to navigate after logout.
-        navigateToLoginRequestUrl: false, // If "true", will navigate back to the original request location before processing the auth code response.
     },
     cache: {
-        cacheLocation: 'sessionStorage', // Configures cache location. "sessionStorage" is more secure, but "localStorage" gives you SSO between tabs.
+        cacheLocation: 'localStorage', // Configures cache location. "sessionStorage" is more secure, but "localStorage" gives you SSO between tabs.
         storeAuthStateInCookie: false, // Set this to "true" if you are having issues on IE11 or Edge
     },
     system: {
         loggerOptions: {
+            /**
+             * Below you can configure MSAL.js logs. For more information, visit:
+             * https://docs.microsoft.com/azure/active-directory/develop/msal-logging-js
+             */
             loggerCallback: (level, message, containsPii) => {
                 if (containsPii) {
                     return;
@@ -62,20 +53,25 @@ export const msalConfig = {
 };
 
 /**
-* Scopes you add here will be prompted for user consent during sign-in.
-* By default, MSAL.js will add OIDC scopes (openid, profile, email) to any login request.
-* For more information about OIDC scopes, visit: 
-* https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-permissions-and-consent#openid-connect-scopes
-*/
-export const loginRequest = {
-    scopes: ["Knowledge.Read"],
+ * Add here the endpoints and scopes when obtaining an access token for protected web APIs. For more information, see:
+ * https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/resources-and-scopes.md
+ */
+export const protectedResources = {
+    KnowledgeAPI: {
+        endpointCategory: `${process.env.REACT_APP_API_URL}/Category`,
+        scopes: {
+            read: ['api://91385bcd-f531-4b1c-8b3d-2105439f0a8a/ToDoList.Read'],
+            write: ['api://91385bcd-f531-4b1c-8b3d-2105439f0a8a/ToDoList.ReadWrite']
+        },
+    },
 };
 
 /**
-* An optional silentRequest object can be used to achieve silent SSO
-* between applications by providing a "login_hint" property.
-*/
-// export const silentRequest = {
-//     scopes: ["openid", "profile"],
-//     loginHint: "example@domain.net"
-// };
+ * Scopes you add here will be prompted for user consent during sign-in.
+ * By default, MSAL.js will add OIDC scopes (openid, profile, email) to any login request.
+ * For more information about OIDC scopes, visit:
+ * https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-permissions-and-consent#openid-connect-scopes
+ */
+export const loginRequest = {
+    scopes: [...protectedResources.KnowledgeAPI.scopes.read, ...protectedResources.KnowledgeAPI.scopes.write],
+};

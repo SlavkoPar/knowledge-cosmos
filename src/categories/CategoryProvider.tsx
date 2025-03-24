@@ -15,6 +15,8 @@ import { initialCategoriesState, CategoriesReducer } from 'categories/Categories
 import { IWhoWhen, ICat, WhoWhen2DateAndBy } from 'global/types';
 import { IAnswer, IGroup } from 'groups/types';
 import axios from 'axios';
+import useFetchWithMsal from 'hooks/useFetchWithMsal';
+import { protectedResources } from 'authConfig';
 
 const CategoriesContext = createContext<ICategoriesContext>({} as any);
 const CategoryDispatchContext = createContext<Dispatch<any>>(() => null);
@@ -28,6 +30,10 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
   const globalState = useGlobalState();
   const { dbp, cats } = globalState;
 
+  const { error, execute } = useFetchWithMsal({
+    scopes: protectedResources.KnowledgeAPI.scopes.read,
+  });
+
   const [state, dispatch] = useReducer(CategoriesReducer, initialCategoriesState);
   const { parentNodes } = state;
   const { parentNodesIds } = parentNodes!;
@@ -35,7 +41,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
   const reloadCategoryNode = useCallback(async (categoryKey: ICategoryKey | null, questionId: string | null): Promise<any> => {
     try {
       const { id } = categoryKey!;
-      const cat: ICat|undefined = cats.get(id);
+      const cat: ICat | undefined = cats.get(id);
       if (!cat) {
         alert('reload cats')
         return
@@ -81,6 +87,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
 
   const getSubCategories = useCallback(async ({ partitionKey: partitionKey, id: parentCategory }: ICategoryKey) => {
     try {
+      /*
       const url = `${process.env.REACT_APP_API_URL}/Category/${partitionKey}/${parentCategory}`;
       //console.log(`FETCHING --->>> ${url}`)
       //dispatch({ type: ActionTypes.SET_LOADING })
@@ -106,6 +113,20 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
         .catch((error) => {
           console.log('FETCHING --->>>', error);
         });
+        */
+      const url = `${protectedResources.KnowledgeAPI.endpointCategory}/${partitionKey}/${parentCategory}`;
+      execute("GET", url).then((response) => {
+        console.log({ response });
+        const categories: ICategory[] = [];
+        console.timeEnd();
+        const data: ICategoryDto[] | undefined = [];
+        data!.forEach((categoryDto: ICategoryDto) => categories.push(new Category(categoryDto).category));
+        const subCategories = categories.map((c: ICategory) => ({
+          ...c,
+          isExpanded: parentNodesIds ? parentNodesIds.map(x => x.id).includes(c.id) : false
+        }))
+        dispatch({ type: ActionTypes.SET_SUB_CATEGORIES, payload: { subCategories } });
+      });
     }
     catch (error: any) {
       console.log(error)

@@ -7,6 +7,10 @@ import { loginRequest } from './authConfig';
 
 import './App.css';
 import { PublicClientApplication } from '@azure/msal-browser/dist/app/PublicClientApplication';
+import { GlobalProvider } from 'global/GlobalProvider';
+import { BrowserRouter as Router } from 'react-router-dom'
+
+import App from 'App';
 
 /**
 * Most applications will need to conditionally render certain components based on whether a user is signed in or not. 
@@ -15,12 +19,14 @@ import { PublicClientApplication } from '@azure/msal-browser/dist/app/PublicClie
 * https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/docs/getting-started.md
 */
 const MainContent = () => {
+    
     /**
     * useMsal is hook that returns the PublicClientApplication instance,
     * that tells you what msal is currently doing. For more, visit:
     * https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/docs/hooks.md
     */
     const { instance } = useMsal();
+
     const activeAccount = instance.getActiveAccount();
 
     const handleRedirect = () => {
@@ -36,8 +42,13 @@ const MainContent = () => {
             <AuthenticatedTemplate>
                 {activeAccount ? (
                     <Container>
-                    <span>Moj id token</span>
-                    <IdTokenData idTokenClaims={activeAccount.idTokenClaims} />
+                        {/* <span>Moj id token</span>
+                    <IdTokenData idTokenClaims={activeAccount.idTokenClaims} /> */}
+                        <GlobalProvider>
+                            <Router>
+                                <App />
+                            </Router>
+                        </GlobalProvider>
                     </Container>
                 ) : null}
             </AuthenticatedTemplate>
@@ -58,7 +69,7 @@ const MainContent = () => {
 * PublicClientApplication instance via context as well as all hooks and components provided by msal-react. For more, visit:
 * https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/docs/getting-started.md
 */
-const Main = ({ instance } : { instance: PublicClientApplication}) => {
+const Main = ({ instance }: { instance: PublicClientApplication }) => {
     return (
         <MsalProvider instance={instance}>
             <PageLayout>

@@ -33,6 +33,8 @@ import historyData from './history.json';
 import { forEachChild } from "typescript";
 import axios from "axios";
 import { title } from "process";
+import useFetchWithMsal from "hooks/useFetchWithMsal";
+import { protectedResources } from "authConfig";
 
 const GlobalContext = createContext<IGlobalContext>({} as any);
 const GlobalDispatchContext = createContext<Dispatch<any>>(() => null);
@@ -46,6 +48,11 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
   // we reset changes, and again we use initialGlobalState
   // so, don't use globalDispatch inside of inner Provider, like Categories Provider
   const [globalState, dispatch] = useReducer(globalReducer, initialGlobalState);
+
+  const { error, execute } = useFetchWithMsal({
+    scopes: protectedResources.KnowledgeAPI.scopes.read,
+  });
+
 
   const getUser = async (nickName: string) => {
     try {
@@ -474,6 +481,7 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
     return new Promise((resolve) => {
       try {
         const url = `${process.env.REACT_APP_API_URL}/Category`;
+        /*
         axios
           .get(url, {
             withCredentials: false,
@@ -514,6 +522,41 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
             })
             dispatch({ type: GlobalActionTypes.SET_ALL_CATEGORIES, payload: { cats } });
           })
+        */
+        console.time();
+        execute("GET", protectedResources.KnowledgeAPI.endpointCategory).then((response) => {
+          console.log({ response }, protectedResources.KnowledgeAPI.endpointCategory)
+          const categories = new Map<string, ICategory>();
+          const cats = new Map<string, ICat>();
+          console.timeEnd();
+          const data: ICategoryDto[] = [];
+          data.forEach((categoryDto: ICategoryDto) => categories.set(categoryDto.Id, new Category(categoryDto).category));
+          //
+          categories.forEach(category => {
+            const { partitionKey, id, parentCategory, title, variations, hasSubCategories, kind } = category;
+            let titlesUpTheTree = id;
+            let parentCat = parentCategory;
+            while (parentCat) {
+              const cat2 = categories.get(parentCat)!;
+              titlesUpTheTree = cat2!.id + ' / ' + titlesUpTheTree;
+              parentCat = cat2.parentCategory;
+            }
+            category.titlesUpTheTree = titlesUpTheTree;
+            const cat: ICat = {
+              partitionKey,
+              id,
+              parentCategory: parentCat,
+              title: title,
+              words: title.toLowerCase().replaceAll('?', '').split(' ').map((s: string) => s.trim()).filter(w => w.length > 1),
+              titlesUpTheTree: '',
+              variations: variations,
+              hasSubCategories: hasSubCategories,
+              kind: kind
+            }
+            cats.set(id, cat);
+          })
+          dispatch({ type: GlobalActionTypes.SET_ALL_CATEGORIES, payload: { cats } });
+        });
       }
       catch (error: any) {
         console.log(error)
@@ -616,7 +659,7 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
         const regUser: IRegisterUser = { ...userData, level: 1, confirmed: false }
         await registerUser(regUser, true, dbp);
       }
-      // await loadCats();
+      await loadCats();
       await dispatch({ type: GlobalActionTypes.SET_DBP, payload: { dbp } });
       // else {
       //   signInUser({nickName: 'Boss', password: 'Boss12345'})

@@ -145,7 +145,8 @@ function App() {
         <Col md={12}>
           <div className="wrapper">
             <Routes>
-              <Route path="/knowledge-cosmos/" element={(!isAuthenticated && !everLoggedIn) ? <About /> : <Categories />} />
+              <Route path="/" element={(!isAuthenticated && !everLoggedIn) ? <About /> : <Categories />} />
+              <Route path="/knowledge-cosmos" element={(!isAuthenticated && !everLoggedIn) ? <About /> : <Categories />} />
               <Route path="/knowledge-cosmos/register/:returnUrl" element={<RegisterForm />} />
               <Route path="/knowledge-cosmos/sign-in" element={<LoginForm initialValues={formInitialValues} invitationId='' />} />
               <Route path="/knowledge-cosmos/supporter/:source/:tekst" element={<SupportPage />} />

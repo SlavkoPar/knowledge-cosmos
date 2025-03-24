@@ -15,7 +15,7 @@ const initialAuthUser: IAuthUser = {
 const initGlobalState: IGlobalState = {
     dbp: null,
     authUser: initialAuthUser,
-    isAuthenticated: false,
+    isAuthenticated: true,
     everLoggedIn: false,
     canEdit: false,
     isOwner: false,

@@ -454,7 +454,7 @@ const ChatBotPage: React.FC = () => {
 				</Button>
 			}
 
-			{showAutoSuggest && <AutoSuggestComponent type={ChildType.AUTO_SUGGEST} isDisabled={false} txt={tekst!} />}
+			{/* {showAutoSuggest && <AutoSuggestComponent type={ChildType.AUTO_SUGGEST} isDisabled={false} txt={tekst!} />} */}
 		</Container>
 	);
 }
