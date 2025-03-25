@@ -19,7 +19,8 @@ import App from 'App';
 * https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/docs/getting-started.md
 */
 const MainContent = () => {
-    
+    console.log('-----> MainContent')
+
     /**
     * useMsal is hook that returns the PublicClientApplication instance,
     * that tells you what msal is currently doing. For more, visit:
@@ -45,9 +46,7 @@ const MainContent = () => {
                         {/* <span>Moj id token</span>
                     <IdTokenData idTokenClaims={activeAccount.idTokenClaims} /> */}
                         <GlobalProvider>
-                            <Router>
-                                <App />
-                            </Router>
+                            <App />
                         </GlobalProvider>
                     </Container>
                 ) : null}
@@ -70,6 +69,7 @@ const MainContent = () => {
 * https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/docs/getting-started.md
 */
 const Main = ({ instance }: { instance: PublicClientApplication }) => {
+    console.log('---> Main')
     return (
         <MsalProvider instance={instance}>
             <PageLayout>

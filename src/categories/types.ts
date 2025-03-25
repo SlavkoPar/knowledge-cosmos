@@ -234,7 +234,7 @@ export interface ICategoriesState {
 export interface ICategoriesContext {
 	state: ICategoriesState,
 	reloadCategoryNode: (categoryKey: ICategoryKey, questionId: string | null) => Promise<any>;
-	getSubCategories: (categoryKey: ICategoryKey) => void,
+	getSubCategories: (execute: (method: string, endpoint: string) => Promise<any>, categoryKey: ICategoryKey) => void,
 	createCategory: (category: ICategory) => void,
 	viewCategory: (categoryKey: ICategoryKey) => void,
 	editCategory: (categoryKey: ICategoryKey) => void,

@@ -59,6 +59,7 @@ export const msalConfig = {
 export const protectedResources = {
     KnowledgeAPI: {
         endpointCategory: `${process.env.REACT_APP_API_URL}/Category`,
+        endpointQuestion: `${process.env.REACT_APP_API_URL}/Question`,
         scopes: {
             read: ['api://91385bcd-f531-4b1c-8b3d-2105439f0a8a/ToDoList.Read'],
             write: ['api://91385bcd-f531-4b1c-8b3d-2105439f0a8a/ToDoList.ReadWrite']

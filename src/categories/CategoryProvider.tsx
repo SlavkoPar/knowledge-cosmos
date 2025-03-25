@@ -14,7 +14,6 @@ import {
 import { initialCategoriesState, CategoriesReducer } from 'categories/CategoriesReducer';
 import { IWhoWhen, ICat, WhoWhen2DateAndBy } from 'global/types';
 import { IAnswer, IGroup } from 'groups/types';
-import axios from 'axios';
 import useFetchWithMsal from 'hooks/useFetchWithMsal';
 import { protectedResources } from 'authConfig';
 
@@ -26,13 +25,13 @@ type Props = {
 }
 
 export const CategoryProvider: React.FC<Props> = ({ children }) => {
+  console.log('--------------->>> CategoryProvider')
+  // const { error, execute } = useFetchWithMsal({
+  //   scopes: protectedResources.KnowledgeAPI.scopes.read,
+  // });
 
   const globalState = useGlobalState();
   const { dbp, cats } = globalState;
-
-  const { error, execute } = useFetchWithMsal({
-    scopes: protectedResources.KnowledgeAPI.scopes.read,
-  });
 
   const [state, dispatch] = useReducer(CategoriesReducer, initialCategoriesState);
   const { parentNodes } = state;
@@ -50,6 +49,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
       //console.log(`FETCHING --->>> ${url}`)
       //dispatch({ type: ActionTypes.SET_LOADING })
       console.time()
+      /*
       axios
         .get(url, {
           withCredentials: false,
@@ -78,6 +78,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
         .catch((error) => {
           console.log('FETCHING --->>>', error);
         });
+        */
     }
     catch (error: any) {
       console.log(error)
@@ -85,7 +86,8 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
     }
   }, [dispatch]);
 
-  const getSubCategories = useCallback(async ({ partitionKey: partitionKey, id: parentCategory }: ICategoryKey) => {
+  //const getSubCategories = useCallback(async (execute: (method: string, endpoint: string) => Promise<ICategoryDto[] | undefined>, { partitionKey, id: parentCategory }: ICategoryKey) => {
+  const getSubCategories = (execute: (method: string, endpoint: string) => Promise<ICategoryDto[]|undefined>, { partitionKey, id: parentCategory }: ICategoryKey) => {
     try {
       /*
       const url = `${process.env.REACT_APP_API_URL}/Category/${partitionKey}/${parentCategory}`;
@@ -115,11 +117,12 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
         });
         */
       const url = `${protectedResources.KnowledgeAPI.endpointCategory}/${partitionKey}/${parentCategory}`;
-      execute("GET", url).then((response) => {
+      console.log(url)
+      execute("GET", url).then((response: ICategoryDto[]|undefined) => {
+        console.timeEnd();
         console.log({ response });
         const categories: ICategory[] = [];
-        console.timeEnd();
-        const data: ICategoryDto[] | undefined = [];
+        const data: ICategoryDto[]  = response ?? [];
         data!.forEach((categoryDto: ICategoryDto) => categories.push(new Category(categoryDto).category));
         const subCategories = categories.map((c: ICategory) => ({
           ...c,
@@ -132,7 +135,9 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
       console.log(error)
       dispatch({ type: ActionTypes.SET_ERROR, payload: { error } });
     }
-  }, [parentNodesIds]);
+  }
+  //}, [parentNodesIds]);
+
 
   const createCategory = useCallback(async (category: ICategory) => {
     dispatch({ type: ActionTypes.SET_LOADING }) // TODO treba li ovo 
@@ -166,6 +171,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
       //console.log(`FETCHING --->>> ${url}`)
       //dispatch({ type: ActionTypes.SET_LOADING })
       console.time()
+      /*
       axios
         .get(url, {
           withCredentials: false,
@@ -184,6 +190,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
         .catch((error) => {
           console.log('FETCHING --->>>', error);
         });
+        */
     }
     catch (error: any) {
       console.log(error)
@@ -298,6 +305,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
         //console.log(`FETCHING --->>> ${url}`)
         //dispatch({ type: ActionTypes.SET_LOADING })
         console.time()
+        /*
         axios
           .get(url, {
             withCredentials: false,
@@ -323,6 +331,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
           .catch((error) => {
             console.log('FETCHING --->>>', error);
           });
+          */
       }
       catch (error: any) {
         console.log(error)
@@ -380,6 +389,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
       //console.log(`FETCHING --->>> ${url}`)
       //dispatch({ type: ActionTypes.SET_LOADING })
       console.time()
+      /*
       axios
         .get(url, {
           withCredentials: false,
@@ -398,6 +408,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
         .catch((error) => {
           console.log('FETCHING --->>>', error);
         });
+        */
     }
     catch (error: any) {
       console.log(error)

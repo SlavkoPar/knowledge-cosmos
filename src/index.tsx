@@ -7,8 +7,6 @@ import { msalConfig } from './authConfig';
 
 import 'scss/custom.scss'
 import 'index.css';
-import App from 'App';
-import { GlobalProvider } from 'global/GlobalProvider';
 import Main from 'Main';
 
 //import reportWebVitals from './reportWebVitals';
@@ -54,7 +52,7 @@ msalInstance.addEventCallback((event: EventMessage) => {
   //if (event.eventType === EventType.LOGIN_SUCCESS && event.payload.account) {
   if (event.eventType === EventType.LOGIN_SUCCESS && event.payload) {
     const accountInfo = event.payload as AccountInfo;
-    console.log('LOGIN_SUCCESS', {accountInfo})
+    console.log('--->>>>>>>> LOGIN_SUCCESS', { accountInfo })
     msalInstance.setActiveAccount(accountInfo);
   }
 });
@@ -65,7 +63,9 @@ const root = ReactDOM.createRoot(
 );
 root.render(
   // <React.StrictMode>
-  <Main instance={msalInstance} />
+  <Router>
+    <Main instance={msalInstance} />
+  </Router>
   // <GlobalProvider>
   //   <Router>
   //     <App />

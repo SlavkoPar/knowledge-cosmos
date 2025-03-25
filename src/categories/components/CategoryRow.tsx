@@ -9,7 +9,7 @@ import { ListGroup, Button, Badge } from "react-bootstrap";
 import { useGlobalState } from 'global/GlobalProvider'
 import { ActionTypes, ICategoryInfo, ICategoryKey, IParentInfo, Mode } from "categories/types";
 import { useCategoryContext, useCategoryDispatch } from 'categories/CategoryProvider'
-import { useHover } from 'common/components/useHover';
+import { useHover } from 'hooks/useHover';
 import { ICategory } from 'categories/types'
 
 import CategoryList from "categories/components/CategoryList";

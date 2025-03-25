@@ -1,14 +1,31 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { ListGroup } from "react-bootstrap";
 import CategoryRow from "categories/components/CategoryRow";
 import { IParentInfo } from "categories/types";
 import { useCategoryContext } from "categories/CategoryProvider";
+import useFetchWithMsal from "hooks/useFetchWithMsal";
+import { protectedResources } from "authConfig";
 
 const CategoryList = ({ title, partitionKey, parentCategory, level }: IParentInfo) => {
     const { state, getSubCategories } = useCategoryContext();
+    const [called, setCalled] = useState(false);
+
+    const { error, execute } = useFetchWithMsal({
+        scopes: protectedResources.KnowledgeAPI.scopes.read,
+    });
+
+    if (error)
+        console.error(error)
+
     useEffect(() => {
-        getSubCategories({ partitionKey: partitionKey ?? 'null', id: parentCategory! });
-    }, [getSubCategories, partitionKey, parentCategory]);
+        if (!called) {
+            getSubCategories(execute, {
+                partitionKey: partitionKey ?? 'null',
+                id: parentCategory!
+            });
+            setCalled(true);
+        }
+    }, [getSubCategories, partitionKey, parentCategory, called]);
 
     const mySubCategories = state.categories.filter(c => c.parentCategory === parentCategory);
     return (

@@ -30,9 +30,6 @@ import categoryData from './categories-questions.json';
 import groupData from './groups-answers.json';
 import roleData from './roles-users.json';
 import historyData from './history.json';
-import { forEachChild } from "typescript";
-import axios from "axios";
-import { title } from "process";
 import useFetchWithMsal from "hooks/useFetchWithMsal";
 import { protectedResources } from "authConfig";
 
@@ -48,6 +45,8 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
   // we reset changes, and again we use initialGlobalState
   // so, don't use globalDispatch inside of inner Provider, like Categories Provider
   const [globalState, dispatch] = useReducer(globalReducer, initialGlobalState);
+
+  console.log('--------> GlobalProvider')
 
   const { error, execute } = useFetchWithMsal({
     scopes: protectedResources.KnowledgeAPI.scopes.read,
@@ -478,7 +477,7 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
       if (diffMins < 30)
         return;
     }
-    return new Promise((resolve) => {
+    return new Promise(async (resolve) => {
       try {
         const url = `${process.env.REACT_APP_API_URL}/Category`;
         /*
@@ -524,12 +523,12 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
           })
         */
         console.time();
-        execute("GET", protectedResources.KnowledgeAPI.endpointCategory).then((response) => {
+        await execute("GET", protectedResources.KnowledgeAPI.endpointCategory).then((response: ICategoryDto[]|undefined) => {
           console.log({ response }, protectedResources.KnowledgeAPI.endpointCategory)
           const categories = new Map<string, ICategory>();
           const cats = new Map<string, ICat>();
           console.timeEnd();
-          const data: ICategoryDto[] = [];
+          const data: ICategoryDto[] = response??[];
           data.forEach((categoryDto: ICategoryDto) => categories.set(categoryDto.Id, new Category(categoryDto).category));
           //
           categories.forEach(category => {
@@ -572,6 +571,7 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
       try {
         console.time();
         const filterEncoded = encodeURIComponent(filter);
+        /*
         const url = `${process.env.REACT_APP_API_URL}/Question/${filterEncoded}/${count}/null`;
         axios
           .get(url, {
@@ -590,6 +590,12 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
             }))
             resolve(listQuest);
           })
+          */
+
+          const url = `${protectedResources.KnowledgeAPI.endpointQuestion}/${filterEncoded}/${count}/null`;
+          // execute("GET", url).then((response) => {
+          //   console.log({ response }, protectedResources.KnowledgeAPI.endpointCategory);
+          // })
       }
       catch (error: any) {
         console.log(error)
@@ -659,7 +665,9 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
         const regUser: IRegisterUser = { ...userData, level: 1, confirmed: false }
         await registerUser(regUser, true, dbp);
       }
-      await loadCats();
+      //await loadCats();
+      // loadCats(); // do not wait
+
       await dispatch({ type: GlobalActionTypes.SET_DBP, payload: { dbp } });
       // else {
       //   signInUser({nickName: 'Boss', password: 'Boss12345'})
@@ -711,6 +719,7 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
         //console.log(`FETCHING --->>> ${url}`)
         //dispatch({ type: ActionTypes.SET_LOADING })
         console.time()
+        /*
         axios
           .get(url, {
             withCredentials: false,
@@ -729,6 +738,7 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
           .catch((error) => {
             console.log('FETCHING --->>>', error);
           });
+        */
       }
       catch (error: any) {
         console.log(error);

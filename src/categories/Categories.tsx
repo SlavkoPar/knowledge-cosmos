@@ -67,9 +67,10 @@ const Providered = ({ categoryId_questionId }: IProps) => {
         })()
     }, [lastCategoryExpanded, reloadCategoryNode, categoryId_questionId, categoryId_questionId_done])
 
+    console.log({ categoryId_questionId, lastCategoryExpanded, categoryId_questionId_done });
     if (categoryId_questionId !== 'add_question') {
         if (lastCategoryExpanded || (categoryId_questionId && categoryId_questionId !== categoryId_questionId_done))
-            return <div>`loading...${lastCategoryExpanded?.id} ${categoryId_questionId} ${categoryId_questionId_done}`</div>
+            return <div>`zzzzzz loading...${lastCategoryExpanded?.id} ${categoryId_questionId} ${categoryId_questionId_done}`</div>
     }
 
     return (
@@ -90,7 +91,8 @@ const Providered = ({ categoryId_questionId }: IProps) => {
                 <Row className="my-1">
                     <Col xs={12} md={5}>
                         <div>
-                            <CategoryList partitionKey={null} parentCategory={null} level={1} title="root" />
+                            CATEGORY LIST
+                            <CategoryList partitionKey={null} parentCategory={null} level={0} title="root" />
                         </div>
                     </Col>
                     <Col xs={0} md={7}>
@@ -133,10 +135,10 @@ const Categories = () => {
         console.assert(arr.length === 2, "expected 'categoryId_questionId'")
     }
     const globalState = useGlobalState();
-    const { isAuthenticated, dbp } = globalState;
+    const { isAuthenticated } = globalState;
 
-    if (!isAuthenticated || !dbp)
-        return <div>loading...</div>;
+    if (!isAuthenticated)
+        return <div>categories loading...</div>;
 
     return (
         <CategoryProvider>

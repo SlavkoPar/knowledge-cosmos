@@ -12,7 +12,7 @@ import CatList from 'global/Components/SelectCategory/CatList';
 import { ICategory, IQuestion, IQuestionKey } from 'categories/types';
 import { ICat } from 'global/types';
 import AssignedAnswersChatBot from 'global/ChatBotPage/AssignedAnswersChatBot';
-import { INewQuestion, INextAnswer, useAI } from './useAI'
+import { INewQuestion, INextAnswer, useAI } from './hooks/useAI'
 import { IAnswer } from 'groups/types';
 //import AnswerList from 'groups/components/answers/AnswerList';
 

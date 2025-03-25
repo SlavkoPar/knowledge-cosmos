@@ -7,7 +7,7 @@ import { ListGroup, Button, Badge } from "react-bootstrap";
 import { useGlobalState } from 'global/GlobalProvider'
 import { ActionTypes, ICategoryInfo, Mode } from "categories/types";
 import { useCategoryContext, useCategoryDispatch } from 'categories/CategoryProvider'
-import { useHover } from 'common/components/useHover';
+import { useHover } from 'hooks/useHover';
 import { IVariation } from 'categories/types'
 
 // import AddTag from "categorys/components/tags/AddTag";

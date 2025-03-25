@@ -12,16 +12,11 @@ import Categories from "categories/Categories"
 import About from 'About';
 import Health from 'Health';
 import SupportPage from './SupportPage';
-import { ILoginUser, IRegisterUser } from 'global/types';
-import LoginForm from 'global/LoginForm';
-import RegisterForm from 'global/RegisterForm';
-//import Roles from 'roles/Roles';
-import { IUser } from 'roles/types';
 import ChatBotPage from 'ChatBotPage';
 import Export from 'Export';
-import axios from 'axios';
 
 function App() {
+  console.log('-----------> App')
 
   const { getUser, registerUser, signInUser, OpenDB } = useGlobalContext();
   const { dbp, authUser, isAuthenticated, everLoggedIn } = useGlobalState()
@@ -52,10 +47,10 @@ function App() {
   useEffect(() => {
     (async () => {
       const isAuthRoute =
-        locationPathname.startsWith('/knowledge-cosmos/invitation') ||
-        locationPathname.startsWith('/knowledge-cosmos/register') ||
-        locationPathname.startsWith('/knowledge-cosmos/sign-in') ||
-        locationPathname.startsWith('/knowledge-cosmos/about');  // allow about without registration
+        locationPathname.startsWith('/invitation') ||
+        locationPathname.startsWith('/register') ||
+        locationPathname.startsWith('/sign-in') ||
+        locationPathname.startsWith('/about');  // allow about without registration
       if (!isAuthenticated && !isAuthRoute && dbp) {
         if (everLoggedIn) {
           let signedIn = false;
@@ -66,7 +61,7 @@ function App() {
             }
             signedIn = await signInUser(loginUser);
             if (!signedIn) {
-              navigate('/knowledge-cosmos/sign-in')
+              navigate('/sign-in')
             }
           }
         }
@@ -112,10 +107,10 @@ function App() {
       else {
         // const returnUrl = encodeURIComponent(locationPathname);
         // console.log('PATH prije navigate(register)', locationPathname)
-        // if (locationPathname.includes('/knowledge-cosmos/supporter')) {
+        // if (locationPathname.includes('/supporter')) {
         //   // save params
         //   // navigate('/' + returnUrl, { replace: true });
-        //   navigate('/knowledge-cosmos/', { replace: true });
+        //   navigate('/', { replace: true });
         // }
       }
       const supporter = searchParams.get('supporter');
@@ -129,7 +124,7 @@ function App() {
         else {
           localStorage.setItem('emailFromClient', email ?? 'slavko.parezanin@gmail.com')
         }
-        navigate(`/knowledge-cosmos/supporter/${source}/${question}`);
+        navigate(`/supporter/${source}/${question}`);
       }
 
     })()
@@ -145,20 +140,20 @@ function App() {
         <Col md={12}>
           <div className="wrapper">
             <Routes>
-              <Route path="/" element={(!isAuthenticated && !everLoggedIn) ? <About /> : <Categories />} />
-              <Route path="/knowledge-cosmos" element={(!isAuthenticated && !everLoggedIn) ? <About /> : <Categories />} />
-              <Route path="/knowledge-cosmos/register/:returnUrl" element={<RegisterForm />} />
-              <Route path="/knowledge-cosmos/sign-in" element={<LoginForm initialValues={formInitialValues} invitationId='' />} />
-              <Route path="/knowledge-cosmos/supporter/:source/:tekst" element={<SupportPage />} />
-              <Route path="/knowledge-cosmos/supporter/:source/:tekst/:email" element={<SupportPage />} />
-              <Route path="/knowledge-cosmos/ChatBotPage/:source/:tekst/:email" element={<ChatBotPage />} />
-              <Route path="/knowledge-cosmos/categories/:categoryId_questionId" element={<Categories />} />
-              <Route path="/knowledge-cosmos/categories" element={<Categories />} />
-              {/* PRE /<Route path="/knowledge-cosmos/answers" element={<Answers />} /> */}
-              {/* <Route path="/knowledge-cosmos/users" element={<Roles />} /> */}
-              <Route path="/knowledge-cosmos/export" element={<Export />} />
-              <Route path="/knowledge-cosmos/about" element={<About />} />
-              <Route path="/knowledge-cosmos/health" element={<Health />} />
+              <Route path="/" element={(!isAuthenticated && !everLoggedIn) ? <About /> : <About />} />
+              <Route path="" element={(!isAuthenticated && !everLoggedIn) ? <About /> : <Categories />} />
+              {/* <Route path="/register/:returnUrl" element={<RegisterForm />} />
+              <Route path="/sign-in" element={<LoginForm initialValues={formInitialValues} invitationId='' />} /> */}
+              <Route path="/supporter/:source/:tekst" element={<SupportPage />} />
+              <Route path="/supporter/:source/:tekst/:email" element={<SupportPage />} />
+              <Route path="/ChatBotPage/:source/:tekst/:email" element={<ChatBotPage />} />
+              <Route path="/categories/:categoryId_questionId" element={<Categories />} />
+              <Route path="/categories" element={<Categories />} />
+              {/* PRE /<Route path="/answers" element={<Answers />} /> */}
+              {/* <Route path="/users" element={<Roles />} /> */}
+              <Route path="/export" element={<Export />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/health" element={<Health />} />
             </Routes>
           </div>
         </Col>

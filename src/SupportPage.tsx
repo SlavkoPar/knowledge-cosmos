@@ -33,7 +33,7 @@ const SupportPage: React.FC = () => {
 	const { dbp, canEdit, authUser, isDarkMode, variant, bg, cats, catsLoaded } = useGlobalState();
 
 	const onSelectQuestion = async (questionKey: IQuestionKey) => {
-		navigate(`/knowledge-cosmos/categories/${questionKey.parentCategory}_${questionKey.id}`)
+		navigate(`/categories/${questionKey.parentCategory}_${questionKey.id}`)
 	}
 
 
@@ -77,7 +77,7 @@ const SupportPage: React.FC = () => {
 									source,
 									title: tekst
 								}))
-								navigate('/knowledge-cosmos/categories/add_question')
+								navigate('/categories/add_question')
 							}}
 						>
 							{/* <FontAwesomeIcon icon={faPlus} size="sm" /> */}

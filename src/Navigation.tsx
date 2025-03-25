@@ -38,7 +38,7 @@ export function Navigation(props: INavigation) {
   const otkaciMe = () => {
     dispatch({ type: GlobalActionTypes.UN_AUTHENTICATE })
     localStorage.removeItem('CATEGORIES_STATE');
-    navigate('/knowledge-cosmos/about');
+    navigate('/about');
   }
 
   useEffect(() => {
@@ -89,7 +89,7 @@ export function Navigation(props: INavigation) {
             >
               {isAuthenticated &&
                 // <NavLink to={`/supporter/0/${encodeURIComponent('Does Firefox support Manifest 3?')}/xyz`} className="nav-link"
-                <NavLink to={`/knowledge-cosmos/supporter/0/${encodeURIComponent('work bater')}/xyz`} className="nav-link"
+                <NavLink to={`/supporter/0/${encodeURIComponent('work bater')}/xyz`} className="nav-link"
                   onClick={() => {
                     //closeQuestionForm();
                   }
@@ -98,25 +98,25 @@ export function Navigation(props: INavigation) {
                 </NavLink>
               }
               {isAuthenticated &&
-                <NavLink to="/knowledge-cosmos/categories" className="nav-link">
+                <NavLink to="/categories" className="nav-link">
                   <FontAwesomeIcon icon={faQuestion} color='lightblue' />{' '}Questions
                 </NavLink>
               }
               {isAuthenticated &&
-                <NavLink to="/knowledge-cosmos/answers" className="nav-link">
+                <NavLink to="/answers" className="nav-link">
                   <FontAwesomeIcon icon={faReply} color='lightblue' />{' '}Answers
                 </NavLink>
               }
 
               {isAuthenticated && (ROLES.OWNER === enumRole || ROLES.ADMIN === enumRole) &&
-                <NavLink to="/knowledge-cosmos/users" className="nav-link">
+                <NavLink to="/users" className="nav-link">
                   <FontAwesomeIcon icon={faUserFriends} color='lightblue' />{' '}Users
                 </NavLink>
               }
 
               {isAuthenticated &&
                 // <NavLink to={`/supporter/0/${encodeURIComponent('Does Firefox support Manifest 3?')}/xyz`} className="nav-link"
-                <NavLink to={`/knowledge-cosmos/ChatBotPage/0/${encodeURIComponent('work bater')}/xyz`} className="nav-link"
+                <NavLink to={`/ChatBotPage/0/${encodeURIComponent('work bater')}/xyz`} className="nav-link"
                   onClick={() => {
                     //closeQuestionForm();
                   }
@@ -127,7 +127,7 @@ export function Navigation(props: INavigation) {
 
 
               {!isAuthenticated &&
-                <NavLink to="/knowledge-cosmos/about" className="nav-link">
+                <NavLink to="/about" className="nav-link">
                   About
                 </NavLink>
               }
@@ -139,17 +139,17 @@ export function Navigation(props: INavigation) {
               >
               </NavDropdown> */}
 
-              {!isAuthenticated &&
-                <NavLink to="/knowledge-cosmos/register/fromNavigation/" className="nav-link">
+              {/* {!isAuthenticated &&
+                <NavLink to="/register/fromNavigation/" className="nav-link">
                   Register
                 </NavLink>
-              }
+              } */}
 
-              {!isAuthenticated &&
-                <NavLink to="/knowledge-cosmos/sign-in" className="nav-link">
+              {/* {!isAuthenticated &&
+                <NavLink to="/sign-in" className="nav-link">
                   Sign In
                 </NavLink>
-              }
+              } */}
 
               {isAuthenticated &&
                 <NavDropdown
@@ -199,16 +199,16 @@ export function Navigation(props: INavigation) {
                   </NavDropdown> */}
 
                   <NavDropdown.Divider />
-                  <NavDropdown.Item as={Link} to="/knowledge-cosmos/export" >
+                  <NavDropdown.Item as={Link} to="/export" >
                     Export Database to JSON
                   </NavDropdown.Item>
                   <NavDropdown.Divider />
 
-                  <NavDropdown.Item as={Link} to="/knowledge-cosmos/health" >
+                  <NavDropdown.Item as={Link} to="/health" >
                     Health
                   </NavDropdown.Item>
 
-                  <NavDropdown.Item as={Link} to="/knowledge-cosmos/about" >
+                  <NavDropdown.Item as={Link} to="/about" >
                     About
                   </NavDropdown.Item>
 

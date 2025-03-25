@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { InteractionType } from '@azure/msal-browser';
+import { AuthError, InteractionType, PopupRequest, RedirectRequest, SsoSilentRequest } from '@azure/msal-browser';
 import { useMsal, useMsalAuthentication } from "@azure/msal-react";
 
 /**
@@ -7,17 +7,22 @@ import { useMsal, useMsalAuthentication } from "@azure/msal-react";
  * @param {PopupRequest} msalRequest 
  * @returns 
  */
-const useFetchWithMsal = (msalRequest) => {
+const useFetchWithMsal = (msalRequest: PopupRequest | RedirectRequest | SsoSilentRequest) => {
     const { instance } = useMsal();
     const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState(null);
-    const [data, setData] = useState(null);
+    const [error, setError] = useState<AuthError|null>(null);
+    const [data, setData] = useState<Object|null>(null);
 
     const { result, error: msalError } = useMsalAuthentication(InteractionType.Popup, {
-        ...msalRequest,
-        account: instance.getActiveAccount(),
-        redirectUri: '/redirect'
+        ...msalRequest//,
+        //accountInfo: !instance.getActiveAccount(),
+        //redirectUri: '/redirect'
     });
+
+    // if (!result) {
+    //     console.error('=================>>> !result', method, endpoint)
+    //     login(InteractionType.Popup, msalRequest);
+    // }
 
     /**
      * Execute a fetch request with the given options
@@ -26,13 +31,15 @@ const useFetchWithMsal = (msalRequest) => {
      * @param {Object} data: The data to send to the endpoint, if any 
      * @returns JSON response
      */
-    const execute = async (method, endpoint, data = null) => {
-        console.log('zvao', method, endpoint)
+    const execute = async (method: string, endpoint: string, data = null) : Promise<any> => {
+       
         if (msalError) {
             console.log(msalError)
             setError(msalError);
-            return;
+            return null;
         }
+
+        
 
         if (result) {
             try {
@@ -64,14 +71,17 @@ const useFetchWithMsal = (msalRequest) => {
                     } finally {
                         setData(responseData);
                         setIsLoading(false);
+                        console.log({responseData})
                         return responseData;
                     }
                 }
 
                 setIsLoading(false);
                 return response;
-            } catch (e) {
-                setError(e);
+            }
+            catch (e) {
+                console.log('-------------->>> execute', method, endpoint, e)
+                setError(e as AuthError);
                 setIsLoading(false);
                 throw e;
             }

@@ -16,7 +16,7 @@ const initGlobalState: IGlobalState = {
     dbp: null,
     authUser: initialAuthUser,
     isAuthenticated: true,
-    everLoggedIn: false,
+    everLoggedIn: true,
     canEdit: false,
     isOwner: false,
     isDarkMode: true,
