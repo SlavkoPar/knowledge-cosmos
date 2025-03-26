@@ -42,7 +42,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
       const { id } = categoryKey!;
       const cat: ICat | undefined = cats.get(id);
       if (!cat) {
-        alert('reload cats')
+        alert('reload cats' + id)
         return
       }
       const url = `${protectedResources.KnowledgeAPI.endpointCat}/${cat.partitionKey}/${id}`;
