@@ -7,17 +7,17 @@ import { useMsal, useMsalAuthentication } from "@azure/msal-react";
  * @param {PopupRequest} msalRequest 
  * @returns 
  */
-const useFetchWithMsal = (msalRequest: PopupRequest | RedirectRequest | SsoSilentRequest) => {
+const useFetchWithMsal = (accessToken: string, msalRequest: PopupRequest | RedirectRequest | SsoSilentRequest) => {
     const { instance } = useMsal();
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<AuthError|null>(null);
     const [data, setData] = useState<Object|null>(null);
 
-    const { result, error: msalError } = useMsalAuthentication(InteractionType.Popup, {
-        ...msalRequest//,
-        //accountInfo: !instance.getActiveAccount(),
+    //const { result, error: msalError } = useMsalAuthentication(InteractionType.Popup, {
+    //    ...msalRequest,
+        //account: !instance.getActiveAccount(),
         //redirectUri: '/redirect'
-    });
+    //});
 
     // if (!result) {
     //     console.error('=================>>> !result', method, endpoint)
@@ -33,20 +33,20 @@ const useFetchWithMsal = (msalRequest: PopupRequest | RedirectRequest | SsoSilen
      */
     const execute = async (method: string, endpoint: string, data = null) : Promise<any> => {
        
-        if (msalError) {
-            console.log(msalError)
-            setError(msalError);
-            return null;
-        }
+        // if (msalError) {
+        //     console.log(msalError)
+        //     setError(msalError);
+        //     return null;
+        // }
 
-        
-
-        if (result) {
+        const accessToken = localStorage.getItem("accessToken");
+        if (accessToken) {
             try {
+                console.log({accessToken})
                 let response = null;
 
                 const headers = new Headers();
-                const bearer = `Bearer ${result.accessToken}`;
+                const bearer = `Bearer ${accessToken}`;
                 headers.append("Authorization", bearer);
 
                 if (data) headers.append('Content-Type', 'application/json');
@@ -59,7 +59,7 @@ const useFetchWithMsal = (msalRequest: PopupRequest | RedirectRequest | SsoSilen
 
                 setIsLoading(true);
                 response = (await fetch(endpoint, options));
-                console.error({response})
+                console.log({response})
 
                 if ((response.status === 200 || response.status === 201)) {
                     let responseData = response;
@@ -92,7 +92,7 @@ const useFetchWithMsal = (msalRequest: PopupRequest | RedirectRequest | SsoSilen
         isLoading,
         error,
         data,
-        execute: useCallback(execute, [result, msalError]), // to avoid infinite calls when inside a `useEffect`
+        execute: execute//useCallback(execute, [result, msalError]), // to avoid infinite calls when inside a `useEffect`
     };
 };
 

@@ -1,16 +1,41 @@
-import { AuthenticatedTemplate, UnauthenticatedTemplate, useMsal } from '@azure/msal-react';
+import { useEffect } from 'react'
+import { AuthenticatedTemplate, UnauthenticatedTemplate, useMsal, useMsalAuthentication, useIsAuthenticated  } from '@azure/msal-react';
+import { InteractionStatus, InteractionType, InteractionRequiredAuthError } from "@azure/msal-browser";
 import { Nav, Navbar, Dropdown, DropdownButton } from 'react-bootstrap';
 
-import { loginRequest } from '../authConfig';
+import { loginRequest, protectedResources } from 'authConfig';
 
 export const NavigationBar = () => {
-    const { instance } = useMsal();
+    const { instance, accounts, inProgress } = useMsal();
 
     let activeAccount;
-
     if (instance) {
         activeAccount = instance.getActiveAccount();
     }
+    console.log(activeAccount ? activeAccount.name : 'Unknown')
+
+    const request = {
+        loginHint: "name@example.com",
+        scopes: protectedResources.KnowledgeAPI.scopes.read
+    }
+    const { login, result, error: msalError } = useMsalAuthentication(InteractionType.Silent, request);
+
+    // useEffect(() => {
+    //     if (msalError instanceof InteractionRequiredAuthError) {
+    //         login(InteractionType.Popup, request);
+    //     }
+    // }, [msalError]);
+
+    // if (msalError) {
+    //     console.log(msalError)
+    //     // setError(msalError);
+    //     return null;
+    // }
+
+    if (result) {
+        localStorage.setItem('accessToken', result.accessToken)
+    }
+
 
     const handleLoginRedirect = () => {
         instance.loginRedirect(loginRequest)
@@ -43,6 +68,11 @@ export const NavigationBar = () => {
         });
     };
     
+    if (accounts.length > 0) {
+        return <span>There are currently {accounts.length} users signed in!</span>
+    } else if (inProgress === "login") {
+        return <span>Login is currently in progress!</span>
+    }
 
     /**
      * Most applications will need to conditionally render certain components based on whether a user is signed in or not.

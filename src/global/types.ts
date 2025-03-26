@@ -132,8 +132,8 @@ export interface IGlobalContext {
 	getUser: (nickName: string) => Promise<any>;
 	registerUser: (regUser: IRegisterUser, isOwner: boolean, dbp: IDBPDatabase | null) => Promise<any>;
 	signInUser: (loginUser: ILoginUser) => Promise<any>;
-	OpenDB: () => Promise<any>;
-	loadCats: () => void;
+	OpenDB: (execute: (method: string, endpoint: string) => Promise<any>) => Promise<any>;
+	loadCats: (execute: (method: string, endpoint: string) => Promise<any>) => void;
 	exportToJSON: (category: ICategory, parentCategory: string) => void;
 	health: () => void;
 	getSubCats: ({ parentCategory, level }: IParentInfo) => Promise<any>;

@@ -14,12 +14,17 @@ import Health from 'Health';
 import SupportPage from './SupportPage';
 import ChatBotPage from 'ChatBotPage';
 import Export from 'Export';
+import useFetchWithMsal from 'hooks/useFetchWithMsal';
+import { protectedResources } from 'authConfig';
 
 function App() {
   console.log('-----------> App')
+  const { error, execute } = useFetchWithMsal("", {
+    scopes: protectedResources.KnowledgeAPI.scopes.read,
+  });
 
   const { getUser, registerUser, signInUser, OpenDB } = useGlobalContext();
-  const { dbp, authUser, isAuthenticated, everLoggedIn } = useGlobalState()
+  const { dbp, authUser, isAuthenticated, everLoggedIn, catsLoaded } = useGlobalState()
   const { nickName, password, role } = authUser;
 
   const formInitialValues = {
@@ -35,7 +40,7 @@ function App() {
   useEffect(() => {
     (async () => {
       //if (isAuthenticated) {
-      await OpenDB();
+      //await OpenDB(execute);
       //}
     })()
   }, [OpenDB]) // , isAuthenticated
@@ -131,6 +136,8 @@ function App() {
 
   }, [dbp, signInUser, isAuthenticated, nickName, password, everLoggedIn, locationPathname, navigate])
 
+  if (!catsLoaded)
+    return <div>aaApp loading</div>
   return (
     <Container fluid className="App" data-bs-theme="light">
       <header className="App-header">
@@ -140,8 +147,8 @@ function App() {
         <Col md={12}>
           <div className="wrapper">
             <Routes>
-              <Route path="/" element={(!isAuthenticated && !everLoggedIn) ? <About /> : <About />} />
-              <Route path="" element={(!isAuthenticated && !everLoggedIn) ? <About /> : <Categories />} />
+              <Route path="/" element={(!isAuthenticated && !everLoggedIn) ? <About /> : <Categories />} />
+              {/* <Route path="" element={(!isAuthenticated && !everLoggedIn) ? <About /> : <Categories />} /> */}
               {/* <Route path="/register/:returnUrl" element={<RegisterForm />} />
               <Route path="/sign-in" element={<LoginForm initialValues={formInitialValues} invitationId='' />} /> */}
               <Route path="/supporter/:source/:tekst" element={<SupportPage />} />

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, Dispatch, useCallback } from "react";
+import React, { createContext, useContext, useReducer, Dispatch, useCallback, useEffect } from "react";
 import { v4 as uuidv4 } from 'uuid';
 
 import {
@@ -26,7 +26,6 @@ import { escapeRegexCharacters } from 'common/utilities'
 
 //////////////////
 // Initial data
-import categoryData from './categories-questions.json';
 import groupData from './groups-answers.json';
 import roleData from './roles-users.json';
 import historyData from './history.json';
@@ -48,10 +47,9 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
 
   console.log('--------> GlobalProvider')
 
-  const { error, execute } = useFetchWithMsal({
+  const { error, execute } = useFetchWithMsal("", {
     scopes: protectedResources.KnowledgeAPI.scopes.read,
   });
-
 
   const getUser = async (nickName: string) => {
     try {
@@ -468,7 +466,7 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
   // ---------------------------
   // load all short categories
   // ---------------------------
-  const loadCats = useCallback(async (): Promise<any> => {
+  const loadCats = useCallback(async (execute: (method: string, endpoint: string) => Promise<ICategoryDto[] | undefined>): Promise<any> => {
     const { catsLoaded } = globalState;
     if (catsLoaded) {
       var diffMs = (Date.now() - catsLoaded!); // milliseconds between
@@ -523,12 +521,12 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
           })
         */
         console.time();
-        await execute("GET", protectedResources.KnowledgeAPI.endpointCategory).then((response: ICategoryDto[]|undefined) => {
+        await execute("GET", protectedResources.KnowledgeAPI.endpointCategory).then((response: ICategoryDto[] | undefined) => {
           console.log({ response }, protectedResources.KnowledgeAPI.endpointCategory)
           const categories = new Map<string, ICategory>();
           const cats = new Map<string, ICat>();
           console.timeEnd();
-          const data: ICategoryDto[] = response??[];
+          const data: ICategoryDto[] = response ?? [];
           data.forEach((categoryDto: ICategoryDto) => categories.set(categoryDto.Id, new Category(categoryDto).category));
           //
           categories.forEach(category => {
@@ -592,10 +590,10 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
           })
           */
 
-          const url = `${protectedResources.KnowledgeAPI.endpointQuestion}/${filterEncoded}/${count}/null`;
-          // execute("GET", url).then((response) => {
-          //   console.log({ response }, protectedResources.KnowledgeAPI.endpointCategory);
-          // })
+        const url = `${protectedResources.KnowledgeAPI.endpointQuestion}/${filterEncoded}/${count}/null`;
+        // execute("GET", url).then((response) => {
+        //   console.log({ response }, protectedResources.KnowledgeAPI.endpointCategory);
+        // })
       }
       catch (error: any) {
         console.log(error)
@@ -605,7 +603,7 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
   }
   //}, [dispatch]);
 
-  const OpenDB = useCallback(async (): Promise<any> => {
+  const OpenDB = useCallback(async (execute: (method: string, endpoint: string) => Promise<any>): Promise<any> => {
     try {
       let initializeData = false;
       const dbp = await openDB('SupportKnowledge', 1, {
@@ -665,9 +663,7 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
         const regUser: IRegisterUser = { ...userData, level: 1, confirmed: false }
         await registerUser(regUser, true, dbp);
       }
-      //await loadCats();
-      // loadCats(); // do not wait
-
+      await loadCats(execute);
       await dispatch({ type: GlobalActionTypes.SET_DBP, payload: { dbp } });
       // else {
       //   signInUser({nickName: 'Boss', password: 'Boss12345'})
@@ -979,6 +975,12 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
     // a must be equal to b
     return 0;
   }
+
+  useEffect(() => {
+    (async () => {
+      await OpenDB(execute);
+    })()
+  }, [OpenDB])
 
   return (
     <GlobalContext.Provider value={{

@@ -82,7 +82,7 @@ const ChatBotPage: React.FC = () => {
 	// const deca: JSX.Element[] = [];
 	useEffect(() => {
 		(async () => {
-			await loadCats();
+			//await loadCats();
 		})()
 	}, [])
 

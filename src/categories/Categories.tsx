@@ -56,22 +56,27 @@ const Providered = ({ categoryId_questionId }: IProps) => {
                     const arr = categoryId_questionId.split('_');
                     const categoryId = arr[0];
                     const questionId = arr[1];
-                    await reloadCategoryNode({ partitionKey: '', id: categoryId }, questionId);
+                    if (catsLoaded)
+                        await reloadCategoryNode({ partitionKey: '', id: categoryId }, questionId);
                 }
             }
             else if (lastCategoryExpanded) {
-                if (!catsLoaded)
-                    await loadCats()
-                await reloadCategoryNode(lastCategoryExpanded, null);
+                // if (!catsLoaded)
+                //     await loadCats()
+                if (catsLoaded)
+                    await reloadCategoryNode(lastCategoryExpanded, null);
             }
         })()
-    }, [lastCategoryExpanded, reloadCategoryNode, categoryId_questionId, categoryId_questionId_done])
+    }, [lastCategoryExpanded, reloadCategoryNode, categoryId_questionId, categoryId_questionId_done, catsLoaded])
 
     console.log({ categoryId_questionId, lastCategoryExpanded, categoryId_questionId_done });
     if (categoryId_questionId !== 'add_question') {
         if (lastCategoryExpanded || (categoryId_questionId && categoryId_questionId !== categoryId_questionId_done))
             return <div>`zzzzzz loading...${lastCategoryExpanded?.id} ${categoryId_questionId} ${categoryId_questionId_done}`</div>
     }
+
+    if (!catsLoaded)
+        return <div>loading cats</div>
 
     return (
         <>

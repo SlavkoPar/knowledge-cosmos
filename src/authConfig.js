@@ -58,6 +58,7 @@ export const msalConfig = {
  */
 export const protectedResources = {
     KnowledgeAPI: {
+        endpointCat: `${process.env.REACT_APP_API_URL}/Cat`,
         endpointCategory: `${process.env.REACT_APP_API_URL}/Category`,
         endpointQuestion: `${process.env.REACT_APP_API_URL}/Question`,
         scopes: {

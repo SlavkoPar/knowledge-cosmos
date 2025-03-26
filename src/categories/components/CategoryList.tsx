@@ -8,9 +8,8 @@ import { protectedResources } from "authConfig";
 
 const CategoryList = ({ title, partitionKey, parentCategory, level }: IParentInfo) => {
     const { state, getSubCategories } = useCategoryContext();
-    const [called, setCalled] = useState(false);
 
-    const { error, execute } = useFetchWithMsal({
+    const { error, execute } = useFetchWithMsal("", {
         scopes: protectedResources.KnowledgeAPI.scopes.read,
     });
 
@@ -18,14 +17,14 @@ const CategoryList = ({ title, partitionKey, parentCategory, level }: IParentInf
         console.error(error)
 
     useEffect(() => {
-        if (!called) {
+        // if (!called) {
             getSubCategories(execute, {
                 partitionKey: partitionKey ?? 'null',
                 id: parentCategory!
             });
-            setCalled(true);
-        }
-    }, [getSubCategories, partitionKey, parentCategory, called]);
+            // setCalled(true);
+        // }
+    }, [getSubCategories, partitionKey, parentCategory]);
 
     const mySubCategories = state.categories.filter(c => c.parentCategory === parentCategory);
     return (

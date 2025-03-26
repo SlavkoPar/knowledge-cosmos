@@ -42,7 +42,7 @@ const SupportPage: React.FC = () => {
 			//if (isAuthenticated) {
 			//await OpenDB();
 			//}
-			await loadCats();
+			//await loadCats();
 		})()
 	}, []) // , isAuthenticated
 

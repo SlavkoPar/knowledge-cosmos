@@ -26,9 +26,9 @@ type Props = {
 
 export const CategoryProvider: React.FC<Props> = ({ children }) => {
   console.log('--------------->>> CategoryProvider')
-  // const { error, execute } = useFetchWithMsal({
-  //   scopes: protectedResources.KnowledgeAPI.scopes.read,
-  // });
+  const { error, execute } = useFetchWithMsal("", {
+    scopes: protectedResources.KnowledgeAPI.scopes.read,
+  });
 
   const globalState = useGlobalState();
   const { dbp, cats } = globalState;
@@ -45,7 +45,8 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
         alert('reload cats')
         return
       }
-      let url = `${process.env.REACT_APP_API_URL}/Cat/${cat.partitionKey}/${id}`;
+      const url = `${protectedResources.KnowledgeAPI.endpointCat}/${cat.partitionKey}/${id}`;
+      console.log(url)
       //console.log(`FETCHING --->>> ${url}`)
       //dispatch({ type: ActionTypes.SET_LOADING })
       console.time()
@@ -79,6 +80,26 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
           console.log('FETCHING --->>>', error);
         });
         */
+        await execute("GET", url).then((response: ICategoryDto[]|undefined) => {
+          console.timeEnd();
+          console.log({ response });
+
+          const ids: ICategoryKeyExtended[] = [];
+          const data: ICategoryDto[]  = response ?? [];
+          data.forEach((categoryDto: ICategoryDto) => {
+            const { PartitionKey, Id, Title } = categoryDto;
+            ids.push({ partitionKey: PartitionKey, id: Id, title: Title })
+          });
+          dispatch({
+            type: ActionTypes.SET_PARENT_CATEGORIES, payload: {
+              parentNodes: {
+                categoryId: id,
+                questionId,
+                parentNodesIds: ids //.map(c => c.id)
+              }
+            }
+          })
+        });
     }
     catch (error: any) {
       console.log(error)
@@ -86,8 +107,8 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
     }
   }, [dispatch]);
 
-  //const getSubCategories = useCallback(async (execute: (method: string, endpoint: string) => Promise<ICategoryDto[] | undefined>, { partitionKey, id: parentCategory }: ICategoryKey) => {
-  const getSubCategories = (execute: (method: string, endpoint: string) => Promise<ICategoryDto[]|undefined>, { partitionKey, id: parentCategory }: ICategoryKey) => {
+  const getSubCategories = useCallback(async (execute: (method: string, endpoint: string) => Promise<ICategoryDto[] | undefined>, { partitionKey, id: parentCategory }: ICategoryKey) => {
+  //const getSubCategories = async(execute: (method: string, endpoint: string) => Promise<ICategoryDto[]|undefined>, { partitionKey, id: parentCategory }: ICategoryKey) => {
     try {
       /*
       const url = `${process.env.REACT_APP_API_URL}/Category/${partitionKey}/${parentCategory}`;
@@ -118,7 +139,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
         */
       const url = `${protectedResources.KnowledgeAPI.endpointCategory}/${partitionKey}/${parentCategory}`;
       console.log(url)
-      execute("GET", url).then((response: ICategoryDto[]|undefined) => {
+      await execute("GET", url).then((response: ICategoryDto[]|undefined) => {
         console.timeEnd();
         console.log({ response });
         const categories: ICategory[] = [];
@@ -135,8 +156,8 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
       console.log(error)
       dispatch({ type: ActionTypes.SET_ERROR, payload: { error } });
     }
-  }
-  //}, [parentNodesIds]);
+  //}
+  }, [parentNodesIds]);
 
 
   const createCategory = useCallback(async (category: ICategory) => {
@@ -167,7 +188,9 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
     dispatch({ type: ActionTypes.SET_LOADING });
     try {
       const { partitionKey: partitionKey, id } = categoryKey;
-      const url = `${process.env.REACT_APP_API_URL}/Category/${partitionKey}/${id}/${PAGE_SIZE}/null`;
+      //const url = `${process.env.REACT_APP_API_URL}/Category/${partitionKey}/${id}/${PAGE_SIZE}/null`;
+      const url = `${protectedResources.KnowledgeAPI.endpointCategory}/${partitionKey}/${id}/${PAGE_SIZE}/null`;
+
       //console.log(`FETCHING --->>> ${url}`)
       //dispatch({ type: ActionTypes.SET_LOADING })
       console.time()
@@ -191,6 +214,21 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
           console.log('FETCHING --->>>', error);
         });
         */
+        await execute("GET", url).then((response: ICategoryDto|undefined) => {
+          console.timeEnd();
+          console.log({ response });
+
+          const categoryDto: ICategoryDto|undefined = response;
+          const categories: ICategory[] = [];
+          //data.forEach((categoryDto: ICategoryDto) => categories.push(new Category(categoryDto).category));
+          if (categoryDto) {
+            const category: ICategory = new Category(categoryDto).category;
+            dispatch({ type, payload: { category } });        
+          }
+          else {
+            dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error(`Category ${id} not found!`) } });
+          }
+        });
     }
     catch (error: any) {
       console.log(error)
@@ -301,7 +339,9 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
       dispatch({ type: ActionTypes.SET_CATEGORY_QUESTIONS_LOADING, payload: { questionLoading: true } }) // id: parentCategory,
       try {
         //const { parentCategory, id } = questionKey;
-        const url = `${process.env.APREACT_APP_API_URLI_URL}/Question/${parentCategory}/${startCursor}/${PAGE_SIZE}/null`;
+        //const url = `${process.env.APREACT_APP_API_URLI_URL}/Question/${parentCategory}/${startCursor}/${PAGE_SIZE}/null`;
+        const url = `${protectedResources.KnowledgeAPI.endpointQuestion}/${parentCategory}/${startCursor}/${PAGE_SIZE}/null`;
+
         //console.log(`FETCHING --->>> ${url}`)
         //dispatch({ type: ActionTypes.SET_LOADING })
         console.time()
@@ -332,6 +372,29 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
             console.log('FETCHING --->>>', error);
           });
           */
+
+          await execute("GET", url).then((response: ICategoryDto|undefined) => {
+            console.timeEnd();
+            console.log({ response });
+  
+            console.timeEnd();
+            if (response) {
+              const categoryDto: ICategoryDto = response;
+              const { Questions: questionDtos, HasMoreQuestions: hasMoreQuestions } = categoryDto;
+              questionDtos.forEach((questionDto: IQuestionDto) => {
+                const question = new Question(questionDto, parentCategory!).question;
+                question.categoryTitle = 'nadji me';
+                questions.push(question);
+              })
+              dispatch({
+                type: ActionTypes.LOAD_CATEGORY_QUESTIONS,
+                payload: { parentCategory, questions, hasMoreQuestions }
+              });
+            }
+            else {
+              //dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error(`Category ${id} not found!`) } });
+            }
+          });
       }
       catch (error: any) {
         console.log(error)
