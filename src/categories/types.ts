@@ -209,6 +209,7 @@ export interface ICategoryInfo {
 }
 
 export interface IParentInfo {
+	execute?: (method: string, endpoint: string) => Promise<any>, 
 	partitionKey: string | null,
 	parentCategory: string | null,
 	startCursor?: number,
@@ -233,22 +234,22 @@ export interface ICategoriesState {
 
 export interface ICategoriesContext {
 	state: ICategoriesState,
-	reloadCategoryNode: (categoryKey: ICategoryKey, questionId: string | null) => Promise<any>;
+	reloadCategoryNode: (execute: (method: string, endpoint: string) => Promise<any>, categoryKey: ICategoryKey, questionId: string | null) => Promise<any>;
 	getSubCategories: (execute: (method: string, endpoint: string) => Promise<any>, categoryKey: ICategoryKey) => void,
 	createCategory: (category: ICategory) => void,
-	viewCategory: (categoryKey: ICategoryKey) => void,
-	editCategory: (categoryKey: ICategoryKey) => void,
+	viewCategory: (execute: (method: string, endpoint: string) => Promise<any>, categoryKey: ICategoryKey) => void,
+	editCategory: (execute: (method: string, endpoint: string) => Promise<any>, categoryKey: ICategoryKey) => void,
 	updateCategory: (category: ICategory, closeForm: boolean) => void,
 	deleteCategory: (categoryKey: ICategoryKey) => void,
 	deleteCategoryVariation: (id: string, name: string) => void,
-	expandCategory: (category: ICategory, expand: boolean) => void,
+	expandCategory: (execute: (method: string, endpoint: string) => Promise<any>, category: ICategory, expand: boolean) => void,
 	//////////////
 	// questions
 	//getCategoryQuestions: ({ parentCategory, level, inAdding }: IParentInfo) => void,
 	loadCategoryQuestions: (parentInfo: IParentInfo) => void,
 	createQuestion: (question: IQuestion, fromModal: boolean) => Promise<any>;
-	viewQuestion: (iquestionKey: IQuestionKey) => void;
-	editQuestion: (questionKey: IQuestionKey) => void;
+	viewQuestion: (execute: (method: string, endpoint: string) => Promise<any>, iquestionKey: IQuestionKey) => void;
+	editQuestion: (execute: (method: string, endpoint: string) => Promise<any>, questionKey: IQuestionKey) => void;
 	updateQuestion: (question: IQuestion) => Promise<any>;
 	assignQuestionAnswer: (questionId: string, answerId: number, assigned: IWhoWhen) => Promise<any>;
 	unAssignQuestionAnswer: (questionId: string, answerId: number) => Promise<any>;

@@ -15,13 +15,23 @@ import EditQuestion from "categories/components/questions/EditQuestion";
 import ViewQuestion from "categories/components/questions/ViewQuestion";
 import Q from 'assets/Q.png';
 import QPlus from 'assets/QPlus.png';
+import useFetchWithMsal from 'hooks/useFetchWithMsal';
+import { protectedResources } from 'authConfig';
 
 //const QuestionRow = ({ question, categoryInAdding }: { ref: React.ForwardedRef<HTMLLIElement>, question: IQuestion, categoryInAdding: boolean | undefined }) => {
 const QuestionRow = ({ question, categoryInAdding }: { question: IQuestion, categoryInAdding: boolean | undefined }) => {
     const { id, parentCategory, title, inViewing, inEditing, inAdding, numOfAssignedAnswers } = question;
 
-    const { canEdit, isDarkMode, variant, bg } = useGlobalState();
+    const { execute: readExecute } = useFetchWithMsal("", {
+        scopes: protectedResources.KnowledgeAPI.scopes.read,
+    });
 
+    const { execute: writeExecute } = useFetchWithMsal("", {
+        scopes: protectedResources.KnowledgeAPI.scopes.write,
+    });
+
+
+    const { canEdit, isDarkMode, variant, bg } = useGlobalState();
     const { state, viewQuestion, editQuestion, deleteQuestion } = useCategoryContext();
     const dispatch = useCategoryDispatch();
 
@@ -33,15 +43,15 @@ const QuestionRow = ({ question, categoryInAdding }: { question: IQuestion, cate
 
     const edit = (Id: string) => {
         // Load data from server and reinitialize question
-        editQuestion({ parentCategory, id });
+        editQuestion(writeExecute, { parentCategory, id });
     }
 
     const onSelectQuestion = (id: string) => {
         // Load data from server and reinitialize question
         if (canEdit)
-            editQuestion({ parentCategory, id });
+            editQuestion(writeExecute, { parentCategory, id });
         else
-            viewQuestion({ parentCategory, id });
+            viewQuestion(readExecute, { parentCategory, id });
     }
 
     const [hoverRef, hoverProps] = useHover();

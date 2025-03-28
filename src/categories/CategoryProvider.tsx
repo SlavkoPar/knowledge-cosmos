@@ -26,9 +26,9 @@ type Props = {
 
 export const CategoryProvider: React.FC<Props> = ({ children }) => {
   console.log('--------------->>> CategoryProvider')
-  const { error, execute } = useFetchWithMsal("", {
-    scopes: protectedResources.KnowledgeAPI.scopes.read,
-  });
+  // const { error, execute } = useFetchWithMsal("", {
+  //   scopes: protectedResources.KnowledgeAPI.scopes.read,
+  // });
 
   const globalState = useGlobalState();
   const { dbp, cats } = globalState;
@@ -37,7 +37,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
   const { parentNodes } = state;
   const { parentNodesIds } = parentNodes!;
 
-  const reloadCategoryNode = useCallback(async (categoryKey: ICategoryKey | null, questionId: string | null): Promise<any> => {
+  const reloadCategoryNode = useCallback(async (execute: (method: string, endpoint: string) => Promise<any>, categoryKey: ICategoryKey | null, questionId: string | null): Promise<any> => {
     try {
       const { id } = categoryKey!;
       const cat: ICat | undefined = cats.get(id);
@@ -184,7 +184,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
     dispatch({ type, payload: { category: { ...category } } });
   };
 
-  const getCategory = async (categoryKey: ICategoryKey, type: ActionTypes.VIEW_CATEGORY | ActionTypes.EDIT_CATEGORY) => {
+  const getCategory = async (execute: (method: string, endpoint: string) => Promise<any>, categoryKey: ICategoryKey, type: ActionTypes.VIEW_CATEGORY | ActionTypes.EDIT_CATEGORY) => {
     dispatch({ type: ActionTypes.SET_LOADING });
     try {
       const { partitionKey: partitionKey, id } = categoryKey;
@@ -243,12 +243,12 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
     // });
   };
 
-  const viewCategory = useCallback((categoryKey: ICategoryKey) => {
-    getCategory(categoryKey, ActionTypes.VIEW_CATEGORY)
+  const viewCategory = useCallback((execute: (method: string, endpoint: string) => Promise<any>, categoryKey: ICategoryKey) => {
+    getCategory(execute, categoryKey, ActionTypes.VIEW_CATEGORY)
   }, []);
 
-  const editCategory = useCallback((categoryKey: ICategoryKey) => {
-    getCategory(categoryKey, ActionTypes.EDIT_CATEGORY)
+  const editCategory = useCallback((execute: (method: string, endpoint: string) => Promise<any>, categoryKey: ICategoryKey) => {
+    getCategory(execute, categoryKey, ActionTypes.EDIT_CATEGORY)
   }, []);
 
   const updateCategory = useCallback(async (c: ICategory, closeForm: boolean) => {
@@ -312,13 +312,13 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
   };
 
 
-  const expandCategory = async (category: ICategory, expanding: boolean) => {
+  const expandCategory = async (execute: (method: string, endpoint: string) => Promise<any>, category: ICategory, expanding: boolean) => {
     const { partitionKey, id, numOfQuestions, questions } = category;
     try {
-      // if (numOfQuestions > 0 && questions.length === 0) {
-      //   await loadCategoryQuestions({ parentCategory: id, startCursor: 0, level: 0 });
-      // }
-      dispatch({ type: ActionTypes.SET_EXPANDED, payload: { categoryKey: { partitionKey: partitionKey, id }, expanding } });
+      if (numOfQuestions > 0) { // && questions.length === 0) {
+        await loadCategoryQuestions({ execute, partitionKey, parentCategory: id, startCursor: 0, level: 0 });
+      }
+      dispatch({ type: ActionTypes.SET_EXPANDED, payload: { categoryKey: { partitionKey, id }, expanding } });
     }
     catch (error: any) {
       console.log('error', error);
@@ -332,7 +332,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
   //
 
   const PAGE_SIZE = 12;
-  const loadCategoryQuestions = useCallback(async ({ parentCategory, startCursor, includeQuestionId }: IParentInfo)
+  const loadCategoryQuestions = useCallback(async ({ execute, parentCategory, startCursor, includeQuestionId }: IParentInfo)
     : Promise<any> => {
     const questions: IQuestion[] = [];
     try {
@@ -372,8 +372,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
             console.log('FETCHING --->>>', error);
           });
           */
-
-          await execute("GET", url).then((response: ICategoryDto|undefined) => {
+          await execute!("GET", url).then((response: ICategoryDto|undefined) => {
             console.timeEnd();
             console.log({ response });
   
@@ -439,7 +438,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
   }, []);
 
 
-  const getQuestion = async (questionKey: IQuestionKey, type: ActionTypes.VIEW_QUESTION | ActionTypes.EDIT_QUESTION) => {
+  const getQuestion = async (execute: (method: string, endpoint: string) => Promise<any>, questionKey: IQuestionKey, type: ActionTypes.VIEW_QUESTION | ActionTypes.EDIT_QUESTION) => {
     // const url = `/api/questions/get-question/${id}`;
     //try {
     //const question: IQuestion = await dbp!.get("Questions", id);
@@ -448,7 +447,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
     //question.id = id;
     try {
       const { parentCategory, id } = questionKey;
-      const url = `${process.env.API_REACT_APP_API_URLURL}/Question/${parentCategory}/${id}`;
+      //const url = `${process.env.API_REACT_APP_API_URLURL}/Question/${parentCategory}/${id}`;
       //console.log(`FETCHING --->>> ${url}`)
       //dispatch({ type: ActionTypes.SET_LOADING })
       console.time()
@@ -472,6 +471,16 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
           console.log('FETCHING --->>>', error);
         });
         */
+
+        const url = `${protectedResources.KnowledgeAPI.endpointQuestion}/${parentCategory}/${id}`;
+        await execute("GET", url).then((response: IQuestionDto|undefined) => {
+          console.timeEnd();
+          console.log({ response });
+          const questionDto = response!;
+          const question: IQuestion = new Question(questionDto, parentCategory).question;
+          question.categoryTitle = 'nadji me';
+          dispatch({ type, payload: { question } });
+        });
     }
     catch (error: any) {
       console.log(error)
@@ -512,12 +521,12 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
     //   });
   };
 
-  const viewQuestion = useCallback((questionKey: IQuestionKey) => {
-    getQuestion(questionKey, ActionTypes.VIEW_QUESTION);
+  const viewQuestion = useCallback((execute: (method: string, endpoint: string) => Promise<any>, questionKey: IQuestionKey) => {
+    getQuestion(execute, questionKey, ActionTypes.VIEW_QUESTION);
   }, []);
 
-  const editQuestion = useCallback((questionKey: IQuestionKey) => {
-    getQuestion(questionKey, ActionTypes.EDIT_QUESTION);
+  const editQuestion = useCallback((execute: (method: string, endpoint: string) => Promise<any>, questionKey: IQuestionKey) => {
+    getQuestion(execute, questionKey, ActionTypes.EDIT_QUESTION);
   }, []);
 
   const updateQuestion = useCallback(async (q: IQuestion): Promise<any> => {

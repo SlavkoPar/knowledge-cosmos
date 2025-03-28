@@ -66,17 +66,19 @@ const useFetchWithMsal = (accessToken: string, msalRequest: PopupRequest | Redir
 
                     try {
                         responseData = await response.json();
-                    } catch (error) {
+                    } 
+                    catch (error) {
                         console.log(error);
-                    } finally {
-                        setData(responseData);
-                        setIsLoading(false);
+                    } 
+                    finally {
+                        //setData(responseData);
+                        //setIsLoading(false);
                         console.log({responseData})
                         return responseData;
                     }
                 }
 
-                setIsLoading(false);
+                //setIsLoading(false);
                 return response;
             }
             catch (e) {
@@ -89,10 +91,10 @@ const useFetchWithMsal = (accessToken: string, msalRequest: PopupRequest | Redir
     };
 
     return {
-        isLoading,
-        error,
-        data,
-        execute: execute//useCallback(execute, [result, msalError]), // to avoid infinite calls when inside a `useEffect`
+        //isLoading,
+        //error,
+        //data,
+        execute: useCallback(execute, []) //error]) //result, msalError]), // to avoid infinite calls when inside a `useEffect`
     };
 };
 

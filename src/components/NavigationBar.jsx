@@ -1,5 +1,9 @@
-import { useEffect } from 'react'
-import { AuthenticatedTemplate, UnauthenticatedTemplate, useMsal, useMsalAuthentication, useIsAuthenticated  } from '@azure/msal-react';
+import { useEffect } from 'react';
+import { Link, NavLink, useNavigate } from "react-router-dom";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faQuestion, faSurprise, faUser, faUserFriends, faReply } from '@fortawesome/free-solid-svg-icons'
+
+import { AuthenticatedTemplate, UnauthenticatedTemplate, useMsal, useMsalAuthentication, useIsAuthenticated } from '@azure/msal-react';
 import { InteractionStatus, InteractionType, InteractionRequiredAuthError } from "@azure/msal-browser";
 import { Nav, Navbar, Dropdown, DropdownButton } from 'react-bootstrap';
 
@@ -67,12 +71,12 @@ export const NavigationBar = () => {
             account: instance.getActiveAccount(),
         });
     };
-    
-    if (accounts.length > 0) {
-        return <span>There are currently {accounts.length} users signed in!</span>
-    } else if (inProgress === "login") {
-        return <span>Login is currently in progress!</span>
-    }
+
+    // if (accounts.length > 0) {
+    //     return <span>There are currently {accounts.length} users signed in!</span>
+    // } else if (inProgress === "login") {
+    //     return <span>Login is currently in progress!</span>
+    // }
 
     /**
      * Most applications will need to conditionally render certain components based on whether a user is signed in or not.
@@ -86,9 +90,38 @@ export const NavigationBar = () => {
                     Microsoft identity platform
                 </a>
                 <AuthenticatedTemplate>
-                    <Nav.Link className="navbarButton" href="/todolist">
+                    {/* <Nav.Link className="navbarButton" href="/todolist">
                         ToDoList
-                    </Nav.Link>
+                    </Nav.Link> */}
+
+                    <NavLink 
+                        to={`/supporter/0/${encodeURIComponent('work bater')}/xyz`} 
+                        className="nav-link"
+                        onClick={() => {
+                            //closeQuestionForm();
+                        }}
+                    >
+                        <FontAwesomeIcon icon={faSurprise} color='lightblue' />{' '}Supporter <small>(QA)</small>
+                    </NavLink>
+
+                    <NavLink to="/categories" className="nav-link">
+                        <FontAwesomeIcon icon={faQuestion} color='lightblue' />{' '}Questions
+                    </NavLink>
+
+
+                    {/* <NavLink to={`/supporter/0/${encodeURIComponent('Does Firefox support Manifest 3?')}/xyz`} className="nav-link" */}
+                    <NavLink to={`/ChatBotPage/0/${encodeURIComponent('work bater')}/xyz`} className="nav-link"
+                        onClick={() => {
+                            //closeQuestionForm();
+                        }
+                        }>
+                        <FontAwesomeIcon icon={faSurprise} color='lightblue' />{' '}ChatBot
+                    </NavLink>
+                    
+                    <NavLink to="/about" className="nav-link">
+                        About
+                    </NavLink>
+
                     <div className="collapse navbar-collapse justify-content-end">
                         <DropdownButton
                             variant="warning"

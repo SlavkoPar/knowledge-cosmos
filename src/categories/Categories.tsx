@@ -17,6 +17,8 @@ import EditQuestion from "categories/components/questions/EditQuestion";
 
 import { initialQuestion } from "categories/CategoriesReducer";
 import ModalAddQuestion from './ModalAddQuestion';
+import useFetchWithMsal from 'hooks/useFetchWithMsal';
+import { protectedResources } from 'authConfig';
 
 interface IProps {
     categoryId_questionId: string | undefined
@@ -26,9 +28,13 @@ const Providered = ({ categoryId_questionId }: IProps) => {
     const { state, reloadCategoryNode } = useCategoryContext();
     const { lastCategoryExpanded, categoryId_questionId_done } = state;
 
+    // { error, execute }
+    const { execute } = useFetchWithMsal("", {
+        scopes: protectedResources.KnowledgeAPI.scopes.read,
+    });
     const { isDarkMode, authUser, catsLoaded } = useGlobalState();
     const { loadCats } = useGlobalContext();
-    
+
     const [modalShow, setModalShow] = useState(false);
     const handleClose = () => {
         setModalShow(false);
@@ -57,14 +63,14 @@ const Providered = ({ categoryId_questionId }: IProps) => {
                     const categoryId = arr[0];
                     const questionId = arr[1];
                     if (catsLoaded)
-                        await reloadCategoryNode({ partitionKey: '', id: categoryId }, questionId);
+                        await reloadCategoryNode(execute, { partitionKey: '', id: categoryId }, questionId);
                 }
             }
             else if (lastCategoryExpanded) {
                 // if (!catsLoaded)
                 //     await loadCats()
                 if (catsLoaded)
-                    await reloadCategoryNode(lastCategoryExpanded, null);
+                    await reloadCategoryNode(execute, lastCategoryExpanded, null);
             }
         })()
     }, [lastCategoryExpanded, reloadCategoryNode, categoryId_questionId, categoryId_questionId_done, catsLoaded])
@@ -96,7 +102,6 @@ const Providered = ({ categoryId_questionId }: IProps) => {
                 <Row className="my-1">
                     <Col xs={12} md={5}>
                         <div>
-                            CATEGORY LIST
                             <CategoryList partitionKey={null} parentCategory={null} level={0} title="root" />
                         </div>
                     </Col>

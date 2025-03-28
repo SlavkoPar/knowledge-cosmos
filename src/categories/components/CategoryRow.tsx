@@ -17,6 +17,8 @@ import AddCategory from "categories/components/AddCategory";
 import EditCategory from "categories/components/EditCategory";
 import ViewCategory from "categories/components/ViewCategory";
 import QuestionList from './questions/QuestionList';
+import useFetchWithMsal from 'hooks/useFetchWithMsal';
+import { protectedResources } from 'authConfig';
 
 const CategoryRow = ({ category }: { category: ICategory }) => {
     const { partitionKey, id, title, level, inViewing, inEditing, inAdding, hasSubCategories, questions, numOfQuestions, isExpanded } = category;
@@ -34,6 +36,16 @@ const CategoryRow = ({ category }: { category: ICategory }) => {
     const { state, viewCategory, editCategory, deleteCategory, expandCategory } = useCategoryContext();
     const dispatch = useCategoryDispatch();
 
+    //error: msalError1, 
+    const { execute: readExecute } = useFetchWithMsal("", {
+        scopes: protectedResources.KnowledgeAPI.scopes.read,
+    });
+
+    // error: msalError2, 
+    const { execute: writeExecute } = useFetchWithMsal("", {
+        scopes: protectedResources.KnowledgeAPI.scopes.write,
+    });
+
     const alreadyAdding = state.mode === Mode.AddingCategory;
     // TODO proveri ovo
     const showQuestions = numOfQuestions > 0 || questions.find(q => q.inAdding) // && !questions.find(q => q.inAdding); // We don't have questions loaded
@@ -45,22 +57,22 @@ const CategoryRow = ({ category }: { category: ICategory }) => {
     const expand = (id: string) => {
         //const collapse = isExpanded;
         //dispatch({ type: ActionTypes.SET_EXPANDED, payload: { id, expanding: !isExpanded } });
-        expandCategory(category, !isExpanded);
+        expandCategory(readExecute, category, !isExpanded);
         // if (collapse)
         //     dispatch({ type: ActionTypes.CLEAN_SUB_TREE, payload: { id } })
     }
 
     const edit = () => {
         // Load data from server and reinitialize category
-        editCategory(categoryKey);
+        editCategory(writeExecute, categoryKey);
     }
 
     const onSelectCategory = () => {
         // Load data from server and reinitialize category
         if (canEdit)
-            editCategory(categoryKey);
+            editCategory(writeExecute, categoryKey);
         else
-            viewCategory(categoryKey);
+            viewCategory(readExecute, categoryKey);
     }
 
     const [hoverRef, hoverProps] = useHover();

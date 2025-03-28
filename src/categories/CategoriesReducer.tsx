@@ -362,33 +362,6 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
       };
     }
 
-    case ActionTypes.VIEW_QUESTION: {
-      const { question } = action.payload;
-      return {
-        ...state,
-        categories: state.categories.map(c => c.id === question.parentCategory
-          ? {
-            ...c,
-            questions: c.questions.map(q => q.id === question.id ? {
-              ...question,
-              inViewing: true
-            }
-              : {
-                ...q,
-                inViewing: false
-              }),
-            inViewing: true
-          }
-          : {
-            ...c,
-            inViewing: false
-          }
-        ),
-        mode: Mode.ViewingQuestion,
-        loading: false
-      }
-    }
-
     case ActionTypes.SET_QUESTION: {
       const { question } = action.payload;
       const { parentCategory, id } = question;
@@ -442,6 +415,34 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
       };
     }
 
+    case ActionTypes.VIEW_QUESTION: {
+      const { question } = action.payload;
+      return {
+        ...state,
+        categories: state.categories.map(c => c.id === question.parentCategory
+          ? {
+            ...c,
+            questions: c.questions.map(q => q.id === question.id
+              ? {
+                ...question,
+                inViewing: true
+              }
+              : {
+                ...q,
+                inViewing: false
+              }),
+            inViewing: true
+          }
+          : {
+            ...c,
+            inViewing: false
+          }
+        ),
+        mode: Mode.ViewingQuestion,
+        loading: false
+      }
+    }
+
     case ActionTypes.EDIT_QUESTION: {
       const { question } = action.payload;
       const obj = {
@@ -449,7 +450,7 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
         categories: state.categories.map(c => c.id === question.parentCategory
           ? {
             ...c,
-            questions: c.questions.map(q => q.id === question.id 
+            questions: c.questions.map(q => q.id === question.id
               ? {
                 ...question,
                 inEditing: true

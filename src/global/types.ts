@@ -132,14 +132,14 @@ export interface IGlobalContext {
 	getUser: (nickName: string) => Promise<any>;
 	registerUser: (regUser: IRegisterUser, isOwner: boolean, dbp: IDBPDatabase | null) => Promise<any>;
 	signInUser: (loginUser: ILoginUser) => Promise<any>;
-	OpenDB: (execute: (method: string, endpoint: string) => Promise<any>) => Promise<any>;
+	OpenDB: () => Promise<any>;
 	loadCats: (execute: (method: string, endpoint: string) => Promise<any>) => void;
 	exportToJSON: (category: ICategory, parentCategory: string) => void;
 	health: () => void;
 	getSubCats: ({ parentCategory, level }: IParentInfo) => Promise<any>;
 	getCatsByKind: (kind: number) => Promise<ICat[]>;
-	searchQuestions: (filter: string, count: number) => Promise<IQuest[]>;
-	getQuestion: (questionKey: IQuestionKey) => Promise<IQuestion | null>;
+	searchQuestions: (execute: (method: string, endpoint: string) => Promise<any>, filter: string, count: number) => Promise<IQuest[]>;
+	getQuestion: (execute: (method: string, endpoint: string) => Promise<any>, questionKey: IQuestionKey) => Promise<IQuestion | null>;
 	joinAssignedAnswers: (assignedAnswers: IAssignedAnswer[]) => Promise<IAssignedAnswer[]>;
 	getAnswer: (id: number) => Promise<IAnswer | undefined>;
 	getMaxConversation: (dbp: IDBPDatabase) => Promise<number>;

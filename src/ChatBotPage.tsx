@@ -18,6 +18,8 @@ import { IAnswer } from 'groups/types';
 
 import Q from 'assets/Q.png';
 import A from 'assets/A.png';
+import useFetchWithMsal from 'hooks/useFetchWithMsal';
+import { protectedResources } from 'authConfig';
 
 type ChatBotParams = {
 	source: string;
@@ -47,7 +49,7 @@ const ChatBotPage: React.FC = () => {
 	const [hasMoreAnswers, setHasMoreAnswers] = useState<boolean>(false);
 	const [conversation, setConversation] = useState<number | undefined>(undefined);
 
-	const { loadCats, getCatsByKind, getMaxConversation, addHistory, getAnswersRated, searchQuestions } = useGlobalContext();
+	const { getCatsByKind, getMaxConversation, addHistory, getAnswersRated, searchQuestions } = useGlobalContext();
 	const { dbp, canEdit, authUser, isDarkMode, variant, bg, cats, catsLoaded } = useGlobalState();
 
 	const setParentCategory = (cat: ICategory) => {
@@ -64,7 +66,6 @@ const ChatBotPage: React.FC = () => {
 	const [catsUsage, setCatUsage] = useState<ICat[]>([]);
 	const [catsUsageSel, setCatUsageSel] = useState<Map<string, boolean>>(new Map<string, boolean>());
 
-
 	const [pastEvents, setPastEvents] = useState<IChild[]>([]);
 
 	enum ChildType {
@@ -80,22 +81,28 @@ const ChatBotPage: React.FC = () => {
 		hasMoreAnswers?: boolean
 	}
 	// const deca: JSX.Element[] = [];
-	useEffect(() => {
-		(async () => {
-			//await loadCats();
-		})()
-	}, [])
+	// useEffect(() => {
+	// 	(async () => {
+	// 		//await loadCats();
+	// 	})()
+	// }, [])
+
+	// { error,
+	const { execute } = useFetchWithMsal("", {
+		scopes: protectedResources.KnowledgeAPI.scopes.read,
+	});
+
 
 	useEffect(() => {
 		(async () => {
 			setCatOptions(await getCatsByKind(2));
 			setCatUsage(await getCatsByKind(3));
 		})()
-	}, [catsLoaded])
+	}, []) // [catsLoaded])
 
 
 	if (!catsLoaded || catsOptions.length === 0)
-		return <div>loading...</div>
+		return <div>cats not loaded...</div>
 
 	const onOptionChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 		const target = event.target;
@@ -344,12 +351,16 @@ const ChatBotPage: React.FC = () => {
 								</div>
 							}
 							{!isDisabled &&
-								<AutoSuggestQuestions
-									tekst={tekst}
-									onSelectQuestion={onSelectQuestion}
-									allCategories={cats}
-									searchQuestions={searchQuestions}
-								/>
+								<>
+									{/* <div>{Date.now().toString()}</div> */}
+									<AutoSuggestQuestions
+										tekst={tekst}
+										onSelectQuestion={onSelectQuestion}
+										allCategories={cats}
+										execute={execute}
+										searchQuestions={searchQuestions}
+									/>
+								</>
 							}
 						</div>
 					</div>
@@ -454,7 +465,9 @@ const ChatBotPage: React.FC = () => {
 				</Button>
 			}
 
-			{/* {showAutoSuggest && <AutoSuggestComponent type={ChildType.AUTO_SUGGEST} isDisabled={false} txt={tekst!} />} */}
+			{showAutoSuggest &&
+				<AutoSuggestComponent type={ChildType.AUTO_SUGGEST} isDisabled={false} txt={tekst!} />
+			}
 		</Container>
 	);
 }

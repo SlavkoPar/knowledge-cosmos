@@ -5,6 +5,8 @@ import { useGlobalState } from "global/GlobalProvider";
 import useInfiniteScroll from "react-infinite-scroll-hook";
 import { List, ListItem, Loading } from "common/components/InfiniteList";
 import QuestionRow from "categories/components/questions/QuestionRow";
+import useFetchWithMsal from "hooks/useFetchWithMsal";
+import { protectedResources } from "authConfig";
 
 const QuestionList = ({ title, partitionKey, parentCategory, level }: IParentInfo) => {
   const pageSize = 100;
@@ -17,9 +19,20 @@ const QuestionList = ({ title, partitionKey, parentCategory, level }: IParentInf
   const category = categories.find(c => c.id === parentCategory)!
   const { questions, numOfQuestions, hasMoreQuestions } = category;
 
+  //error: msalError1, 
+  const { execute: readExecute } = useFetchWithMsal("", {
+    scopes: protectedResources.KnowledgeAPI.scopes.read,
+  });
+
+  // error: msalError2, 
+  const { execute: writeExecute } = useFetchWithMsal("", {
+    scopes: protectedResources.KnowledgeAPI.scopes.write,
+  });
+
   async function loadMore() {
     try {
       const parentInfo: IParentInfo = {
+        execute: readExecute,
         partitionKey,
         parentCategory,
         startCursor: questions.length,
@@ -51,9 +64,9 @@ const QuestionList = ({ title, partitionKey, parentCategory, level }: IParentInf
     if (categoryId != null) {
       if (categoryId === parentCategory! && questionId) {
         if (canEdit)
-          editQuestion({ parentCategory, id: questionId })
+          editQuestion(writeExecute, { parentCategory, id: questionId })
         else
-          viewQuestion({ parentCategory, id: questionId })
+          viewQuestion(readExecute, { parentCategory, id: questionId })
       }
     }
   }, [viewQuestion, parentCategory, categoryId, questionId, canEdit]);

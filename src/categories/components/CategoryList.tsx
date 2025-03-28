@@ -9,12 +9,13 @@ import { protectedResources } from "authConfig";
 const CategoryList = ({ title, partitionKey, parentCategory, level }: IParentInfo) => {
     const { state, getSubCategories } = useCategoryContext();
 
-    const { error, execute } = useFetchWithMsal("", {
+    // { error, }
+    const { execute } = useFetchWithMsal("", {
         scopes: protectedResources.KnowledgeAPI.scopes.read,
     });
 
-    if (error)
-        console.error(error)
+    // if (error)
+    //     console.error(error)
 
     useEffect(() => {
         // if (!called) {

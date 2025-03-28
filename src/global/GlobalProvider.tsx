@@ -17,7 +17,7 @@ import {
 
 import { globalReducer, initialGlobalState } from "global/globalReducer";
 
-import { Category, IAssignedAnswer, ICategory, ICategoryDto, IQuest, IQuestDto, IQuestion, IQuestionKey, Question } from "categories/types";
+import { Category, IAssignedAnswer, ICategory, ICategoryDto, IQuest, IQuestDto, IQuestion, IQuestionDto, IQuestionKey, Question } from "categories/types";
 import { IGroup, IAnswer } from "groups/types";
 import { IRole, IUser } from 'roles/types';
 
@@ -47,7 +47,8 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
 
   console.log('--------> GlobalProvider')
 
-  const { error, execute } = useFetchWithMsal("", {
+  // { error, execute }
+  const { execute } = useFetchWithMsal("", {  // execute is going to be used in loadCats only
     scopes: protectedResources.KnowledgeAPI.scopes.read,
   });
 
@@ -466,7 +467,7 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
   // ---------------------------
   // load all short categories
   // ---------------------------
-  const loadCats = useCallback(async (execute: (method: string, endpoint: string) => Promise<ICategoryDto[] | undefined>): Promise<any> => {
+  const loadCats = useCallback(async (): Promise<any> => {
     const { catsLoaded } = globalState;
     if (catsLoaded) {
       var diffMs = (Date.now() - catsLoaded!); // milliseconds between
@@ -563,9 +564,9 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
   }, [dispatch]);
 
 
-  //const searchQuestions = useCallback(async (filter: string, count: number): Promise<any> => {
-  const searchQuestions = async (filter: string, count: number): Promise<any> => {
-    return new Promise((resolve) => {
+  //const searchQuestions = useCallback(async (execute: (method: string, endpoint: string) => Promise<any>, filter: string, count: number): Promise<any> => {
+  const searchQuestions = async (execute: (method: string, endpoint: string) => Promise<any>, filter: string, count: number): Promise<any> => {
+    return new Promise(async (resolve) => {
       try {
         console.time();
         const filterEncoded = encodeURIComponent(filter);
@@ -589,11 +590,23 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
             resolve(listQuest);
           })
           */
-
         const url = `${protectedResources.KnowledgeAPI.endpointQuestion}/${filterEncoded}/${count}/null`;
-        // execute("GET", url).then((response) => {
-        //   console.log({ response }, protectedResources.KnowledgeAPI.endpointCategory);
-        // })
+        await execute("GET", url).then((response: IQuestDto[] | undefined) => {
+          console.log({ response }, protectedResources.KnowledgeAPI.endpointCategory);
+          console.timeEnd();
+          if (response) {
+            const listQuest: IQuest[] = response.map((q: IQuestDto) => ({
+              title: q.Title,
+              parentCategory: q.ParentCategory,
+              id: q.Id
+            }))
+            resolve(listQuest);
+          }
+          else {
+            // reject()
+            console.log('no rows in search')
+          }
+        })
       }
       catch (error: any) {
         console.log(error)
@@ -601,9 +614,9 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
       }
     });
   }
-  //}, [dispatch]);
+  //}, []);
 
-  const OpenDB = useCallback(async (execute: (method: string, endpoint: string) => Promise<any>): Promise<any> => {
+  const OpenDB = useCallback(async (): Promise<any> => {
     try {
       let initializeData = false;
       const dbp = await openDB('SupportKnowledge', 1, {
@@ -663,8 +676,8 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
         const regUser: IRegisterUser = { ...userData, level: 1, confirmed: false }
         await registerUser(regUser, true, dbp);
       }
-      await loadCats(execute);
-      await dispatch({ type: GlobalActionTypes.SET_DBP, payload: { dbp } });
+      await loadCats();
+      dispatch({ type: GlobalActionTypes.SET_DBP, payload: { dbp } });
       // else {
       //   signInUser({nickName: 'Boss', password: 'Boss12345'})
       // }
@@ -707,11 +720,12 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
     return arr;
   }
 
-  const getQuestion = async (questionKey: IQuestionKey): Promise<any> => {
-    return new Promise((resolve) => {
+  // differs from CategoryProvider, here we don't dispatch
+  const getQuestion = async (execute: (method: string, endpoint: string) => Promise<any>, questionKey: IQuestionKey): Promise<any> => {
+    return new Promise(async (resolve) => {
       try {
         const { parentCategory, id } = questionKey;
-        const url = `${process.env.REACT_APP_API_URL}/Question/${parentCategory}/${id}`;
+        //const url = `${process.env.REACT_APP_API_URL}/Question/${parentCategory}/${id}`;
         //console.log(`FETCHING --->>> ${url}`)
         //dispatch({ type: ActionTypes.SET_LOADING })
         console.time()
@@ -735,6 +749,17 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
             console.log('FETCHING --->>>', error);
           });
         */
+        const url = `${protectedResources.KnowledgeAPI.endpointQuestion}/${parentCategory}/${id}`;
+        await execute("GET", url).then((response: IQuestionDto) => {
+          console.timeEnd();
+          console.log({ response });
+          const questionDto = response!;
+          const question: IQuestion = new Question(questionDto, parentCategory).question;
+          question.categoryTitle = 'nadji me';
+          resolve(question);
+        }); 
+
+
       }
       catch (error: any) {
         console.log(error);
@@ -742,7 +767,6 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
       }
     });
   }
-
 
   const getCatsByKind = async (kind: number): Promise<ICat[]> => {
     try {
@@ -886,12 +910,13 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
 
 
   const getMaxConversation = async (dbp: IDBPDatabase): Promise<number> => {
-    const tx = dbp!.transaction('History', 'readonly');
-    var index = tx.store.index('conversation_idx');
-    var req = await index.openCursor(null, 'prev');
-    return (req === null)
-      ? 1000
-      : parseInt(req.key.toString())
+    // const tx = dbp!.transaction('History', 'readonly');
+    // var index = tx.store.index('conversation_idx');
+    // var req = await index.openCursor(null, 'prev');
+    // return (req === null)
+    //   ? 1000
+    //   : parseInt(req.key.toString())
+    return 1000;
   }
 
   const addHistory = async (dbp: IDBPDatabase | null, history: IHistory): Promise<void> => {
@@ -978,7 +1003,7 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
 
   useEffect(() => {
     (async () => {
-      await OpenDB(execute);
+      await OpenDB();
     })()
   }, [OpenDB])
 

@@ -4,6 +4,8 @@ import { useGlobalState } from 'global/GlobalProvider'
 
 import QuestionForm from "categories/components/questions/QuestionForm";
 import { ActionTypes, FormMode, IQuestion } from "categories/types";
+import useFetchWithMsal from "hooks/useFetchWithMsal";
+import { protectedResources } from "authConfig";
 
 interface IProps {
     question: IQuestion;
@@ -18,6 +20,11 @@ const AddQuestion = ({ question, inLine, closeModal, showCloseButton, source, se
     const globalState = useGlobalState();
     const { authUser } = globalState;
     const { nickName } = authUser;
+
+    // { error, execute }
+    const { execute } = useFetchWithMsal("", {
+        scopes: protectedResources.KnowledgeAPI.scopes.write,
+    });
 
     const dispatch = useCategoryDispatch();
     const { state, createQuestion, reloadCategoryNode } = useCategoryContext();
@@ -49,7 +56,7 @@ const AddQuestion = ({ question, inLine, closeModal, showCloseButton, source, se
             else if (closeModal) {
                 closeModal();
                 dispatch({ type: ActionTypes.CLEAN_TREE, payload: { id: question.parentCategory } })
-                await reloadCategoryNode({ partitionKey: '', id: question.parentCategory }, question.id);
+                await reloadCategoryNode(execute, { partitionKey: '', id: question.parentCategory }, question.id);
             }
         }
     }

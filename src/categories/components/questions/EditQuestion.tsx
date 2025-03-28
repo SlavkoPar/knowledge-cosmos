@@ -4,8 +4,15 @@ import { useGlobalState } from 'global/GlobalProvider'
 
 import QuestionForm from "categories/components/questions/QuestionForm";
 import { ActionTypes, FormMode, IQuestion } from "categories/types";
+import useFetchWithMsal from 'hooks/useFetchWithMsal';
+import { protectedResources } from 'authConfig';
 
 const EditQuestion = ({ inLine }: { inLine: boolean }) => {
+
+    const { execute } = useFetchWithMsal("", {
+        scopes: protectedResources.KnowledgeAPI.scopes.write,
+    });
+
     const globalState = useGlobalState();
 
     const dispatch = useCategoryDispatch();
@@ -24,7 +31,7 @@ const EditQuestion = ({ inLine }: { inLine: boolean }) => {
         const q = await updateQuestion(object);
         if (question!.parentCategory !== q.parentCategory) {
             dispatch({ type: ActionTypes.CLEAN_TREE, payload: { id: q.parentCategory } })
-            await reloadCategoryNode({ partitionKey: '', id: q.parentCategory}, q.id);
+            await reloadCategoryNode(execute, { partitionKey: '', id: q.parentCategory}, q.id);
         }
     };
 

@@ -10,6 +10,8 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 //import { faPlus } from '@fortawesome/free-solid-svg-icons'
 import QPlus from 'assets/QPlus.png';
 import { IQuestionKey } from 'categories/types';
+import useFetchWithMsal from 'hooks/useFetchWithMsal';
+import { protectedResources } from 'authConfig';
 
 type SupportParams = {
 	source: string;
@@ -29,23 +31,25 @@ const SupportPage: React.FC = () => {
 	// if (!isAuthenticated)
 	//     return <div>loading...</div>;
 
-	const { loadCats, searchQuestions } = useGlobalContext();
-	const { dbp, canEdit, authUser, isDarkMode, variant, bg, cats, catsLoaded } = useGlobalState();
+	const { searchQuestions } = useGlobalContext();
+	const { canEdit, authUser, isDarkMode, variant, bg, cats, catsLoaded } = useGlobalState();
 
 	const onSelectQuestion = async (questionKey: IQuestionKey) => {
 		navigate(`/categories/${questionKey.parentCategory}_${questionKey.id}`)
 	}
 
-
-	useEffect(() => {
-		(async () => {
+	// useEffect(() => {
+	// 	(async () => {
 			//if (isAuthenticated) {
 			//await OpenDB();
 			//}
 			//await loadCats();
-		})()
-	}, []) // , isAuthenticated
+	// 	})()
+	// }, []) // , isAuthenticated
 
+	const { execute } = useFetchWithMsal("", {
+		scopes: protectedResources.KnowledgeAPI.scopes.read,
+	});
 
 	if (!catsLoaded)
 		return null;
@@ -60,6 +64,7 @@ const SupportPage: React.FC = () => {
 								tekst={tekst}
 								onSelectQuestion={onSelectQuestion}
 								allCategories={cats}
+								execute={execute}
 								searchQuestions={searchQuestions}
 							/>
 						</div>

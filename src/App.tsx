@@ -14,14 +14,9 @@ import Health from 'Health';
 import SupportPage from './SupportPage';
 import ChatBotPage from 'ChatBotPage';
 import Export from 'Export';
-import useFetchWithMsal from 'hooks/useFetchWithMsal';
-import { protectedResources } from 'authConfig';
 
 function App() {
   console.log('-----------> App')
-  const { error, execute } = useFetchWithMsal("", {
-    scopes: protectedResources.KnowledgeAPI.scopes.read,
-  });
 
   const { getUser, registerUser, signInUser, OpenDB } = useGlobalContext();
   const { dbp, authUser, isAuthenticated, everLoggedIn, catsLoaded } = useGlobalState()
@@ -43,11 +38,10 @@ function App() {
       //await OpenDB(execute);
       //}
     })()
-  }, [OpenDB]) // , isAuthenticated
+  }, []) // , isAuthenticated
 
   const locationPathname = location.pathname;
   const searchParams = new URLSearchParams(location.search);
-
 
   useEffect(() => {
     (async () => {
@@ -137,12 +131,13 @@ function App() {
   }, [dbp, signInUser, isAuthenticated, nickName, password, everLoggedIn, locationPathname, navigate])
 
   if (!catsLoaded)
-    return <div>aaApp loading</div>
+    return <div>App loading</div>
+
   return (
     <Container fluid className="App" data-bs-theme="light">
-      <header className="App-header">
+      {/* <header className="App-header">
         <Navigation />
-      </header>
+      </header> */}
       <Row>
         <Col md={12}>
           <div className="wrapper">
