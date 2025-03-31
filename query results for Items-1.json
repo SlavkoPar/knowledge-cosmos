@@ -1,0 +1,90 @@
+[
+   {
+      "id": "Andersen.1",
+      "partitionKey": "Andersen",
+      "LastName": "Andersen",
+      "Parents": [
+         {
+            "FamilyName": null,
+            "FirstName": "Thomas"
+         },
+         {
+            "FamilyName": null,
+            "FirstName": "Mary Kay"
+         }
+      ],
+      "Children": [
+         {
+            "FamilyName": null,
+            "FirstName": "Henriette Thaulow",
+            "Gender": "female",
+            "Grade": 5,
+            "Pets": [
+               {
+                  "GivenName": "Fluffy"
+               }
+            ]
+         }
+      ],
+      "Address": {
+         "State": "WA",
+         "County": "King",
+         "City": "Seattle"
+      },
+      "IsRegistered": false,
+      "_rid": "BtEGAP2n2PsBAAAAAAAAAA==",
+      "_self": "dbs/BtEGAA==/colls/BtEGAP2n2Ps=/docs/BtEGAP2n2PsBAAAAAAAAAA==/",
+      "_etag": "\"00000000-0000-0000-837f-27affd1401db\"",
+      "_attachments": "attachments/",
+      "_ts": 1740046008
+   },
+   {
+      "id": "Wakefield.7",
+      "partitionKey": "Wakefield",
+      "LastName": "Wakefield",
+      "Parents": [
+         {
+            "FamilyName": "Wakefield",
+            "FirstName": "Robin"
+         },
+         {
+            "FamilyName": "Miller",
+            "FirstName": "Ben"
+         }
+      ],
+      "Children": [
+         {
+            "FamilyName": "Merriam",
+            "FirstName": "Jesse",
+            "Gender": "female",
+            "Grade": 6,
+            "Pets": [
+               {
+                  "GivenName": "Goofy"
+               },
+               {
+                  "GivenName": "Shadow"
+               }
+            ]
+         },
+         {
+            "FamilyName": "Miller",
+            "FirstName": "Lisa",
+            "Gender": "female",
+            "Grade": 1,
+            "Pets": null
+         }
+      ],
+      "Address": {
+         "State": "NY",
+         "County": "Manhattan",
+         "City": "NY"
+      },
+      "IsRegistered": true,
+      "_rid": "BtEGAP2n2PsCAAAAAAAAAA==",
+      "_self": "dbs/BtEGAA==/colls/BtEGAP2n2Ps=/docs/BtEGAP2n2PsCAAAAAAAAAA==/",
+      "_etag": "\"00000000-0000-0000-837f-27cd1f1d01db\"",
+      "_attachments": "attachments/",
+      "_ts": 1740046008
+   }
+]

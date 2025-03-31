@@ -1,0 +1,4 @@
+SELECT VALUE { 
+   id: c.id, 
+   LastName: c.LastName, address: c.Address 
+} FROM c
