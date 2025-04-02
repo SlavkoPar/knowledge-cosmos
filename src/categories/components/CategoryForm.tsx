@@ -150,7 +150,7 @@ const CategoryForm = ({ inLine, mode, category, submitForm, children }: ICategor
         <Form.Group>
           <Form.Label className="m-1 mb-0">Questions ({`${formik.values.numOfQuestions}`}) </Form.Label>
           {showQuestions &&
-            <QuestionList level={1} partitionKey={partitionKey} parentCategory={id} title={title}  />
+            <QuestionList level={1} categoryKey={{partitionKey, id}} title={title}  />
           }
         </Form.Group>
 

@@ -210,8 +210,9 @@ export interface ICategoryInfo {
 
 export interface IParentInfo {
 	execute?: (method: string, endpoint: string) => Promise<any>,
-	partitionKey: string | null,
-	parentCategory: string | null,
+	// partitionKey: string | null,
+	// parentCategory: string | null,
+	categoryKey: ICategoryKey,
 	startCursor?: number,
 	includeQuestionId?: string | null
 	level?: number,

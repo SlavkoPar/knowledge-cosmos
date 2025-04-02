@@ -86,7 +86,7 @@ if ('localStorage' in window) {
 export { initialCategoriesState };
 
 export const CategoriesReducer: Reducer<ICategoriesState, CategoriesActions> = (state, action) => {
-  console.log('----->', action.type)
+  console.log('------------------------------->', action.type)
   const newState = reducer(state, action);
   const aTypesToStore = [
     ActionTypes.SET_EXPANDED,
@@ -157,8 +157,8 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
       subCategories.forEach((category: ICategory) => {
         const isExpanded = ids.includes(category.id);
         if (isExpanded) {
-          arr = arr.filter(c => c.id == category.id);
-          category.isExpanded = isExpanded;
+          arr = arr.filter(c => c.id !== category.id);
+          category.isExpanded = true;
         }
       })
       const categories = state.categories.concat(subCategories);
@@ -205,12 +205,12 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
     }
 
     case ActionTypes.ADD_SUB_CATEGORY: {
-      const { parentCategory, level } = action.payload;
+      const { categoryKey, level } = action.payload;
       const category: ICategory = {
         ...initialCategory,
         title: '',
         level: 765, //level + 1,  //TODO
-        parentCategory: parentCategory ?? 'null',
+        parentCategory: categoryKey.id ?? 'null',
         inAdding: true
       }
 
@@ -375,6 +375,7 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
           ? { ...c, inViewing: c.inViewing, inEditing: c.inEditing, isExpanded }
           : c
         ),
+        loading: false,
         mode: isExpanded ? Mode.NULL : state.mode,// expanding ? state.mode : Mode.NULL,  // TODO  close form only if inside of colapsed node
         categoryExpanded,
         categoryNodeLoaded: true // prevent reloadCategoryNode

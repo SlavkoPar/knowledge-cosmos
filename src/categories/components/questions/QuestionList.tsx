@@ -8,14 +8,14 @@ import QuestionRow from "categories/components/questions/QuestionRow";
 import useFetchWithMsal from "hooks/useFetchWithMsal";
 import { protectedResources } from "authConfig";
 
-const QuestionList = ({ title, partitionKey, parentCategory, level }: IParentInfo) => {
+const QuestionList = ({ title, categoryKey, level }: IParentInfo) => {
   const pageSize = 100;
   const { canEdit } = useGlobalState();
 
   const { state, loadCategoryQuestions, editQuestion, viewQuestion } = useCategoryContext();
   const { categories, questionLoading, error, categoryId, questionId } = state;
 
-  const category = categories.find(c => c.id === parentCategory)!
+  const category = categories.find(c => c.id === categoryKey.id)!
   const { questions, numOfQuestions, hasMoreQuestions } = category;
 
   //error: msalError1, 
@@ -32,8 +32,7 @@ const QuestionList = ({ title, partitionKey, parentCategory, level }: IParentInf
     try {
       const parentInfo: IParentInfo = {
         execute: readExecute,
-        partitionKey,
-        parentCategory,
+        categoryKey,
         startCursor: questions.length,
         includeQuestionId: questionId ?? null
       }
@@ -60,14 +59,14 @@ const QuestionList = ({ title, partitionKey, parentCategory, level }: IParentInf
 
   useEffect(() => {
     if (categoryId != null) {
-      if (categoryId === parentCategory! && questionId) {
+      if (categoryId === categoryKey.id && questionId) {
         if (canEdit)
-          editQuestion(writeExecute, { parentCategory, id: questionId })
+          editQuestion(writeExecute, { parentCategory: categoryKey.id, id: questionId })
         else
-          viewQuestion(readExecute, { parentCategory, id: questionId })
+          viewQuestion(readExecute, { parentCategory: categoryKey.id, id: questionId })
       }
     }
-  }, [viewQuestion, parentCategory, categoryId, questionId, canEdit]);
+  }, [viewQuestion, categoryKey, categoryId, questionId, canEdit]);
 
   // console.log('QuestionList render', questions, questions.length)
 

@@ -3,7 +3,7 @@ import { Container, Row, Col, Button } from "react-bootstrap";
 
 import { useParams } from 'react-router-dom';
 
-import { Mode, ActionTypes } from "./types";
+import { Mode, ActionTypes, ICategoryKey } from "./types";
 
 import { useGlobalContext, useGlobalState } from 'global/GlobalProvider';
 
@@ -32,7 +32,7 @@ const Providered = ({ categoryId_questionId }: IProps) => {
     const { execute } = useFetchWithMsal("", {
         scopes: protectedResources.KnowledgeAPI.scopes.read,
     });
-    const { isDarkMode, authUser, catsLoaded } = useGlobalState();
+    const { isDarkMode, authUser } = useGlobalState();
 
     const [modalShow, setModalShow] = useState(false);
     const handleClose = () => {
@@ -43,6 +43,7 @@ const Providered = ({ categoryId_questionId }: IProps) => {
     const [createQuestionError, setCreateQuestionError] = useState("");
 
     const dispatch = useCategoryDispatch();
+    const categoryKey: ICategoryKey = { partitionKey: 'null', id: 'null' }
 
     useEffect(() => {
         (async () => {
@@ -62,14 +63,13 @@ const Providered = ({ categoryId_questionId }: IProps) => {
                     const arr = categoryId_questionId.split('_');
                     const categoryId = arr[0];
                     const questionId = arr[1];
-                    if (catsLoaded)
-                        await reloadCategoryNode(execute, { partitionKey: '', id: categoryId }, questionId);
+                    await reloadCategoryNode(execute, { partitionKey: '', id: categoryId }, questionId);
                 }
             }
             else if (categoryExpanded && !categoryNodeLoaded) {
                 console.log('2) ===>>> Categories:', { categoryId_questionId, categoryExpanded, categoryId_questionId_done });
-                if (catsLoaded)
-                    await reloadCategoryNode(execute, categoryExpanded, questionId);
+
+                await reloadCategoryNode(execute, categoryExpanded, questionId);
             }
         })()
     }, [categoryExpanded, categoryNodeLoaded, reloadCategoryNode, categoryId_questionId, categoryId_questionId_done])
@@ -79,9 +79,7 @@ const Providered = ({ categoryId_questionId }: IProps) => {
             return <div>`zzzzzz loading...${categoryExpanded?.id} ${categoryId_questionId} ${categoryId_questionId_done}`</div>
     }
 
-    if (!catsLoaded)
-        return <div>loading cats</div>
-
+    console.log('===>>> Categories !!!!!!!!!!!!!!!!!')
     return (
         <>
             <Container>
@@ -100,7 +98,7 @@ const Providered = ({ categoryId_questionId }: IProps) => {
                 <Row className="my-1">
                     <Col xs={12} md={5}>
                         <div>
-                            <CategoryList partitionKey={null} parentCategory={null} level={0} title="root" />
+                            <CategoryList categoryKey={categoryKey} level={0} title="root" />
                         </div>
                     </Col>
                     <Col xs={0} md={7}>
@@ -115,7 +113,6 @@ const Providered = ({ categoryId_questionId }: IProps) => {
                         </div>
                     </Col>
                 </Row>
-
             </Container>
             {modalShow &&
                 <ModalAddQuestion
@@ -156,3 +153,4 @@ const Categories = () => {
 }
 
 export default Categories;
+

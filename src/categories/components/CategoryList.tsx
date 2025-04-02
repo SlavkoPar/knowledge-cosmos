@@ -6,23 +6,29 @@ import { useCategoryContext } from "categories/CategoryProvider";
 import useFetchWithMsal from "hooks/useFetchWithMsal";
 import { protectedResources } from "authConfig";
 
-const CategoryList = ({ title, partitionKey, parentCategory, level }: IParentInfo) => {
+const CategoryList = ({ title, categoryKey, level }: IParentInfo) => {
     const { state, getSubCategories } = useCategoryContext();
-    console.log("=========>>>>>>> CategoryList")
+    const { categories, loading } = state;
     // { error, }
     const { execute } = useFetchWithMsal("", {
         scopes: protectedResources.KnowledgeAPI.scopes.read,
     });
 
     useEffect(() => {
-        const categoryKey: ICategoryKey = {
-            partitionKey: partitionKey ?? 'null',
-            id: parentCategory!
-        }
+        // (/*async*/ () => {
+        //     /*await*/ getSubCategories(execute, categoryKey);
+        // })()
         getSubCategories(execute, categoryKey);
-    }, [getSubCategories, partitionKey, parentCategory]);
+    }, [getSubCategories, execute, categoryKey]);
 
-    const mySubCategories = state.categories.filter(c => c.parentCategory === parentCategory);
+    if (loading) {
+        return <div>loading sub categories...</div>
+    }
+    const mySubCategories = categoryKey.id === 'null'
+        ? categories.filter(c => c.parentCategory === null)
+        : categories.filter(c => c.parentCategory === categoryKey.id);
+    console.log("+++++++>>>>>>> CategoryList mySubCategories", { categoryKey, categories, mySubCategories});
+
     return (
         <div className={level! > 1 ? 'ms-2' : ''}>
             <>

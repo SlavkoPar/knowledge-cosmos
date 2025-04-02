@@ -30,7 +30,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
 
   const [state, dispatch] = useReducer(CategoriesReducer, initialCategoriesState);
   // const { categoryNodesUpTheTree } = state;
-  console.log('--------------->>> CategoryProvider') //, { categoryNodesUpTheTree })
+  console.log('----->>> CategoryProvider') //, { categoryNodesUpTheTree })
 
   const reloadCategoryNode = useCallback(
     async (execute: (method: string, endpoint: string) => Promise<any>,
@@ -78,30 +78,32 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
     }, [dispatch]);
 
 
-  const getSubCategories = useCallback(
-    async (execute: (method: string, endpoint: string) => Promise<any>, categoryKey: ICategoryKey) => {
-      const { partitionKey, id: parentCategory } = categoryKey;
-      try {
-        const url = `${protectedResources.KnowledgeAPI.endpointCategory}/${partitionKey}/${parentCategory}`;
-        console.log('calling getSubCategories:', url)
-        console.time();
-        await execute("GET", url).then((response: ICategoryDto[]) => {
-          console.timeEnd();
-          //console.log({ response });
-          if (response instanceof Response) {
-            dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error('fetch Response') } });
-            return;
-          }
-          const data: ICategoryDto[] = response;
-          const subCategories = data!.map((categoryDto: ICategoryDto) => new Category(categoryDto).category);
-          dispatch({ type: ActionTypes.SET_SUB_CATEGORIES, payload: { subCategories } });
-        });
-      }
-      catch (error: any) {
-        console.log(error)
-        dispatch({ type: ActionTypes.SET_ERROR, payload: { error } });
-      }
-    }, [dispatch]);
+  const getSubCategories = useCallback(async (
+    execute: (method: string, endpoint: string) => Promise<any>,
+    categoryKey: ICategoryKey) => {
+    const { partitionKey, id } = categoryKey;
+    try {
+      dispatch({ type: ActionTypes.SET_LOADING });
+      const url = `${protectedResources.KnowledgeAPI.endpointCategory}/${partitionKey}/${id}`;
+      console.log('calling getSubCategories:', url)
+      console.time();
+      await execute("GET", url).then((response: ICategoryDto[]) => {
+        console.timeEnd();
+        if (response instanceof Response) {
+          console.log({ response });
+          dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error('fetch Response') } });
+          return;
+        }
+        const data: ICategoryDto[] = response;
+        const subCategories = data!.map((categoryDto: ICategoryDto) => new Category(categoryDto).category);
+        dispatch({ type: ActionTypes.SET_SUB_CATEGORIES, payload: { subCategories } });
+      });
+    }
+    catch (error: any) {
+      console.log(error)
+      dispatch({ type: ActionTypes.SET_ERROR, payload: { error } });
+    }
+  }, []); //dispatch]);
 
 
   const createCategory = useCallback(async (category: ICategory) => {
@@ -247,8 +249,8 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
               //category.isExpanded = true;
               category.isExpanded = true;
               dispatch({ type: ActionTypes.SET_CATEGORY, payload: { category } });
-              //dispatch({ type: ActionTypes.SET_EXPANDED, payload: { categoryKey, isExpanded: true } });
-              // await getSubCategories(execute, categoryKey);
+              dispatch({ type: ActionTypes.SET_EXPANDED, payload: { categoryKey, isExpanded: true } });
+              //await getSubCategories(execute, categoryKey);
               /*
               if (numOfQuestions > 0) { // && questions.length === 0) {
                 const parentInfo: IParentInfo = {
@@ -291,10 +293,11 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
 
   const PAGE_SIZE = 12;
   const loadCategoryQuestions = useCallback(
-    async ({ execute, parentCategory, startCursor, includeQuestionId }: IParentInfo)
+    async ({ execute, categoryKey, startCursor, includeQuestionId }: IParentInfo)
       : Promise<any> => {
       const questions: IQuestion[] = [];
       try {
+        const parentCategory = categoryKey.id;
         dispatch({ type: ActionTypes.SET_CATEGORY_QUESTIONS_LOADING, payload: { questionLoading: true } })
         try {
           const url = `${protectedResources.KnowledgeAPI.endpointQuestion}/${parentCategory}/${startCursor}/${PAGE_SIZE}/${includeQuestionId}`;

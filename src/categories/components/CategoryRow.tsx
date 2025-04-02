@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit, faRemove, faCaretRight, faCaretDown, faPlus, faQuestion } from '@fortawesome/free-solid-svg-icons'
 import QPlus from 'assets/QPlus.png';
@@ -22,10 +22,9 @@ import { protectedResources } from 'authConfig';
 
 const CategoryRow = ({ category }: { category: ICategory }) => {
     const { partitionKey, id, title, level, inViewing, inEditing, inAdding, hasSubCategories, questions, numOfQuestions, isExpanded } = category;
-    const categoryKey: ICategoryKey = { partitionKey: partitionKey, id }
+    const categoryKey: ICategoryKey = { partitionKey, id }
     const parentInfo: IParentInfo = {
-        partitionKey,
-        parentCategory: id,
+        categoryKey,
         includeQuestionId: null,
         level,
         title
@@ -33,8 +32,17 @@ const CategoryRow = ({ category }: { category: ICategory }) => {
 
     const { canEdit, isDarkMode, variant, bg } = useGlobalState();
 
-    const { state, viewCategory, editCategory, deleteCategory, expandCategory, collapseCategory } = useCategoryContext();
+    const { state, viewCategory, editCategory, deleteCategory, getSubCategories, expandCategory, collapseCategory } = useCategoryContext();
     const { questionId } = state;
+
+    // useEffect(() => {
+    //     (async () => {
+    //         if (isExpanded) {
+    //             //await expandCategory(readExecute, categoryKey, questionId ?? 'null');
+    //             await getSubCategories(readExecute, categoryKey);
+    //         }
+    //     })()
+    // }, [expandCategory]);
 
     const dispatch = useCategoryDispatch();
 
@@ -201,9 +209,9 @@ const CategoryRow = ({ category }: { category: ICategory }) => {
                 >
                     {isExpanded &&
                         <>
-                            <CategoryList level={level + 1} partitionKey={partitionKey} parentCategory={id} title={title} />
+                            <CategoryList level={level + 1} categoryKey={categoryKey} title={title} />
                             {showQuestions &&
-                                <QuestionList level={level + 1} partitionKey={partitionKey} parentCategory={id} title={title} />
+                                <QuestionList level={level + 1} categoryKey={categoryKey} title={title} />
                             }
                         </>
                     }
