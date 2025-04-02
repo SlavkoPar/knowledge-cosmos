@@ -26,14 +26,13 @@ interface IProps {
 
 const Providered = ({ categoryId_questionId }: IProps) => {
     const { state, reloadCategoryNode } = useCategoryContext();
-    const { lastCategoryExpanded, categoryId_questionId_done } = state;
+    const { categoryExpanded, categoryId_questionId_done, questionId, categoryNodeLoaded } = state;
 
     // { error, execute }
     const { execute } = useFetchWithMsal("", {
         scopes: protectedResources.KnowledgeAPI.scopes.read,
     });
     const { isDarkMode, authUser, catsLoaded } = useGlobalState();
-    const { loadCats } = useGlobalContext();
 
     const [modalShow, setModalShow] = useState(false);
     const handleClose = () => {
@@ -58,7 +57,8 @@ const Providered = ({ categoryId_questionId }: IProps) => {
                         return null;
                     }
                 }
-                else if (categoryId_questionId !== categoryId_questionId_done) {
+                else if (categoryId_questionId !== categoryId_questionId_done && !categoryNodeLoaded) {
+                    console.log('1) ===>>> Categories:', { categoryId_questionId, categoryExpanded, categoryId_questionId_done });
                     const arr = categoryId_questionId.split('_');
                     const categoryId = arr[0];
                     const questionId = arr[1];
@@ -66,19 +66,17 @@ const Providered = ({ categoryId_questionId }: IProps) => {
                         await reloadCategoryNode(execute, { partitionKey: '', id: categoryId }, questionId);
                 }
             }
-            else if (lastCategoryExpanded) {
-                // if (!catsLoaded)
-                //     await loadCats()
+            else if (categoryExpanded && !categoryNodeLoaded) {
+                console.log('2) ===>>> Categories:', { categoryId_questionId, categoryExpanded, categoryId_questionId_done });
                 if (catsLoaded)
-                    await reloadCategoryNode(execute, lastCategoryExpanded, null);
+                    await reloadCategoryNode(execute, categoryExpanded, questionId);
             }
         })()
-    }, [lastCategoryExpanded, reloadCategoryNode, categoryId_questionId, categoryId_questionId_done])
+    }, [categoryExpanded, categoryNodeLoaded, reloadCategoryNode, categoryId_questionId, categoryId_questionId_done])
 
-    console.log('===>>> Categories:', { categoryId_questionId, lastCategoryExpanded, categoryId_questionId_done });
     if (categoryId_questionId !== 'add_question') {
-        if (lastCategoryExpanded || (categoryId_questionId && categoryId_questionId !== categoryId_questionId_done))
-            return <div>`zzzzzz loading...${lastCategoryExpanded?.id} ${categoryId_questionId} ${categoryId_questionId_done}`</div>
+        if (categoryExpanded || (categoryId_questionId && categoryId_questionId !== categoryId_questionId_done))
+            return <div>`zzzzzz loading...${categoryExpanded?.id} ${categoryId_questionId} ${categoryId_questionId_done}`</div>
     }
 
     if (!catsLoaded)

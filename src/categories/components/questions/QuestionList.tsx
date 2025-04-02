@@ -72,7 +72,7 @@ const QuestionList = ({ title, partitionKey, parentCategory, level }: IParentInf
   // console.log('QuestionList render', questions, questions.length)
 
   if (questionLoading)
-    return <div>Loading questions breeeeeee ...</div>
+    return <div> ... loading</div>
 
   return (
     <div

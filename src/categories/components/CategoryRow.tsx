@@ -33,7 +33,8 @@ const CategoryRow = ({ category }: { category: ICategory }) => {
 
     const { canEdit, isDarkMode, variant, bg } = useGlobalState();
 
-    const { state, viewCategory, editCategory, deleteCategory, expandCategory } = useCategoryContext();
+    const { state, viewCategory, editCategory, deleteCategory, expandCategory, collapseCategory } = useCategoryContext();
+    const { questionId } = state;
 
     const dispatch = useCategoryDispatch();
 
@@ -55,25 +56,23 @@ const CategoryRow = ({ category }: { category: ICategory }) => {
         deleteCategory(categoryKey);
     };
 
-    const expand = (id: string) => {
-        //const collapse = isExpanded;
-        //dispatch({ type: ActionTypes.SET_EXPANDED, payload: { id, expanding: !isExpanded } });
-        expandCategory(readExecute, category, !isExpanded);
-        // if (collapse)
-        //     dispatch({ type: ActionTypes.CLEAN_SUB_TREE, payload: { id } })
+    const expand = async () => {
+        if (isExpanded)
+            await collapseCategory(readExecute, categoryKey);
+        else
+            await expandCategory(readExecute, categoryKey, questionId ?? 'null');
     }
 
     const edit = () => {
         // Load data from server and reinitialize category
-        editCategory(writeExecute, categoryKey);
+        editCategory(writeExecute, categoryKey, questionId ?? 'null');
     }
 
     const onSelectCategory = () => {
-        // Load data from server and reinitialize category
         if (canEdit)
-            editCategory(writeExecute, categoryKey);
+            editCategory(writeExecute, categoryKey, questionId ?? 'null');
         else
-            viewCategory(readExecute, categoryKey);
+            viewCategory(readExecute, categoryKey, questionId ?? 'null');
     }
 
     const [hoverRef, hoverProps] = useHover();
@@ -84,7 +83,7 @@ const CategoryRow = ({ category }: { category: ICategory }) => {
                 variant='link'
                 size="sm"
                 className="py-0 px-1"
-                onClick={() => expand(id!)}
+                onClick={expand}
                 title="Expand"
                 disabled={alreadyAdding || (!hasSubCategories && numOfQuestions === 0)}
             >

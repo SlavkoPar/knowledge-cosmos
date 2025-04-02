@@ -223,20 +223,19 @@ export interface IParentInfo {
 export interface ICategoriesState {
 	mode: string | null;
 	categories: ICategory[];
-	categoryNodesUpTheTree?: ICategoryKeyExtended[];
-	currentCategoryExpanded: ICategoryKey | null;
-	lastCategoryExpanded: ICategoryKey | null;
+	categoryNodesUpTheTree: ICategoryKeyExtended[];
+	categoryExpanded: ICategoryKey | null;
 	categoryId: string | null;
 	questionId: string | null;
 	categoryId_questionId_done: string | null;
+	categoryNodeLoaded: boolean;
 	//reloadCategoryInfo: IParentCategories;
 	loading: boolean;
 	questionLoading: boolean,
 	error?: Error;
-	locStorage: IFromLocalStorage
 }
 
-export interface IFromLocalStorage {
+export interface ILocStorage {
 	lastCategoryExpanded: ICategoryKey | null;
 	categoryId: string | null;
 	questionId: string | null;
@@ -248,12 +247,13 @@ export interface ICategoriesContext {
 	reloadCategoryNode: (execute: (method: string, endpoint: string) => Promise<any>, categoryKey: ICategoryKey, questionId: string | null) => Promise<any>;
 	getSubCategories: (execute: (method: string, endpoint: string) => Promise<any>, categoryKey: ICategoryKey) => void,
 	createCategory: (category: ICategory) => void,
-	viewCategory: (execute: (method: string, endpoint: string) => Promise<any>, categoryKey: ICategoryKey) => void,
-	editCategory: (execute: (method: string, endpoint: string) => Promise<any>, categoryKey: ICategoryKey) => void,
+	viewCategory: (execute: (method: string, endpoint: string) => Promise<any>, categoryKey: ICategoryKey, includeQuestionId: string) => void,
+	editCategory: (execute: (method: string, endpoint: string) => Promise<any>, categoryKey: ICategoryKey, includeQuestionId: string) => void,
 	updateCategory: (category: ICategory, closeForm: boolean) => void,
 	deleteCategory: (categoryKey: ICategoryKey) => void,
 	deleteCategoryVariation: (id: string, name: string) => void,
-	expandCategory: (execute: (method: string, endpoint: string) => Promise<any>, category: ICategory, expand: boolean) => void,
+	expandCategory: (execute: (method: string, endpoint: string) => Promise<any>, categoryKey: ICategoryKey, includeQuestionId: string) => void,
+	collapseCategory: (execute: (method: string, endpoint: string) => Promise<any>, categoryKey: ICategoryKey) => void,
 	//////////////
 	// questions
 	//getCategoryQuestions: ({ parentCategory, level, inAdding }: IParentInfo) => void,
@@ -306,7 +306,7 @@ export enum ActionTypes {
 	CANCEL_CATEGORY_FORM = 'CANCEL_CATEGORY_FORM',
 	SET_EXPANDED = 'SET_EXPANDED',
 
-	SET_CATEGORY_NODES_UP_THE_TREE = "SET_CATEGORY_NODES_UP_THE_TREE",
+	RELOAD_CATEGORY_NODE = "RELOAD_CATEGORY_NODE",
 
 	// questions
 	LOAD_CATEGORY_QUESTIONS = 'LOAD_CATEGORY_QUESTIONS',
@@ -336,7 +336,7 @@ export type CategoriesPayload = {
 	}
 
 
-	[ActionTypes.SET_CATEGORY_NODES_UP_THE_TREE]: {
+	[ActionTypes.RELOAD_CATEGORY_NODE]: {
 		categoryNodesUpTheTree: ICategoryKeyExtended[];
 		categoryId: string | null;
 		questionId: string | null;
@@ -369,7 +369,7 @@ export type CategoriesPayload = {
 	};
 
 	[ActionTypes.CLEAN_SUB_TREE]: {
-		category: ICategory;
+		categoryKey: ICategoryKey;
 	};
 
 	[ActionTypes.CLEAN_TREE]: undefined;
@@ -380,7 +380,7 @@ export type CategoriesPayload = {
 
 	[ActionTypes.SET_EXPANDED]: {
 		categoryKey: ICategoryKey;
-		expanding: boolean;
+		isExpanded: boolean;
 	}
 
 	[ActionTypes.SET_ERROR]: {

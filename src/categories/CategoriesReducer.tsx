@@ -1,5 +1,5 @@
 import { Reducer } from 'react'
-import { Mode, ActionTypes, ICategoriesState, ICategory, IQuestion, CategoriesActions, IFromLocalStorage } from "categories/types";
+import { Mode, ActionTypes, ICategoriesState, ICategory, IQuestion, CategoriesActions, ILocStorage, ICategoryKey, ICategoryKeyExtended } from "categories/types";
 
 export const initialQuestion: IQuestion = {
   id: '', // real id will be given by DB
@@ -35,18 +35,14 @@ export const initialCategory: ICategory = {
 export const initialState: ICategoriesState = {
   mode: Mode.NULL,
   categories: [],
-  currentCategoryExpanded: null,
-  lastCategoryExpanded: null,
+  categoryNodesUpTheTree: [],
+  categoryExpanded: null,
   categoryId_questionId_done: null,
   categoryId: null,
   questionId: null,
   loading: false,
   questionLoading: false,
-  locStorage: {
-    lastCategoryExpanded: null,
-    categoryId: null,
-    questionId: null
-  }
+  categoryNodeLoaded: false
 }
 
 // let state_fromLocalStorage: IState_fromLocalStorage | undefined;
@@ -70,18 +66,17 @@ let initialCategoriesState: ICategoriesState = {
 if ('localStorage' in window) {
   const s = localStorage.getItem('CATEGORIES_STATE');
   if (s !== null) {
-    const state_fromLocalStorage = JSON.parse(s);
+    const locStorage = JSON.parse(s);
     // if (hasMissingProps()) {
     //   initialStateFromLocalStorage = undefined;
     // }
     // else {
-    const { lastCategoryExpanded, categoryId, questionId } = state_fromLocalStorage!;
+    const { lastCategoryExpanded, categoryId, questionId } = locStorage!;
     initialCategoriesState = {
       ...initialCategoriesState,
-      lastCategoryExpanded,
+      categoryExpanded: lastCategoryExpanded,
       categoryId,
-      questionId,
-      locStorage: { ...state_fromLocalStorage }
+      questionId
     }
     console.log('initialCategoriesState', initialCategoriesState);
     //}
@@ -101,8 +96,14 @@ export const CategoriesReducer: Reducer<ICategoriesState, CategoriesActions> = (
     ActionTypes.EDIT_QUESTION
   ];
 
+  const { categoryExpanded, categoryId, questionId } = newState;
+  const locStorage: ILocStorage = {
+    lastCategoryExpanded: categoryExpanded,
+    categoryId,
+    questionId
+  }
   if (aTypesToStore.includes(action.type)) {
-    localStorage.setItem('CATEGORIES_STATE', JSON.stringify(newState.locStorage));
+    localStorage.setItem('CATEGORIES_STATE', JSON.stringify(locStorage));
   }
   return newState;
 }
@@ -133,35 +134,48 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
         questionLoading
       }
 
-    case ActionTypes.SET_CATEGORY_NODES_UP_THE_TREE: {
+    case ActionTypes.RELOAD_CATEGORY_NODE: {
       const { categoryNodesUpTheTree, categoryId, questionId } = action.payload;
-      console.log('--->>> ActionTypes.SET_CATEGORIES_UP_THE_TREE', action.payload)
+      console.log('=========================>>> ActionTypes.RELOAD_CATEGORY_NODE categoryNodeLoaded ', action.payload)
       return {
         ...state,
-        lastCategoryExpanded: null, // TODO
+        categoryExpanded: null, // TODO
         categoryNodesUpTheTree,
         categoryId,
-        // questionId,
-        categoryId_questionId_done: `${categoryId}_${questionId}`
+        questionId,
+        // categoryId_questionId_done: `${categoryId}_${questionId}`,
+        categoryNodeLoaded: true,
+        loading: false
       };
     }
 
     case ActionTypes.SET_SUB_CATEGORIES: {
       const { subCategories } = action.payload;
+      const { categoryNodesUpTheTree } = state;
+      let arr: ICategoryKeyExtended[] = [...categoryNodesUpTheTree]
+      const ids = categoryNodesUpTheTree!.map(x => x.id);
+      subCategories.forEach((category: ICategory) => {
+        const isExpanded = ids.includes(category.id);
+        if (isExpanded) {
+          arr = arr.filter(c => c.id == category.id);
+          category.isExpanded = isExpanded;
+        }
+      })
       const categories = state.categories.concat(subCategories);
-      console.log('------>>>>>> ActionTypes.SET_SUB_CATEGORIES', action.payload)
+      console.log('------>>>>>> ActionTypes.SET_SUB_CATEGORIES, categoryNodesUpTheTree', { subCategories, arr })
       return {
         ...state,
         categories,
+        categoryNodesUpTheTree: arr,
         loading: false
       };
     }
 
     case ActionTypes.CLEAN_SUB_TREE: {
-      const { id } = action.payload.category;
-      const arr = markForClean(state.categories, id!)
-      console.log('clean:', arr)
-      const ids = arr.map(c => c.id)
+      const { categoryKey } = action.payload;
+      const arr = markForClean(state.categories, categoryKey)
+      console.log('CLEAN_SUB_TREE:', arr)
+      const ids = arr.map(c => c.id);
       if (arr.length === 0)
         return {
           ...state
@@ -185,7 +199,8 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
       return {
         ...state,
         error,
-        loading: false
+        loading: false,
+        questionLoading: false
       };
     }
 
@@ -219,19 +234,21 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
 
     case ActionTypes.SET_CATEGORY: {
       const { category } = action.payload; // category doesn't contain inViewing, inEditing, inAdding 
-      const { questions } = category;
-      const cat = state.categories.find(c => c.id === category.id);
+      console.log('SET_CATEGORY', {category})
+      const { id } = category;
+      /* TODO sredi kasnije 
+      const cat = state.categories.find(c => c.id === id);
       const questionInAdding = cat!.questions.find(q => q.inAdding);
       if (questionInAdding) {
         questions.unshift(questionInAdding); // TODO mislim da ovo treba comment
         console.assert(state.mode === Mode.AddingQuestion, "expected Mode.AddingQuestion")
       }
+      */
       return {
         ...state,
-        categories: state.categories.map(c => c.id === category.id
+        categories: state.categories.map(c => c.id === id
           ? {
             ...category,
-            questions,
             inViewing: c.inViewing, inEditing: c.inEditing, inAdding: c.inAdding, isExpanded: c.isExpanded
           }
           : c),
@@ -242,24 +259,19 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
 
     case ActionTypes.VIEW_CATEGORY: {
       const { category } = action.payload;
+      //const { isExpanded } = category;
       console.log('===>>> ActionTypes.VIEW_CATEGORY', category)
       return {
         ...state,
         categories: state.categories.map(c => c.id === category.id
-          //? { ...category, questions: c.questions, inViewing: true, isExpanded: c.isExpanded } // category.questions are inside of object
-          ? { ...category, inViewing: true, isExpanded: c.isExpanded } // category.questions are inside of object
+          ? { ...category, inViewing: true } //, isExpanded } // category.questions are inside of object
           : { ...c, inViewing: false }
         ),
         mode: Mode.ViewingCategory,
         loading: false,
         categoryId: category.id,
-        questionId: null,
-        locStorage: {
-          ...state.locStorage,
-          categoryId: category.id,
-          questionId: null
-        }
-    };
+        // questionId: null
+      };
     }
 
     case ActionTypes.EDIT_CATEGORY: {
@@ -274,18 +286,14 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
         ),
         mode: Mode.EditingCategory,
         loading: false,
-        categoryId: category.id,
-        questionId: null,
-        locStorage: {
-          ...state.locStorage,
-          categoryId: category.id,
-          questionId: null
-        }
+        categoryId: category.id
+        // questionId: null 
       };
     }
 
     case ActionTypes.LOAD_CATEGORY_QUESTIONS: {
       const { parentCategory, questions, hasMoreQuestions } = action.payload; // category doesn't contain inViewing, inEditing, inAdding 
+      console.log('>>>>>>>>>>>>LOAD_CATEGORY_QUESTIONS', { parentCategory, questions, hasMoreQuestions })
       const category = state.categories.find(c => c.id === parentCategory);
       //if (questions.length > 0 && category!.questions.map(q => q.id).includes(questions[0].id)) {
       // privremeno  TODO  uradi isto i u group/answers
@@ -347,30 +355,29 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
     }
 
     case ActionTypes.SET_EXPANDED: {
-      const { categoryKey, expanding } = action.payload;
-      const { partitionKey: partitionKey, id } = categoryKey;
+      const { categoryKey, isExpanded } = action.payload;
+      console.log('SET_EXPANDED', {categoryKey})
+      const collapsing = !isExpanded;
+      const { partitionKey, id } = categoryKey;
       let { categories } = state;
-      if (!expanding) {
-        const arr = markForClean(categories, id!)
+      if (collapsing) {
+        const arr = markForClean(categories, categoryKey)
         console.log('clean:', arr)
         const ids = arr.map(c => c.id)
         if (ids.length > 0) {
           categories = categories.filter(c => !ids.includes(c.id))
         }
       }
-      const currentCategoryExpanded = expanding ? categoryKey : null;
+      const categoryExpanded = isExpanded ? categoryKey : null;
       return {
         ...state,
         categories: categories.map(c => c.id === id
-          ? { ...c, inViewing: c.inViewing, inEditing: c.inEditing, isExpanded: expanding }
+          ? { ...c, inViewing: c.inViewing, inEditing: c.inEditing, isExpanded }
           : c
         ),
-        mode: expanding ? Mode.NULL : state.mode,// expanding ? state.mode : Mode.NULL,  // TODO  close form only if inside of colapsed node
-        currentCategoryExpanded,
-        locStorage: {
-          ...state.locStorage,
-          lastCategoryExpanded: currentCategoryExpanded
-        }
+        mode: isExpanded ? Mode.NULL : state.mode,// expanding ? state.mode : Mode.NULL,  // TODO  close form only if inside of colapsed node
+        categoryExpanded,
+        categoryNodeLoaded: true // prevent reloadCategoryNode
       };
     }
 
@@ -471,11 +478,8 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
         ),
         mode: Mode.ViewingQuestion,
         loading: false,
+        categoryId: question.parentCategory,
         questionId: question.id,
-        locStorage: {
-          ...state.locStorage,
-          questionId: question.id
-        }
       }
     }
 
@@ -504,11 +508,8 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
         ),
         mode: Mode.EditingQuestion,
         loading: false,
+        categoryId: question.parentCategory,
         questionId: question.id,
-        locStorage: {
-          ...state.locStorage,
-          questionId: question.id
-        }
       }
       return obj;
     }
@@ -563,7 +564,7 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
           ? { ...c, questions, numOfQuestions: questions.length, inAdding: false, inEditing: false, inViewing: false }
           : c
         ),
-        mode: Mode.NULL,
+        mode: Mode.NULL
       };
     }
 
@@ -572,13 +573,14 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
   }
 };
 
-function markForClean(categories: ICategory[], parentCategory: string) {
+function markForClean(categories: ICategory[], parentCategory: ICategoryKey) {
+  const { partitionKey, id } = parentCategory;
   let deca = categories
-    .filter(c => c.parentCategory === parentCategory)
+    .filter(c => c.parentCategory === id)
     .map(c => ({ id: c.id, parentCategory: c.parentCategory }))
 
   deca.forEach(c => {
-    deca = deca.concat(markForClean(categories, c.id!))
+    deca = deca.concat(markForClean(categories, parentCategory))
   })
   return deca
 }
