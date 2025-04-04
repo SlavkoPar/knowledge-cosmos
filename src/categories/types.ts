@@ -140,7 +140,6 @@ export class Question {
 
 export class Category {
 	constructor(dto: ICategoryDto) {
-		console.log(dto,  {dto})
 		this.category = {
 			partitionKey: dto.PartitionKey,
 			id: dto.Id,
@@ -249,7 +248,7 @@ export interface ILocStorage {
 export interface ICategoriesContext {
 	state: ICategoriesState,
 	reloadCategoryNode: (execute: (method: string, endpoint: string) => Promise<any>, categoryKey: ICategoryKey, questionId: string | null) => Promise<any>;
-	getSubCategories: (execute: (method: string, endpoint: string) => Promise<any>, categoryKey: ICategoryKey) => void,
+	getSubCategories: (execute: (method: string, endpoint: string) => Promise<any>, categoryKey: ICategoryKey) => Promise<any>,
 	createCategory: (category: ICategory) => void,
 	viewCategory: (execute: (method: string, endpoint: string) => Promise<any>, categoryKey: ICategoryKey, includeQuestionId: string) => void,
 	editCategory: (execute: (method: string, endpoint: string) => Promise<any>, categoryKey: ICategoryKey, includeQuestionId: string) => void,
@@ -309,6 +308,7 @@ export enum ActionTypes {
 	CLOSE_CATEGORY_FORM = 'CLOSE_CATEGORY_FORM',
 	CANCEL_CATEGORY_FORM = 'CANCEL_CATEGORY_FORM',
 	SET_EXPANDED = 'SET_EXPANDED',
+	SET_COLLAPSED = 'SET_COLLAPSED',
 
 	RELOAD_CATEGORY_NODE = "RELOAD_CATEGORY_NODE",
 
@@ -383,8 +383,11 @@ export type CategoriesPayload = {
 	[ActionTypes.CANCEL_CATEGORY_FORM]: undefined;
 
 	[ActionTypes.SET_EXPANDED]: {
+		category: ICategory;
+	}
+
+	[ActionTypes.SET_COLLAPSED]: {
 		categoryKey: ICategoryKey;
-		isExpanded: boolean;
 	}
 
 	[ActionTypes.SET_ERROR]: {

@@ -8,10 +8,10 @@ import { useMsal, useMsalAuthentication } from "@azure/msal-react";
  * @returns 
  */
 const useFetchWithMsal = (accessToken: string, msalRequest: PopupRequest | RedirectRequest | SsoSilentRequest) => {
-    const { instance } = useMsal();
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<AuthError|null>(null);
-    const [data, setData] = useState<Object|null>(null);
+    //const { instance } = useMsal();
+    //const [isLoading, setIsLoading] = useState(false);
+    //const [error, setError] = useState<AuthError|null>(null);
+    //const [data, setData] = useState<Object|null>(null);
 
     //const { result, error: msalError } = useMsalAuthentication(InteractionType.Popup, {
     //    ...msalRequest,
@@ -57,7 +57,7 @@ const useFetchWithMsal = (accessToken: string, msalRequest: PopupRequest | Redir
                     body: data ? JSON.stringify(data) : null,
                 };
 
-                setIsLoading(true);
+                //setIsLoading(true);
                 response = (await fetch(endpoint, options));
 
                 if ((response.status === 200 || response.status === 201)) {
@@ -82,8 +82,8 @@ const useFetchWithMsal = (accessToken: string, msalRequest: PopupRequest | Redir
             }
             catch (e) {
                 console.log('-------------->>> execute', method, endpoint, e)
-                setError(e as AuthError);
-                setIsLoading(false);
+                //setError(e as AuthError);
+                //setIsLoading(false);
                 throw e;
             }
         }

@@ -8,27 +8,35 @@ import { protectedResources } from "authConfig";
 
 const CategoryList = ({ title, categoryKey, level }: IParentInfo) => {
     const { state, getSubCategories } = useCategoryContext();
-    const { categories, loading } = state;
+    const { categories } = state;
     // { error, }
     const { execute } = useFetchWithMsal("", {
         scopes: protectedResources.KnowledgeAPI.scopes.read,
     });
 
+    const [pozvao, setPozvao] = useState(false)
+
     useEffect(() => {
         //getSubCategories(execute, categoryKey);
         (async () => {
             console.log('zovem getSubCategories', {categoryKey})
-            await getSubCategories(execute, categoryKey);
+            await getSubCategories(execute, categoryKey)
+                .then((response:boolean)=> {
+                    setPozvao(true);
+                });
+            
         })()
     }, [getSubCategories, execute, categoryKey]);
 
-    if (loading) {
-        return <div>loading sub categories...</div>
-    }
+   
     const mySubCategories = categoryKey.id === 'null'
         ? categories.filter(c => c.parentCategory === null)
         : categories.filter(c => c.parentCategory === categoryKey.id);
-    console.log("+++++++>>>>>>> CategoryList mySubCategories", { categoryKey, categories, mySubCategories});
+    console.log("+++++++>>>>>>> CategoryList ", { categoryKey, categories, mySubCategories});
+
+    if (!pozvao) {
+        return <div>loading sub categories...</div>
+    }
 
     return (
         <div className={level! > 1 ? 'ms-2' : ''}>

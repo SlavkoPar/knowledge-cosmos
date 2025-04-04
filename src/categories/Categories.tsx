@@ -23,10 +23,11 @@ import { protectedResources } from 'authConfig';
 interface IProps {
     categoryId_questionId: string | undefined
 }
-
+let nTimes = 0;
 const Providered = ({ categoryId_questionId }: IProps) => {
     const { state, reloadCategoryNode } = useCategoryContext();
     const { categoryExpanded, categoryId_questionId_done, questionId, categoryNodeLoaded } = state;
+    console.log('Providered', {categoryExpanded, categoryNodeLoaded})
 
     // { error, execute }
     const { execute } = useFetchWithMsal("", {
@@ -59,7 +60,7 @@ const Providered = ({ categoryId_questionId }: IProps) => {
                     }
                 }
                 else if (categoryId_questionId !== categoryId_questionId_done && !categoryNodeLoaded) {
-                    console.log('1) ===>>> Categories:', { categoryId_questionId, categoryExpanded, categoryId_questionId_done });
+                    console.log('1) ===>>> Categories calling reloadCategoryNode:', { categoryId_questionId, categoryExpanded, categoryId_questionId_done });
                     const arr = categoryId_questionId.split('_');
                     const categoryId = arr[0];
                     const questionId = arr[1];
@@ -67,8 +68,7 @@ const Providered = ({ categoryId_questionId }: IProps) => {
                 }
             }
             else if (categoryExpanded && !categoryNodeLoaded) {
-                console.log('2) ===>>> Categories:', { categoryId_questionId, categoryExpanded, categoryId_questionId_done });
-
+                console.log('2) ===>>> Categories calling reloadCategoryNode:', { categoryId_questionId, categoryExpanded, categoryId_questionId_done });
                 await reloadCategoryNode(execute, categoryExpanded, questionId);
             }
         })()
@@ -79,7 +79,11 @@ const Providered = ({ categoryId_questionId }: IProps) => {
             return <div>`zzzzzz loading...${categoryExpanded?.id} ${categoryId_questionId} ${categoryId_questionId_done}`</div>
     }
 
-    console.log('===>>> Categories !!!!!!!!!!!!!!!!!')
+    nTimes++;
+
+    console.log('===>>> Categories !!!!!!!!!!!!!!!!!', nTimes)
+    // if (nTimes> 5)
+    //     return <div>Pera</div>
     return (
         <>
             <Container>
@@ -139,11 +143,11 @@ const Categories = () => {
         const arr = categoryId_questionId!.split('_');
         console.assert(arr.length === 2, "expected 'categoryId_questionId'")
     }
-    const globalState = useGlobalState();
-    const { isAuthenticated } = globalState;
+    // const globalState = useGlobalState();
+    // const { isAuthenticated } = globalState;
 
-    if (!isAuthenticated)
-        return <div>categories loading...</div>;
+    // if (!isAuthenticated)
+    //     return <div>categories loading...</div>;
 
     return (
         <CategoryProvider>

@@ -61,35 +61,27 @@ let initialCategoriesState: ICategoriesState = {
   ...initialState
 }
 
+if ('localStorage' in window) {
+  const s = localStorage.getItem('CATEGORIES_STATE');
+  if (s !== null) {
+    const locStorage = JSON.parse(s);
+    const { lastCategoryExpanded, categoryId, questionId } = locStorage!;
+    const categoryNodeLoaded = lastCategoryExpanded ? false : true;
+
+    initialCategoriesState = {
+      ...initialCategoriesState,
+      categoryExpanded: lastCategoryExpanded,
+      categoryNodeLoaded: lastCategoryExpanded ? false : true,
+      categoryId,
+      questionId
+    }
+    console.log('initialCategoriesState nakon citanja iz memorije', initialCategoriesState);
+  }
+}
 
 export { initialCategoriesState };
-let localStorageLoaded = false;
 
 export const CategoriesReducer: Reducer<ICategoriesState, CategoriesActions> = (state, action) => {
-
-  if (!localStorageLoaded && 'localStorage' in window) {
-    const s = localStorage.getItem('CATEGORIES_STATE');
-    if (s !== null) {
-      const locStorage = JSON.parse(s);
-      // if (hasMissingProps()) {
-      //   initialStateFromLocalStorage = undefined;
-      // }
-      // else {
-      const { lastCategoryExpanded, categoryId, questionId } = locStorage!;
-      const categoryNodeLoaded = lastCategoryExpanded ? false : true;
-
-      initialCategoriesState = {
-        ...initialCategoriesState,
-        categoryExpanded: lastCategoryExpanded,
-        categoryNodeLoaded: lastCategoryExpanded ? false : true,
-        categoryId,
-        questionId
-      }
-      console.log('initialCategoriesState', initialCategoriesState);
-      localStorageLoaded = true;
-      //}
-    }
-  }
 
   console.log('------------------------------->', action.type)
   const newState = reducer(state, action);
@@ -156,21 +148,21 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
 
     case ActionTypes.SET_SUB_CATEGORIES: {
       const { subCategories } = action.payload;
-      const { categoryNodesUpTheTree } = state;
+      const { categoryNodesUpTheTree, categories } = state;
+      console.log('===========>>>>>>>>>> ActionTypes.SET_SUB_CATEGORIES', { subCategories, categories })
       let arr: ICategoryKeyExtended[] = [...categoryNodesUpTheTree]
       const ids = categoryNodesUpTheTree!.map(x => x.id);
       subCategories.forEach((category: ICategory) => {
         const isExpanded = ids.includes(category.id);
         if (isExpanded) {
-          arr = arr.filter(c => c.id !== category.id);
           category.isExpanded = true;
+          arr = arr.filter(c => c.id !== category.id);
+          console.log(arr.length === 0 ? '===========>>>>>>>>>> POCISTIO categoryNodesUpTheTree' : '')
         }
       })
-      const categories = state.categories.concat(subCategories);
-      console.log('------>>>>>> ActionTypes.SET_SUB_CATEGORIES, categoryNodesUpTheTree', { subCategories, arr })
       return {
         ...state,
-        categories,
+        categories: categories.concat(subCategories),
         categoryNodesUpTheTree: arr,
         loading: false
       };
@@ -254,8 +246,8 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
         categories: state.categories.map(c => c.id === id
           ? {
             ...category,
-            inViewing: c.inViewing, 
-            inEditing: c.inEditing, 
+            inViewing: c.inViewing,
+            inEditing: c.inEditing,
             inAdding: c.inAdding,
             isExpanded: c.isExpanded
           }
@@ -363,29 +355,47 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
     }
 
     case ActionTypes.SET_EXPANDED: {
-      const { categoryKey, isExpanded } = action.payload;
-      const collapsing = !isExpanded;
-      const { partitionKey, id } = categoryKey;
+      const { category } = action.payload;
+      const { partitionKey, id } = category;
+      const categoryKey = { partitionKey, id }
       let { categories } = state;
-      if (collapsing) {
-        const arr = markForClean(categories, categoryKey)
-        console.log('clean:', arr)
-        const ids = arr.map(c => c.id)
-        if (ids.length > 0) {
-          categories = categories.filter(c => !ids.includes(c.id))
-        }
-      }
-      const categoryExpanded = isExpanded ? categoryKey : null;
       return {
         ...state,
         categories: categories.map(c => c.id === id
-          ? { ...c, inViewing: c.inViewing, inEditing: c.inEditing, isExpanded }
+          ? { ...category, isExpanded: true, inViewing: c.inViewing, inEditing: c.inEditing }
           : c
         ),
         loading: false,
-        mode: isExpanded ? Mode.NULL : state.mode,// expanding ? state.mode : Mode.NULL,  // TODO  close form only if inside of colapsed node
-        categoryExpanded,
+        mode: Mode.NULL, // : state.mode,// expanding ? state.mode : Mode.NULL,  // TODO  close form only if inside of colapsed node
+        categoryExpanded: categoryKey,
         categoryNodeLoaded: true // prevent reloadCategoryNode
+      };
+    }
+
+    case ActionTypes.SET_COLLAPSED: {
+      const { categoryKey } = action.payload;
+      const { partitionKey, id } = categoryKey;
+      let { categories } = state;
+
+      const arr = markForClean(categories, categoryKey)
+      console.log('clean:', arr)
+      const ids = arr.map(c => c.id)
+      if (ids.length > 0) {
+        categories = categories.filter(c => !ids.includes(c.id))
+      }
+
+      return {
+        ...state,
+        categories: categories.map(c => c.id === id
+          ? { ...c, isExpanded: false, inViewing: c.inViewing, inEditing: c.inEditing }
+          : c
+        ),
+        loading: false,
+        //mode: state.mode,// expanding ? state.mode : Mode.NULL,  // TODO  close form only if inside of colapsed node
+        categoryExpanded: null,
+        // mode: Mode.NULL, // : state.mode,// expanding ? state.mode : Mode.NULL,  // TODO  close form only if inside of colapsed node
+
+        //categoryNodeLoaded: true // prevent reloadCategoryNode
       };
     }
 

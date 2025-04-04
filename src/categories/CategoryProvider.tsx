@@ -29,8 +29,8 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
   const { dbp, cats } = globalState;
 
   const [state, dispatch] = useReducer(CategoriesReducer, initialCategoriesState);
-  // const { categoryNodesUpTheTree } = state;
-  console.log('----->>> CategoryProvider') //, { categoryNodesUpTheTree })
+  const { categoryNodesUpTheTree } = state;
+  console.log('----->>> CategoryProvider', { initialCategoriesState, categoryNodesUpTheTree })
 
   const reloadCategoryNode = useCallback(
     async (execute: (method: string, endpoint: string) => Promise<any>,
@@ -38,13 +38,14 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
       questionId: string | null): Promise<any> => {
       return new Promise(async (resolve) => {
         try {
+          console.log('CategoryProvider.reloadCategoryNode')
           const { id } = categoryKey!;
           const cat: ICat | undefined = cats.get(id);
           if (!cat) {
             alert('reload cats' + id)
             return
           }
-          dispatch({ type: ActionTypes.SET_LOADING })
+          // dispatch({ type: ActionTypes.SET_LOADING })
           console.time()
           const url = `${protectedResources.KnowledgeAPI.endpointCat}/${cat.partitionKey}/${id}`;
           console.log('calling CatController.GetCatsUpTheTree', url)
@@ -81,28 +82,31 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
   const getSubCategories = useCallback(async (
     execute: (method: string, endpoint: string) => Promise<any>,
     categoryKey: ICategoryKey) => {
-    const { partitionKey, id } = categoryKey;
-    try {
-      dispatch({ type: ActionTypes.SET_LOADING });
-      const url = `${protectedResources.KnowledgeAPI.endpointCategory}/${partitionKey}/${id}`;
-      console.log('calling getSubCategories:', url)
-      console.time();
-      await execute("GET", url).then((response: ICategoryDto[]) => {
-        console.timeEnd();
-        if (response instanceof Response) {
-          console.log('response instanceof Response', { response });
-          dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error('fetch Response') } });
-          return;
-        }
-        const data: ICategoryDto[] = response;
-        const subCategories = data!.map((categoryDto: ICategoryDto) => new Category(categoryDto).category);
-        dispatch({ type: ActionTypes.SET_SUB_CATEGORIES, payload: { subCategories } });
-      });
-    }
-    catch (error: any) {
-      console.log(error)
-      dispatch({ type: ActionTypes.SET_ERROR, payload: { error } });
-    }
+    return new Promise(async (resolve) => {
+      const { partitionKey, id } = categoryKey;
+      try {
+        dispatch({ type: ActionTypes.SET_LOADING });
+        const url = `${protectedResources.KnowledgeAPI.endpointCategory}/${partitionKey}/${id}`;
+        console.log('calling getSubCategories:', url)
+        console.time();
+        await execute("GET", url).then((response: ICategoryDto[]) => {
+          console.timeEnd();
+          if (response instanceof Response) {
+            console.log('response instanceof Response', { response });
+            dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error('fetch Response') } });
+            resolve(false);
+          }
+          const data: ICategoryDto[] = response;
+          const subCategories = data!.map((categoryDto: ICategoryDto) => new Category(categoryDto).category);
+          dispatch({ type: ActionTypes.SET_SUB_CATEGORIES, payload: { subCategories } });
+          resolve(true);
+        });
+      }
+      catch (error: any) {
+        console.log(error)
+        dispatch({ type: ActionTypes.SET_ERROR, payload: { error } });
+      }
+    })
   }, [dispatch]);
 
 
@@ -155,6 +159,54 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
     })
   }
 
+  const expandCategory = useCallback(
+    async (execute: (method: string, endpoint: string) => Promise<any>, categoryKey: ICategoryKey, includeQuestionId: string) => {
+      try {
+        const category: ICategory | Error = await getCategory(execute, categoryKey, includeQuestionId); // to reload Category
+        // .then(async (category: ICategory) => {
+        console.log('getCategory', { category })
+        if (category instanceof Error) {
+          dispatch({ type: ActionTypes.SET_ERROR, payload: { error: category } });
+        }
+        else {
+          console.log('vratio getCategory', category)
+          category.isExpanded = true;
+          //dispatch({ type: ActionTypes.SET_CATEGORY, payload: { category } });
+          dispatch({ type: ActionTypes.SET_EXPANDED, payload: { category } });
+          //await getSubCategories(execute, categoryKey);
+          /*
+          if (numOfQuestions > 0) { // && questions.length === 0) {
+            const parentInfo: IParentInfo = {
+              execute,
+              partitionKey,
+              parentCategory: id,
+              startCursor: 0,
+              includeQuestionId: null //questionId ?? null
+            }
+            await loadCategoryQuestions(parentInfo);
+          }
+            */
+          return category;
+        }
+        //})
+      }
+      catch (error: any) {
+        console.log('error', error);
+        dispatch({ type: ActionTypes.SET_ERROR, payload: { error } });
+      }
+    }, [dispatch]);
+
+  const collapseCategory = useCallback(
+    async (execute: (method: string, endpoint: string) => Promise<any>, categoryKey: ICategoryKey) => {
+      try {
+        //dispatch({ type: ActionTypes.CLEAN_SUB_TREE, payload: { categoryKey } });// clean subTree
+        dispatch({ type: ActionTypes.SET_COLLAPSED, payload: { categoryKey } });
+      }
+      catch (error: any) {
+        console.log('error', error);
+        dispatch({ type: ActionTypes.SET_ERROR, payload: { error } });
+      }
+    }, [dispatch]);
 
   const viewCategory = useCallback(async (execute: (method: string, endpoint: string) => Promise<any>, categoryKey: ICategoryKey, includeQuestionId: string) => {
     dispatch({ type: ActionTypes.SET_LOADING });
@@ -236,55 +288,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
     }
   };
 
-  const expandCategory = useCallback(
-    async (execute: (method: string, endpoint: string) => Promise<any>, categoryKey: ICategoryKey, includeQuestionId: string) => {
-      try {
-        const category: ICategory|Error = await getCategory(execute, categoryKey, includeQuestionId); // to reload Category
-        // .then(async (category: ICategory) => {
-        console.log('getCategory', { category })
-        if (category instanceof Error) {
-          dispatch({ type: ActionTypes.SET_ERROR, payload: { error: category } });
-        }
-        else {
-          console.log('vratio getCategory', category)
-          category.isExpanded = true;
-          dispatch({ type: ActionTypes.SET_CATEGORY, payload: { category } });
-          dispatch({ type: ActionTypes.SET_EXPANDED, payload: { categoryKey, isExpanded: true } });
-          //await getSubCategories(execute, categoryKey);
-          /*
-          if (numOfQuestions > 0) { // && questions.length === 0) {
-            const parentInfo: IParentInfo = {
-              execute,
-              partitionKey,
-              parentCategory: id,
-              startCursor: 0,
-              includeQuestionId: null //questionId ?? null
-            }
-            await loadCategoryQuestions(parentInfo);
-          }
-            */
-          return category;
-        }
-        //})
-      }
-      catch (error: any) {
-        console.log('error', error);
-        dispatch({ type: ActionTypes.SET_ERROR, payload: { error } });
-      }
-    }, [dispatch]);
 
-
-  const collapseCategory = useCallback(
-    async (execute: (method: string, endpoint: string) => Promise<any>, categoryKey: ICategoryKey) => {
-      try {
-        dispatch({ type: ActionTypes.CLEAN_SUB_TREE, payload: { categoryKey } });// clean subTree
-        dispatch({ type: ActionTypes.SET_EXPANDED, payload: { categoryKey, isExpanded: false } });
-      }
-      catch (error: any) {
-        console.log('error', error);
-        dispatch({ type: ActionTypes.SET_ERROR, payload: { error } });
-      }
-    }, [dispatch]);
 
 
   ////////////////////////////////////

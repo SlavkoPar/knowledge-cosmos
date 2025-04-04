@@ -12,7 +12,10 @@ export function useHover(): [React.RefObject<null | HTMLDivElement>, IHoverProps
 
 	const divRef = useRef<HTMLDivElement>(null);
 
-	const handleMouseOver = () => setValue({ isHovered: true });
+	const handleMouseOver = (e: MouseEvent) => {
+		setValue({ isHovered: true });
+		e.stopPropagation();
+	}
 	const handleMouseOut = () => setValue({ isHovered: false });
 
 	useEffect(
@@ -20,11 +23,11 @@ export function useHover(): [React.RefObject<null | HTMLDivElement>, IHoverProps
 			const node = divRef.current;
 			if (node) {
 				if (!isMob) {
-					node.addEventListener('mouseenter', () => handleMouseOver());
+					node.addEventListener('mouseenter', handleMouseOver);
 					node.addEventListener('mouseleave', () => handleMouseOut());
 
 					return () => {
-						node.removeEventListener('mouseenter', () => handleMouseOver());
+						node.removeEventListener('mouseenter', handleMouseOver);
 						node.removeEventListener('mouseleave', () => handleMouseOut());
 					};
 				}

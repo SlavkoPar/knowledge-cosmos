@@ -8,7 +8,7 @@ import { ListGroup, Button, Badge } from "react-bootstrap";
 
 import { useGlobalState } from 'global/GlobalProvider'
 import { ActionTypes, ICategoryInfo, ICategoryKey, IParentInfo, Mode } from "categories/types";
-import { useCategoryContext, useCategoryDispatch } from 'categories/CategoryProvider'
+import { useCategoryContext } from 'categories/CategoryProvider'
 import { useHover } from 'hooks/useHover';
 import { ICategory } from 'categories/types'
 
@@ -36,7 +36,7 @@ const CategoryRow = ({ category }: { category: ICategory }) => {
     const { state, viewCategory, editCategory, deleteCategory, expandCategory, collapseCategory } = useCategoryContext();
     const { questionId } = state;
 
-    const dispatch = useCategoryDispatch();
+    //const dispatch = useCategoryDispatch();
 
     //error: msalError1, 
     const { execute: readExecute } = useFetchWithMsal("", {
@@ -123,6 +123,7 @@ const CategoryRow = ({ category }: { category: ICategory }) => {
                     >
                         <FontAwesomeIcon icon={faRemove} size='lg' />
                     </Button>
+                    {/*
                     <Button
                         variant='link'
                         size="sm"
@@ -157,6 +158,7 @@ const CategoryRow = ({ category }: { category: ICategory }) => {
                     >
                         <img width="22" height="18" src={QPlus} alt="Add Question" />
                     </Button>
+                      */}
                 </div>
 
             }
@@ -164,8 +166,8 @@ const CategoryRow = ({ category }: { category: ICategory }) => {
 
     // console.log({ title, isExpanded })
 
-    if (category.level !== 1)
-        return (<div>CategoryRow {category.id}</div>)
+    // if (category.level !== 1)
+    //     return (<div>CategoryRow {category.id}</div>)
     
     return (
         <>
@@ -205,7 +207,9 @@ const CategoryRow = ({ category }: { category: ICategory }) => {
                 >
                     {isExpanded &&
                         <>
-                            <CategoryList level={level + 1} categoryKey={categoryKey} title={title} />
+                            {hasSubCategories &&
+                                <CategoryList level={level + 1} categoryKey={categoryKey} title={title} />
+                            }
                             {showQuestions &&
                                 <QuestionList level={level + 1} categoryKey={categoryKey} title={title} />
                             }
