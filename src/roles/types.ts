@@ -24,7 +24,6 @@ export enum FormMode {
 export interface IUser extends IRecord {
 	nickName: string;
 	name: string;
-	words?: string[];
 	password: string;
 	email: string;
 	color: string;

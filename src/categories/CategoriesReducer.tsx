@@ -9,8 +9,7 @@ export const initialQuestion: IQuestion = {
   assignedAnswers: [],
   numOfAssignedAnswers: 0,
   source: 0,
-  status: 0,
-  archived: false
+  status: 0
 }
 
 export const initialCategory: ICategory = {
@@ -28,8 +27,7 @@ export const initialCategory: ICategory = {
   questions: [],
   numOfQuestions: 0,
   hasMoreQuestions: false,
-  isExpanded: false,
-  archived: false
+  isExpanded: false
 }
 
 export const initialState: ICategoriesState = {
@@ -42,7 +40,7 @@ export const initialState: ICategoriesState = {
   questionId: null,
   loading: false,
   questionLoading: false,
-  categoryNodeLoaded: false
+  categoryNodeLoaded: true
 }
 
 // let state_fromLocalStorage: IState_fromLocalStorage | undefined;
@@ -63,29 +61,36 @@ let initialCategoriesState: ICategoriesState = {
   ...initialState
 }
 
-if ('localStorage' in window) {
-  const s = localStorage.getItem('CATEGORIES_STATE');
-  if (s !== null) {
-    const locStorage = JSON.parse(s);
-    // if (hasMissingProps()) {
-    //   initialStateFromLocalStorage = undefined;
-    // }
-    // else {
-    const { lastCategoryExpanded, categoryId, questionId } = locStorage!;
-    initialCategoriesState = {
-      ...initialCategoriesState,
-      categoryExpanded: lastCategoryExpanded,
-      categoryId,
-      questionId
-    }
-    console.log('initialCategoriesState', initialCategoriesState);
-    //}
-  }
-}
 
 export { initialCategoriesState };
+let localStorageLoaded = false;
 
 export const CategoriesReducer: Reducer<ICategoriesState, CategoriesActions> = (state, action) => {
+
+  if (!localStorageLoaded && 'localStorage' in window) {
+    const s = localStorage.getItem('CATEGORIES_STATE');
+    if (s !== null) {
+      const locStorage = JSON.parse(s);
+      // if (hasMissingProps()) {
+      //   initialStateFromLocalStorage = undefined;
+      // }
+      // else {
+      const { lastCategoryExpanded, categoryId, questionId } = locStorage!;
+      const categoryNodeLoaded = lastCategoryExpanded ? false : true;
+
+      initialCategoriesState = {
+        ...initialCategoriesState,
+        categoryExpanded: lastCategoryExpanded,
+        categoryNodeLoaded: lastCategoryExpanded ? false : true,
+        categoryId,
+        questionId
+      }
+      console.log('initialCategoriesState', initialCategoriesState);
+      localStorageLoaded = true;
+      //}
+    }
+  }
+
   console.log('------------------------------->', action.type)
   const newState = reducer(state, action);
   const aTypesToStore = [
@@ -234,7 +239,7 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
 
     case ActionTypes.SET_CATEGORY: {
       const { category } = action.payload; // category doesn't contain inViewing, inEditing, inAdding 
-      console.log('SET_CATEGORY', {category})
+      console.log('SET_CATEGORY', { category })
       const { id } = category;
       /* TODO sredi kasnije 
       const cat = state.categories.find(c => c.id === id);
@@ -249,7 +254,10 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
         categories: state.categories.map(c => c.id === id
           ? {
             ...category,
-            inViewing: c.inViewing, inEditing: c.inEditing, inAdding: c.inAdding, isExpanded: c.isExpanded
+            inViewing: c.inViewing, 
+            inEditing: c.inEditing, 
+            inAdding: c.inAdding,
+            isExpanded: c.isExpanded
           }
           : c),
         // keep mode
@@ -356,7 +364,6 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
 
     case ActionTypes.SET_EXPANDED: {
       const { categoryKey, isExpanded } = action.payload;
-      console.log('SET_EXPANDED', {categoryKey})
       const collapsing = !isExpanded;
       const { partitionKey, id } = categoryKey;
       let { categories } = state;

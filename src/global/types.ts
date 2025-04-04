@@ -22,8 +22,7 @@ export interface IRecord {
 	modifiedBy?: string,
 	inViewing?: boolean,
 	inEditing?: boolean,
-	inAdding?: boolean,
-	archived: boolean
+	inAdding?: boolean
 }
 
 
@@ -38,15 +37,15 @@ export interface IRecordDto {
 export class WhoWhen2DateAndBy {
 	constructor(whoWhenDto: IWhoWhenDto) {
 		if (whoWhenDto) {
+			const { dateTime, nickName } = whoWhenDto;
 			this.dateAndBy = {
-				date: new Date(whoWhenDto.dateTime),
-				nickName: whoWhenDto.nickName
+				date: new Date(dateTime),
+				nickName
 			}
 		}
 	}
 	dateAndBy?: IWhoWhen = undefined;
 }
-
 
 export interface IAuthUser {
 	color?: string,
@@ -79,7 +78,6 @@ export interface ICat {
 	id: string;
 	parentCategory: string | null;
 	title: string;
-	words: string[];
 	titlesUpTheTree: string; // traverse up the tree, until root
 	variations: string[];
 	hasSubCategories: boolean;

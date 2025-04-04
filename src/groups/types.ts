@@ -45,7 +45,6 @@ export interface IFromUserAssignedAnswer {
 export interface IAnswer extends IRecord {
 	id?: number,
 	title: string,
-	words?: string[],
 	level: number,
 	parentGroup: string,
 	groupTitle?: string,
@@ -348,8 +347,7 @@ export type CatsActions =
 		title: '',
 		level: 0,
 		source: 0,
-		status: 0,
-		archived: false
+		status: 0
 	 }
 	 
 	 export const initialGroup: IGroup = {
@@ -364,7 +362,6 @@ export type CatsActions =
 		answers: [],
 		numOfAnswers: 0,
 		hasMore: false,
-		isExpanded: false,
-		archived: false
+		isExpanded: false
 	 }
 	 

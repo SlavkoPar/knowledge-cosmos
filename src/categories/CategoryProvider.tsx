@@ -90,7 +90,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
       await execute("GET", url).then((response: ICategoryDto[]) => {
         console.timeEnd();
         if (response instanceof Response) {
-          console.log({ response });
+          console.log('response instanceof Response', { response });
           dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error('fetch Response') } });
           return;
         }
@@ -103,7 +103,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
       console.log(error)
       dispatch({ type: ActionTypes.SET_ERROR, payload: { error } });
     }
-  }, []); //dispatch]);
+  }, [dispatch]);
 
 
   const createCategory = useCallback(async (category: ICategory) => {
@@ -121,11 +121,11 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
   }, []);
 
 
-  const getCategory = useCallback(async (
+  const getCategory = async (
     execute: (method: string, endpoint: string) => Promise<any>,
     categoryKey: ICategoryKey,
     includeQuestionId: string): Promise<any> => {
-    const { partitionKey: partitionKey, id } = categoryKey;
+    const { partitionKey, id } = categoryKey;
     return new Promise(async (resolve) => {
       try {
         const url = `${protectedResources.KnowledgeAPI.endpointCategory}/${partitionKey}/${id}/${PAGE_SIZE}/${includeQuestionId}`;
@@ -134,13 +134,13 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
           .then((response: ICategoryDto | Response) => {
             console.timeEnd();
             if (response instanceof Response) {
-              resolve(response);
+              console.error(response);
+              resolve(new Error('fetch response error'));
             }
             else {
               const categoryDto: ICategoryDto = response;
               if (categoryDto) {
-                const category: ICategory = new Category(categoryDto).category;
-                resolve(category);
+                resolve(new Category(categoryDto).category);
               }
               else {
                 resolve(new Error(`Category ${id} not found!`));
@@ -153,7 +153,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
         resolve(error);
       }
     })
-  }, []);
+  }
 
 
   const viewCategory = useCallback(async (execute: (method: string, endpoint: string) => Promise<any>, categoryKey: ICategoryKey, includeQuestionId: string) => {
@@ -239,33 +239,33 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
   const expandCategory = useCallback(
     async (execute: (method: string, endpoint: string) => Promise<any>, categoryKey: ICategoryKey, includeQuestionId: string) => {
       try {
-        await getCategory(execute, categoryKey, includeQuestionId) // to reload Category
-          .then(async (category: ICategory | Error) => {
-            console.log('getCategory', { category })
-            if (category instanceof Error) {
-              dispatch({ type: ActionTypes.SET_ERROR, payload: { error: category } });
+        const category: ICategory|Error = await getCategory(execute, categoryKey, includeQuestionId); // to reload Category
+        // .then(async (category: ICategory) => {
+        console.log('getCategory', { category })
+        if (category instanceof Error) {
+          dispatch({ type: ActionTypes.SET_ERROR, payload: { error: category } });
+        }
+        else {
+          console.log('vratio getCategory', category)
+          category.isExpanded = true;
+          dispatch({ type: ActionTypes.SET_CATEGORY, payload: { category } });
+          dispatch({ type: ActionTypes.SET_EXPANDED, payload: { categoryKey, isExpanded: true } });
+          //await getSubCategories(execute, categoryKey);
+          /*
+          if (numOfQuestions > 0) { // && questions.length === 0) {
+            const parentInfo: IParentInfo = {
+              execute,
+              partitionKey,
+              parentCategory: id,
+              startCursor: 0,
+              includeQuestionId: null //questionId ?? null
             }
-            else {
-              //category.isExpanded = true;
-              category.isExpanded = true;
-              dispatch({ type: ActionTypes.SET_CATEGORY, payload: { category } });
-              dispatch({ type: ActionTypes.SET_EXPANDED, payload: { categoryKey, isExpanded: true } });
-              //await getSubCategories(execute, categoryKey);
-              /*
-              if (numOfQuestions > 0) { // && questions.length === 0) {
-                const parentInfo: IParentInfo = {
-                  execute,
-                  partitionKey,
-                  parentCategory: id,
-                  startCursor: 0,
-                  includeQuestionId: null //questionId ?? null
-                }
-                await loadCategoryQuestions(parentInfo);
-              }
-                */
-              return category;
-            }
-          })
+            await loadCategoryQuestions(parentInfo);
+          }
+            */
+          return category;
+        }
+        //})
       }
       catch (error: any) {
         console.log('error', error);

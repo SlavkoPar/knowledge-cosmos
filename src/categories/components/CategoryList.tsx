@@ -15,10 +15,11 @@ const CategoryList = ({ title, categoryKey, level }: IParentInfo) => {
     });
 
     useEffect(() => {
-        // (/*async*/ () => {
-        //     /*await*/ getSubCategories(execute, categoryKey);
-        // })()
-        getSubCategories(execute, categoryKey);
+        //getSubCategories(execute, categoryKey);
+        (async () => {
+            console.log('zovem getSubCategories', {categoryKey})
+            await getSubCategories(execute, categoryKey);
+        })()
     }, [getSubCategories, execute, categoryKey]);
 
     if (loading) {
@@ -33,7 +34,7 @@ const CategoryList = ({ title, categoryKey, level }: IParentInfo) => {
         <div className={level! > 1 ? 'ms-2' : ''}>
             <>
                 <ListGroup as="ul" variant='dark' className="mb-0">
-                    {mySubCategories.map(category =>
+                    { mySubCategories.map(category =>
                         <CategoryRow category={category} key={category.id} />)
                     }
                 </ListGroup>

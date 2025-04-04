@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit, faRemove, faCaretRight, faCaretDown, faPlus, faQuestion } from '@fortawesome/free-solid-svg-icons'
 import QPlus from 'assets/QPlus.png';
@@ -22,7 +22,8 @@ import { protectedResources } from 'authConfig';
 
 const CategoryRow = ({ category }: { category: ICategory }) => {
     const { partitionKey, id, title, level, inViewing, inEditing, inAdding, hasSubCategories, questions, numOfQuestions, isExpanded } = category;
-    const categoryKey: ICategoryKey = { partitionKey, id }
+    const [categoryKey] = useState<ICategoryKey>({ partitionKey, id }) 
+
     const parentInfo: IParentInfo = {
         categoryKey,
         includeQuestionId: null,
@@ -32,17 +33,8 @@ const CategoryRow = ({ category }: { category: ICategory }) => {
 
     const { canEdit, isDarkMode, variant, bg } = useGlobalState();
 
-    const { state, viewCategory, editCategory, deleteCategory, getSubCategories, expandCategory, collapseCategory } = useCategoryContext();
+    const { state, viewCategory, editCategory, deleteCategory, expandCategory, collapseCategory } = useCategoryContext();
     const { questionId } = state;
-
-    // useEffect(() => {
-    //     (async () => {
-    //         if (isExpanded) {
-    //             //await expandCategory(readExecute, categoryKey, questionId ?? 'null');
-    //             await getSubCategories(readExecute, categoryKey);
-    //         }
-    //     })()
-    // }, [expandCategory]);
 
     const dispatch = useCategoryDispatch();
 
@@ -171,6 +163,10 @@ const CategoryRow = ({ category }: { category: ICategory }) => {
         </div>
 
     // console.log({ title, isExpanded })
+
+    if (category.level !== 1)
+        return (<div>CategoryRow {category.id}</div>)
+    
     return (
         <>
             <ListGroup.Item

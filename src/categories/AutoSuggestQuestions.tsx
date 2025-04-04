@@ -148,12 +148,12 @@ export class AutoSuggestQuestions extends React.Component<{
 			this.allCategories.forEach(async cat => {
 				const parentCategory = cat.id;
 				let j = 0;
-				cat.words.forEach(catw => {
-					if (catw.includes(w)) {
-						console.log("Add all questions of category")
-						arr.push({ id: cat.id, title: cat.title })
-					}
-				})
+				// cat.words.forEach(catw => {
+				// 	if (catw.includes(w)) {
+				// 		console.log("Add all questions of category")
+				// 		arr.push({ id: cat.id, title: cat.title })
+				// 	}
+				// })
 			})
 		})
 		return arr;

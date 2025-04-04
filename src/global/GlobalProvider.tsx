@@ -88,8 +88,7 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
       created: {
         date: new Date(),
         nickName: 'Boss'
-      },
-      archived: false
+      }
     }
     await dbp.add('Roles', r);
     console.log('group added', r);
@@ -104,14 +103,13 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
           parentRole: r.title,
           role: r.title as ROLES,
           name,
-          words: name.toLowerCase().replaceAll('?', '').split(' '),
+          //words: name.toLowerCase().replaceAll('?', '').split(' '),
           password,
           email,
           color,
           level: 2,
           confirmed: false,
-          isDarkMode: true,
-          archived: false
+          isDarkMode: true
         }
         await dbp.add('Users', user);
         i++;
@@ -149,8 +147,7 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
       created: {
         date: new Date(),
         nickName: 'Boss'
-      },
-      archived: false
+      }
     }
     await dbp.add('Groups', g);
     console.log('--->group added', g);
@@ -164,15 +161,14 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
         // const escapedValue = escapeRegexCharacters(a.title.trim());
         // if (escapedValue === '') {
         // }
-        const words: string[] = a.title.toLowerCase().replaceAll('?', '').split(' ').map((s: string) => s.trim());
+        //const words: string[] = a.title.toLowerCase().replaceAll('?', '').split(' ').map((s: string) => s.trim());
         const answer: IAnswer = {
           parentGroup: g.id,
           title,
-          words: words.filter(w => w.length > 1),
+          //words: words.filter(w => w.length > 1),
           source: source ?? 0,
           status: status ?? 0,
-          level: 2,
-          archived: false
+          level: 2
         }
         console.log('========>>>>>>', { answer })
         await dbp.add('Answers', answer);
@@ -228,8 +224,7 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
         created: {
           date: new Date(),
           nickName: 'Boss'
-        },
-        archived: false
+        }
       }
       await dbp.add('Categories', cat);
       console.log('category added', cat);
@@ -257,19 +252,17 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
               }))
             }
             // TODO
-            const words = q.title.toLowerCase().replaceAll('?', '').split(' ').map((s: string) => s.trim());
+            //const words = q.title.toLowerCase().replaceAll('?', '').split(' ').map((s: string) => s.trim());
             const question: IQuestion = {
               parentCategory: cat.id,
               id: uuidv4(),
               title,
-              words: words.filter(w => w.length > 1),
               source: source ?? 0,
               status: status ?? 0,
               assignedAnswers: assAnswers,
-              numOfAssignedAnswers: 0,
+              numOfAssignedAnswers: 0
               //level: 2,
               //variations: q.variations ?? [],
-              archived: false
             }
             console.log('-->>>', { question })
             await dbp.add('Questions', question);
@@ -420,7 +413,7 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
               id,
               parentCategory: parentCat,
               title: title,
-              words: title.toLowerCase().replaceAll('?', '').split(' ').map((s: string) => s.trim()).filter(w => w.length > 1),
+              // words: title.toLowerCase().replaceAll('?', '').split(' ').map((s: string) => s.trim()).filter(w => w.length > 1),
               titlesUpTheTree: '',
               variations: variations,
               hasSubCategories: hasSubCategories,
@@ -654,7 +647,6 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
             partitionKey,
             id: id,
             title,
-            words: [],
             parentCategory: "",
             titlesUpTheTree: "",
             variations: [],

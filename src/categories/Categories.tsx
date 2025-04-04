@@ -43,7 +43,7 @@ const Providered = ({ categoryId_questionId }: IProps) => {
     const [createQuestionError, setCreateQuestionError] = useState("");
 
     const dispatch = useCategoryDispatch();
-    const categoryKey: ICategoryKey = { partitionKey: 'null', id: 'null' }
+    const [categoryKey] = useState<ICategoryKey>({ partitionKey: 'null', id: 'null' }) 
 
     useEffect(() => {
         (async () => {

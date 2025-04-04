@@ -63,7 +63,7 @@ export interface IFromUserAssignedAnswer {
 export interface IQuestion extends IRecord {
 	id: string;
 	title: string;
-	words?: string[];
+	//words?: string[];
 	//level: number;
 	parentCategory: string;
 	categoryTitle?: string;
@@ -118,6 +118,7 @@ export interface ICategory extends IRecord {
 
 export class Question {
 	constructor(dto: IQuestionDto, parentCategory: string) {
+		console.log('quetion dto', dto)
 		this.question = {
 			parentCategory: parentCategory,
 			id: dto.Id,
@@ -127,8 +128,9 @@ export class Question {
 			source: dto.Source,
 			status: dto.Status,
 			created: new WhoWhen2DateAndBy(dto.Created).dateAndBy,
-			modified: new WhoWhen2DateAndBy(dto.Modified).dateAndBy,
-			archived: false
+			modified: dto.Modified
+				? new WhoWhen2DateAndBy(dto.Modified).dateAndBy
+				: undefined
 		}
 	}
 	question: IQuestion
@@ -138,26 +140,27 @@ export class Question {
 
 export class Category {
 	constructor(dto: ICategoryDto) {
+		console.log(dto,  {dto})
 		this.category = {
 			partitionKey: dto.PartitionKey,
 			id: dto.Id,
 			kind: dto.Kind,
 			parentCategory: dto.ParentCategory,
 			title: dto.Title,
-			// words: string[];
 			level: dto.Level,
 			variations: dto.Variations,
 			numOfQuestions: dto.NumOfQuestions,
 			hasSubCategories: dto.HasSubCategories,
 			created: new WhoWhen2DateAndBy(dto.Created).dateAndBy,
-			modified: new WhoWhen2DateAndBy(dto.Modified).dateAndBy,
-			archived: false,
+			modified: dto.Modified
+				? new WhoWhen2DateAndBy(dto.Modified).dateAndBy
+				: undefined,
 			questions: dto.Questions
 				? dto.Questions.map(questionDto => new Question(questionDto, dto.Id).question)
 				: []
 		}
 	}
-	category: ICategory
+	category: ICategory;
 }
 
 
