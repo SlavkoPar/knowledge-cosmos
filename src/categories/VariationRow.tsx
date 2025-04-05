@@ -15,10 +15,9 @@ import { IVariation } from 'categories/types'
 // import ViewTag from "categorys/components/tags/ViewTag";
 
 //const TagRow = ({ tag, categoryInAdding }: { ref: React.ForwardedRef<HTMLLIElement>, tag: IVariation, categoryInAdding: boolean | undefined }) => {
-const VariationRow = ({ categoryId, tag, categoryInAdding }: { categoryId: string, tag: IVariation, categoryInAdding: boolean | undefined }) => {
+const VariationRow = ({ id, tag, categoryInAdding }: { id: string, tag: IVariation, categoryInAdding: boolean | undefined }) => {
     const { name } = tag;
-    const { id, parentCategory, level, inViewing, inEditing, inAdding, numOfTags } = {
-        id: 0,
+    const { parentCategory, level, inViewing, inEditing, inAdding, numOfTags } = {
         parentCategory: '',
         level: 0,
         inViewing: false,
@@ -36,7 +35,7 @@ const VariationRow = ({ categoryId, tag, categoryInAdding }: { categoryId: strin
     const alreadyAdding = false //state.mode === Mode.AddingTag;
 
     const del = () => {
-        deleteCategoryVariation(categoryId, name);
+        deleteCategoryVariation(id, name);
     };
 
     const edit = (id: number) => {
@@ -99,7 +98,7 @@ const VariationRow = ({ categoryId, tag, categoryInAdding }: { categoryId: strin
                     title="Add Tag"
                     onClick={() => {
                         console.log('click q')
-                        const categoryInfo: ICategoryInfo = { id: parentCategory, level }
+                        const categoryInfo: ICategoryInfo = { id, level }
                         //dispatch({ type: ActionTypes.ADD_ANSWER, payload: { categoryInfo } })
                     }}
                 >

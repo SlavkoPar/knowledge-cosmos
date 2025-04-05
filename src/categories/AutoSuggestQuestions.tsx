@@ -19,7 +19,7 @@ interface ICatMy {
 }
 
 interface ICatSection {
-	categoryId: string,
+	id: string,
 	categoryTitle: string,
 	parentCategoryUp: string,
 	categoryParentTitle: string, // TODO ???
@@ -256,17 +256,16 @@ export class AutoSuggestQuestions extends React.Component<{
 			// map
 			// 0 = {'DALJINSKI' => IQuestionRow[2]}
 			// 1 = {'EDGE2' => IQuestionRow[3]}
-			// 2 = {'EDGE3' => IQuestionRow[4]}
+			// 2 = {'EDGE3' => IQuestionRow[4]}4
 
 			////////////////////////////////////////////////////////////
 			// 
 			let catSections: ICatSection[] = [];
-			catQuests.forEach((quests, categoryId) => {
-				const cat = this.allCategories.get(categoryId);
+			catQuests.forEach((quests, id) => {
+				const cat = this.allCategories.get(id);
 				const { title, titlesUpTheTree, variations } = cat!;
-				//console.log(`${categoryId} = ${quests}`);
 				const catSection: ICatSection = {
-					categoryId,
+					id: id,
 					categoryTitle: title,
 					categoryParentTitle: 'kuro',
 					parentCategoryUp: titlesUpTheTree!,

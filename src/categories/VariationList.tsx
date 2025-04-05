@@ -6,7 +6,7 @@ import { List, ListItem, Loading } from "common/components/InfiniteList";
 import VariationRow from "categories/VariationRow";
 import { ListGroup, Stack } from "react-bootstrap";
 
-const VariationList = ({ categoryId, variations }: { categoryId: string, variations: IVariation[] }) => {
+const VariationList = ({ id, variations }: { id: string, variations: IVariation[] }) => {
 
   const { canEdit } = useGlobalState();
 
@@ -48,7 +48,7 @@ const VariationList = ({ categoryId, variations }: { categoryId: string, variati
         {
           variations.map((tag: IVariation) => {
             return <VariationRow
-              categoryId={categoryId}
+              id={id}
               tag={tag}
               categoryInAdding={undefined}
             />

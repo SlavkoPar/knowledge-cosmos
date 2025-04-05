@@ -118,7 +118,6 @@ export interface ICategory extends IRecord {
 
 export class Question {
 	constructor(dto: IQuestionDto, parentCategory: string) {
-		console.log('quetion dto', dto)
 		this.question = {
 			parentCategory: parentCategory,
 			id: dto.Id,
@@ -230,7 +229,7 @@ export interface ICategoriesState {
 	categoryExpanded: ICategoryKey | null;
 	categoryId: string | null;
 	questionId: string | null;
-	categoryId_questionId_done: string | null;
+	categoryId_questionId_done?: string;
 	categoryNodeLoaded: boolean;
 	//reloadCategoryInfo: IParentCategories;
 	loading: boolean;

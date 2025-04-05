@@ -130,7 +130,7 @@ const ChatBotPage: React.FC = () => {
 
 	//categoryId: string, questionId: string
 	const onSelectQuestion = async (questionKey: IQuestionKey) => {
-		// navigate(`/knowledge-cosmos/categories/${categoryId}_${questionId.toString()}`)
+		// navigate(`/categories/${categoryId}_${questionId.toString()}`)
 		// const question = await getQuestion(questionId);
 
 		// salji kasnije kad klikne na Fixed

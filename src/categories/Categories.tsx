@@ -75,8 +75,9 @@ const Providered = ({ categoryId_questionId }: IProps) => {
     }, [categoryExpanded, categoryNodeLoaded, reloadCategoryNode, categoryId_questionId, categoryId_questionId_done])
 
     if (categoryId_questionId !== 'add_question') {
-        if (categoryExpanded || (categoryId_questionId && categoryId_questionId !== categoryId_questionId_done))
-            return <div>`zzzzzz loading...${categoryExpanded?.id} ${categoryId_questionId} ${categoryId_questionId_done}`</div>
+        console.log("zzzzzz loading...", {categoryExpanded, categoryId_questionId, categoryId_questionId_done})
+        if (/*categoryExpanded ||*/ (categoryId_questionId && categoryId_questionId !== categoryId_questionId_done))
+            return <div>`zzzzzz loading... "${categoryId_questionId}" "${categoryId_questionId_done}"`</div>
     }
 
     nTimes++;

@@ -35,7 +35,7 @@ export const initialState: ICategoriesState = {
   categories: [],
   categoryNodesUpTheTree: [],
   categoryExpanded: null,
-  categoryId_questionId_done: null,
+  categoryId_questionId_done: undefined,
   categoryId: null,
   questionId: null,
   loading: false,
@@ -269,7 +269,7 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
         ),
         mode: Mode.ViewingCategory,
         loading: false,
-        categoryId: category.id,
+        categoryId: category.id
         // questionId: null
       };
     }
@@ -368,6 +368,7 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
         loading: false,
         mode: Mode.NULL, // : state.mode,// expanding ? state.mode : Mode.NULL,  // TODO  close form only if inside of colapsed node
         categoryExpanded: categoryKey,
+        //categoryId: undefined,
         categoryNodeLoaded: true // prevent reloadCategoryNode
       };
     }
