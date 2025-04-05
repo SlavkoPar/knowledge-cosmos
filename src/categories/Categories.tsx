@@ -27,7 +27,7 @@ let nTimes = 0;
 const Providered = ({ categoryId_questionId }: IProps) => {
     const { state, reloadCategoryNode } = useCategoryContext();
     const { categoryExpanded, categoryId_questionId_done, questionId, categoryNodeLoaded } = state;
-    console.log('Providered', {categoryExpanded, categoryNodeLoaded})
+    console.log('Providered', { categoryExpanded, categoryNodeLoaded })
 
     // { error, execute }
     const { execute } = useFetchWithMsal("", {
@@ -44,7 +44,7 @@ const Providered = ({ categoryId_questionId }: IProps) => {
     const [createQuestionError, setCreateQuestionError] = useState("");
 
     const dispatch = useCategoryDispatch();
-    const [categoryKey] = useState<ICategoryKey>({ partitionKey: 'null', id: 'null' }) 
+    const [categoryKey] = useState<ICategoryKey>({ partitionKey: 'null', id: 'null' })
 
     useEffect(() => {
         (async () => {
@@ -59,36 +59,39 @@ const Providered = ({ categoryId_questionId }: IProps) => {
                         return null;
                     }
                 }
-                else if (categoryId_questionId !== categoryId_questionId_done && !categoryNodeLoaded) {
+                else if (categoryId_questionId !== categoryId_questionId_done) { //} && !categoryNodeLoaded) {
                     console.log('1) ===>>> Categories calling reloadCategoryNode:', { categoryId_questionId, categoryExpanded, categoryId_questionId_done });
                     const arr = categoryId_questionId.split('_');
                     const categoryId = arr[0];
                     const questionId = arr[1];
-                    await reloadCategoryNode(execute, { partitionKey: '', id: categoryId }, questionId);
+                    await reloadCategoryNode(execute, { partitionKey: '', id: categoryId }, questionId).then(() => { return null; });
                 }
             }
             else if (categoryExpanded && !categoryNodeLoaded) {
                 console.log('2) ===>>> Categories calling reloadCategoryNode:', { categoryId_questionId, categoryExpanded, categoryId_questionId_done });
-                await reloadCategoryNode(execute, categoryExpanded, questionId);
+                await reloadCategoryNode(execute, categoryExpanded, questionId).then(() => { return null; });
             }
         })()
     }, [categoryExpanded, categoryNodeLoaded, reloadCategoryNode, categoryId_questionId, categoryId_questionId_done])
 
     if (categoryId_questionId !== 'add_question') {
-        console.log("zzzzzz loading...", {categoryExpanded, categoryId_questionId, categoryId_questionId_done})
-        if (/*categoryExpanded ||*/ (categoryId_questionId && categoryId_questionId !== categoryId_questionId_done))
+        if (/*categoryExpanded ||*/ (categoryId_questionId && categoryId_questionId !== categoryId_questionId_done)) {
+            console.log("zzzzzz loading...", { categoryExpanded, categoryId_questionId, categoryId_questionId_done })
             return <div>`zzzzzz loading... "${categoryId_questionId}" "${categoryId_questionId_done}"`</div>
+        }
     }
 
     nTimes++;
 
     console.log('===>>> Categories !!!!!!!!!!!!!!!!!', nTimes)
-    // if (nTimes> 5)
-    //     return <div>Pera</div>
+    if (!categoryNodeLoaded)
+        return null
+
     return (
         <>
             <Container>
-                <Button variant="secondary" size="sm" type="button"
+                <h6 style={{color: 'rgb(13, 110, 253)', marginLeft:'30%'}}>Categories / Questions</h6>
+                {/* <Button variant="secondary" size="sm" type="button"
                     onClick={() => dispatch({
                         type: ActionTypes.ADD_SUB_CATEGORY,
                         payload: {
@@ -99,7 +102,7 @@ const Providered = ({ categoryId_questionId }: IProps) => {
                     }
                 >
                     Add Category
-                </Button>
+                </Button> */}
                 <Row className="my-1">
                     <Col xs={12} md={5}>
                         <div>

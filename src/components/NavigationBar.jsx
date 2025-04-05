@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faQuestion, faSurprise, faUser, faUserFriends, faReply } from '@fortawesome/free-solid-svg-icons'
+import Q from 'assets/Q.png';
 
 import { AuthenticatedTemplate, UnauthenticatedTemplate, useMsal, useMsalAuthentication, useIsAuthenticated } from '@azure/msal-react';
 import { InteractionStatus, InteractionType, InteractionRequiredAuthError } from "@azure/msal-browser";
@@ -106,7 +107,7 @@ export const NavigationBar = () => {
                     </NavLink>
 
                     <NavLink to="/categories" className="nav-link">
-                        <FontAwesomeIcon icon={faQuestion} color='lightblue' />{' '}Questions
+                        <img width="22" height="18" src={Q} alt="Add Question" />{' '}Questions
                     </NavLink>
 
 
@@ -116,7 +117,7 @@ export const NavigationBar = () => {
                             //closeQuestionForm();
                         }
                         }>
-                        <FontAwesomeIcon icon={faSurprise} color='lightblue' />{' '}ChatBot
+                        <FontAwesomeIcon icon={faUserFriends} color='lightblue' />{' '}ChatBot
                     </NavLink>
                     
                     <NavLink to="/about" className="nav-link">

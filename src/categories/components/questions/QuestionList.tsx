@@ -13,7 +13,7 @@ const QuestionList = ({ title, categoryKey, level }: IParentInfo) => {
   const { canEdit } = useGlobalState();
 
   const { state, loadCategoryQuestions, editQuestion, viewQuestion } = useCategoryContext();
-  const { categories, questionLoading, error, categoryId, questionId } = state;
+  const { categories, questionLoading, error, questionId } = state;
 
   const category = categories.find(c => c.id === categoryKey.id)!
   const { questions, numOfQuestions, hasMoreQuestions } = category;
@@ -58,15 +58,16 @@ const QuestionList = ({ title, categoryKey, level }: IParentInfo) => {
   });
 
   useEffect(() => {
-    if (categoryId != null) {
-      if (categoryId === categoryKey.id && questionId) {
+    if (categoryKey != null) {
+      //if (categoryId === categoryKey.id && questionId) {
+      if (categoryKey && questionId) {
         if (canEdit)
           editQuestion(writeExecute, { parentCategory: categoryKey.id, id: questionId })
         else
           viewQuestion(readExecute, { parentCategory: categoryKey.id, id: questionId })
       }
     }
-  }, [viewQuestion, categoryKey, categoryId, questionId, canEdit]);
+  }, [viewQuestion, categoryKey, questionId, canEdit]);
 
   // console.log('QuestionList render', questions, questions.length)
 

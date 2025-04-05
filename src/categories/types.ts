@@ -239,7 +239,6 @@ export interface ICategoriesState {
 
 export interface ILocStorage {
 	lastCategoryExpanded: ICategoryKey | null;
-	categoryId: string | null;
 	questionId: string | null;
 }
 

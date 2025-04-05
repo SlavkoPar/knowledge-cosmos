@@ -62,17 +62,17 @@ let initialCategoriesState: ICategoriesState = {
 }
 
 if ('localStorage' in window) {
+  console.log('Arghhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh')
   const s = localStorage.getItem('CATEGORIES_STATE');
   if (s !== null) {
     const locStorage = JSON.parse(s);
-    const { lastCategoryExpanded, categoryId, questionId } = locStorage!;
+    const { lastCategoryExpanded, questionId } = locStorage!;
     const categoryNodeLoaded = lastCategoryExpanded ? false : true;
 
     initialCategoriesState = {
       ...initialCategoriesState,
       categoryExpanded: lastCategoryExpanded,
       categoryNodeLoaded: lastCategoryExpanded ? false : true,
-      categoryId,
       questionId
     }
     console.log('initialCategoriesState nakon citanja iz memorije', initialCategoriesState);
@@ -93,10 +93,9 @@ export const CategoriesReducer: Reducer<ICategoriesState, CategoriesActions> = (
     ActionTypes.EDIT_QUESTION
   ];
 
-  const { categoryExpanded, categoryId, questionId } = newState;
+  const { categoryExpanded, questionId } = newState;
   const locStorage: ILocStorage = {
     lastCategoryExpanded: categoryExpanded,
-    categoryId,
     questionId
   }
   if (aTypesToStore.includes(action.type)) {
@@ -136,11 +135,10 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
       console.log('=========================>>> ActionTypes.RELOAD_CATEGORY_NODE categoryNodeLoaded ', action.payload)
       return {
         ...state,
-        categoryExpanded: null, // TODO
         categoryNodesUpTheTree,
         categoryId,
         questionId,
-        // categoryId_questionId_done: `${categoryId}_${questionId}`,
+        categoryId_questionId_done: `${categoryId}_${questionId}`,
         categoryNodeLoaded: true,
         loading: false
       };
@@ -152,11 +150,12 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
       console.log('===========>>>>>>>>>> ActionTypes.SET_SUB_CATEGORIES', { subCategories, categories })
       let arr: ICategoryKeyExtended[] = [...categoryNodesUpTheTree]
       const ids = categoryNodesUpTheTree!.map(x => x.id);
-      subCategories.forEach((category: ICategory) => {
-        const isExpanded = ids.includes(category.id);
+      subCategories.forEach((subCategory: ICategory) => {
+        const isExpanded = ids.includes(subCategory.id);
         if (isExpanded) {
-          category.isExpanded = true;
-          arr = arr.filter(c => c.id !== category.id);
+          subCategory.isExpanded = true;
+          arr = arr.filter(c => c.id !== subCategory.id);
+          console.log('===========>>>>>>>>>> set IsExpanded', subCategory.id);
           console.log(arr.length === 0 ? '===========>>>>>>>>>> POCISTIO categoryNodesUpTheTree' : '')
         }
       })
@@ -269,8 +268,8 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
         ),
         mode: Mode.ViewingCategory,
         loading: false,
-        categoryId: category.id
-        // questionId: null
+        categoryId: category.id,
+        questionId: null
       };
     }
 
@@ -286,8 +285,8 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
         ),
         mode: Mode.EditingCategory,
         loading: false,
-        categoryId: category.id
-        // questionId: null 
+        categoryId: category.id,
+        questionId: null 
       };
     }
 

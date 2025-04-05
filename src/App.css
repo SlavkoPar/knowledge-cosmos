@@ -133,3 +133,7 @@ input[type=number] {
     background: transparent;
   }
 }
+
+.nav-link  {
+  margin-left: 10px;
+}

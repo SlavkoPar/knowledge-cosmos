@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { ListGroup } from "react-bootstrap";
 import CategoryRow from "categories/components/CategoryRow";
-import { ICategoryKey, IParentInfo } from "categories/types";
+import { IParentInfo } from "categories/types";
 import { useCategoryContext } from "categories/CategoryProvider";
 import useFetchWithMsal from "hooks/useFetchWithMsal";
 import { protectedResources } from "authConfig";
@@ -14,17 +14,14 @@ const CategoryList = ({ title, categoryKey, level }: IParentInfo) => {
         scopes: protectedResources.KnowledgeAPI.scopes.read,
     });
 
-    const [pozvao, setPozvao] = useState(false)
-
     useEffect(() => {
         //getSubCategories(execute, categoryKey);
         (async () => {
             console.log('zovem getSubCategories', {categoryKey})
             await getSubCategories(execute, categoryKey)
                 .then((response:boolean)=> {
-                    setPozvao(true);
+                    //setPozvao(true);
                 });
-            
         })()
     }, [getSubCategories, execute, categoryKey]);
 
@@ -33,10 +30,6 @@ const CategoryList = ({ title, categoryKey, level }: IParentInfo) => {
         ? categories.filter(c => c.parentCategory === null)
         : categories.filter(c => c.parentCategory === categoryKey.id);
     console.log("+++++++>>>>>>> CategoryList ", { categoryKey, categories, mySubCategories});
-
-    if (!pozvao) {
-        return <div>loading sub categories...</div>
-    }
 
     return (
         <div className={level! > 1 ? 'ms-2' : ''}>

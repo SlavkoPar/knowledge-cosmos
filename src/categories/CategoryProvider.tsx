@@ -289,8 +289,6 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
   };
 
 
-
-
   ////////////////////////////////////
   // Questions
   //
@@ -369,7 +367,10 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
   }, []);
 
 
-  const getQuestion = async (execute: (method: string, endpoint: string) => Promise<any>, questionKey: IQuestionKey, type: ActionTypes.VIEW_QUESTION | ActionTypes.EDIT_QUESTION) => {
+
+  const getQuestionWAS = async (
+      execute: (method: string, endpoint: string) => Promise<any>, 
+      questionKey: IQuestionKey, type: ActionTypes.VIEW_QUESTION | ActionTypes.EDIT_QUESTION) => {
     // const url = `/api/questions/get-question/${id}`;
     //try {
     //const question: IQuestion = await dbp!.get("Questions", id);
@@ -380,11 +381,9 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
       const { parentCategory, id } = questionKey;
       //dispatch({ type: ActionTypes.SET_LOADING })
       console.time()
-
       const url = `${protectedResources.KnowledgeAPI.endpointQuestion}/${parentCategory}/${id}`;
       await execute("GET", url).then((response: IQuestionDto | undefined) => {
         console.timeEnd();
-        console.log({ response });
         const questionDto = response!;
         const question: IQuestion = new Question(questionDto, parentCategory).question;
         question.categoryTitle = 'nadji me';
@@ -429,13 +428,57 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
     //     dispatch({ type: ActionTypes.SET_ERROR, payload: error });
     //   });
   };
+  
+  const getQuestion = async (
+    execute: (method: string, endpoint: string) => Promise<any>, 
+    questionKey: IQuestionKey
+  ) : Promise<any> =>  {
+    return new Promise(async (resolve) => {
+      try {
+        const { parentCategory, id } = questionKey;
+        const url = `${protectedResources.KnowledgeAPI.endpointQuestion}/${parentCategory}/${id}`;
+        console.time()
+        await execute("GET", url)
+          .then((response: IQuestionDto | Response) => {
+            console.timeEnd();
+            if (response instanceof Response) {
+              console.error(response);
+              resolve(new Error('fetch response error'));
+            }
+            else {
+              const questionDto: IQuestionDto = response!;
+              const question: IQuestion = new Question(questionDto, parentCategory).question;
+              question.categoryTitle = 'nadji me';
+              if (questionDto) {
+                resolve(new Question(questionDto, parentCategory).question);
+              }
+              else {
+                resolve(new Error(`Question ${id} not found!`));
+              }
+            }
+          });
+      }
+      catch (error: any) {
+        console.log(error)
+        resolve(error);
+      }
+    })
+  }
 
-  const viewQuestion = useCallback((execute: (method: string, endpoint: string) => Promise<any>, questionKey: IQuestionKey) => {
-    getQuestion(execute, questionKey, ActionTypes.VIEW_QUESTION);
+  const viewQuestion = useCallback(async(execute: (method: string, endpoint: string) => Promise<any>, questionKey: IQuestionKey) => {
+    const question: IQuestion | Error = await getQuestion(execute, questionKey);
+    if (question instanceof Error)
+      dispatch({ type: ActionTypes.SET_ERROR, payload: { error: question } });
+    else
+      dispatch({ type: ActionTypes.VIEW_QUESTION, payload: { question } });
   }, []);
 
-  const editQuestion = useCallback((execute: (method: string, endpoint: string) => Promise<any>, questionKey: IQuestionKey) => {
-    getQuestion(execute, questionKey, ActionTypes.EDIT_QUESTION);
+  const editQuestion = useCallback(async(execute: (method: string, endpoint: string) => Promise<any>, questionKey: IQuestionKey) => {
+    const question: IQuestion | Error = await getQuestion(execute, questionKey);
+    if (question instanceof Error)
+      dispatch({ type: ActionTypes.SET_ERROR, payload: { error: question } });
+    else
+      dispatch({ type: ActionTypes.EDIT_QUESTION, payload: { question } });
   }, []);
 
   const updateQuestion = useCallback(async (q: IQuestion): Promise<any> => {

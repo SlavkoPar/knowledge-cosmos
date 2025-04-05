@@ -438,26 +438,6 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
       try {
         console.time();
         const filterEncoded = encodeURIComponent(filter);
-        /*
-        const url = `${process.env.REACT_APP_API_URL}/Question/${filterEncoded}/${count}/null`;
-        axios
-          .get(url, {
-            withCredentials: false,
-            headers: {
-              'Content-Type': 'application/json',
-              'Access-Control-Allow-Origin': "*"
-            }
-          })
-          .then(({ data: listQuestDto }) => {
-            console.timeEnd();
-            const listQuest: IQuest[] = listQuestDto.map((q: IQuestDto) => ({
-              title: q.Title,
-              parentCategory: q.ParentCategory,
-              id: q.Id
-            }))
-            resolve(listQuest);
-          })
-          */
         const url = `${protectedResources.KnowledgeAPI.endpointQuestion}/${filterEncoded}/${count}/null`;
         await execute("GET", url).then((response: IQuestDto[] | undefined) => {
           console.log({ response }, protectedResources.KnowledgeAPI.endpointCategory);
