@@ -8,7 +8,7 @@ import { ListGroup, Button, Badge } from "react-bootstrap";
 
 import { useGlobalState } from 'global/GlobalProvider'
 import { ActionTypes, ICategoryInfo, ICategoryKey, IParentInfo, Mode } from "categories/types";
-import { useCategoryContext } from 'categories/CategoryProvider'
+import { useCategoryContext, useCategoryDispatch } from 'categories/CategoryProvider'
 import { useHover } from 'hooks/useHover';
 import { ICategory } from 'categories/types'
 
@@ -22,7 +22,7 @@ import { protectedResources } from 'authConfig';
 
 const CategoryRow = ({ category }: { category: ICategory }) => {
     const { partitionKey, id, title, level, inViewing, inEditing, inAdding, hasSubCategories, questions, numOfQuestions, isExpanded } = category;
-    const [categoryKey] = useState<ICategoryKey>({ partitionKey, id }) 
+    const [categoryKey] = useState<ICategoryKey>({ partitionKey, id }); // otherwise reloads
 
     const parentInfo: IParentInfo = {
         categoryKey,
@@ -36,7 +36,7 @@ const CategoryRow = ({ category }: { category: ICategory }) => {
     const { state, viewCategory, editCategory, deleteCategory, expandCategory, collapseCategory } = useCategoryContext();
     const { questionId } = state;
 
-    //const dispatch = useCategoryDispatch();
+    const dispatch = useCategoryDispatch();
 
     //error: msalError1, 
     const { execute: readExecute } = useFetchWithMsal("", {
@@ -50,10 +50,10 @@ const CategoryRow = ({ category }: { category: ICategory }) => {
 
     const alreadyAdding = state.mode === Mode.AddingCategory;
     // TODO proveri ovo
-    const showQuestions = (isExpanded && numOfQuestions > 0) || questions.find(q => q.inAdding) // && !questions.find(q => q.inAdding); // We don't have questions loaded
+    const showQuestions = (isExpanded && numOfQuestions > 0) // || questions.find(q => q.inAdding) // && !questions.find(q => q.inAdding); // We don't have questions loaded
 
     const del = () => {
-        deleteCategory(categoryKey);
+        deleteCategory(writeExecute, categoryKey);
     };
 
     const expand = async () => {
@@ -106,24 +106,14 @@ const CategoryRow = ({ category }: { category: ICategory }) => {
                 {/* <img width="22" height="18" src={Q} alt="Question" /> */}
             </Badge>
 
-            {/* {canEdit && !alreadyAdding && hoverProps.isHovered &&
-                <Button variant='link' size="sm" className="ms-1 py-0 px-0"
-                    //onClick={() => { dispatch({ type: ActionTypes.EDIT, category }) }}>
-                    onClick={() => edit(id!)}
-                >
-                    <FontAwesomeIcon icon={faEdit} size='lg' />
-                </Button>
-            } */}
-
-            {/* TODO what about archive questions */}
-            {canEdit && !alreadyAdding && hoverProps.isHovered && numOfQuestions === 0 &&
-                <div className="position-absolute d-flex align-items-center top-0 end-0">
-                    <Button variant='link' size="sm" className="py-0 mx-1 float-end"
-                        onClick={del}
+            {canEdit && !alreadyAdding && hoverProps.isHovered &&
+                <>
+                    <Button variant='link' size="sm" className="ms-1 py-0 px-0"
+                        //onClick={() => { dispatch({ type: ActionTypes.EDIT, category }) }}>
+                        onClick={() => edit()}
                     >
-                        <FontAwesomeIcon icon={faRemove} size='lg' />
+                        <FontAwesomeIcon icon={faEdit} size='lg' />
                     </Button>
-                    {/*
                     <Button
                         variant='link'
                         size="sm"
@@ -133,15 +123,26 @@ const CategoryRow = ({ category }: { category: ICategory }) => {
                             dispatch({
                                 type: ActionTypes.ADD_SUB_CATEGORY,
                                 payload: {
-                                    parentCategory: category.id,
-                                    level: category.level
+                                    categoryKey,
+                                    level: category.level + 1
                                 }
                             })
-                            if (!isExpanded)
-                                dispatch({ type: ActionTypes.SET_EXPANDED, payload: { id, expanding: true } });
+                            // if (!isExpanded)
+                            //     dispatch({ type: ActionTypes.SET_EXPANDED, payload: { categoryKey } });
                         }}
                     >
                         <FontAwesomeIcon icon={faPlus} size='lg' />
+                    </Button>
+                </>
+            }
+
+            {/* TODO what about archive questions */}
+            {canEdit && !alreadyAdding && hoverProps.isHovered && !hasSubCategories && numOfQuestions === 0 &&
+                <div className="position-absolute d-flex align-items-center top-0 end-0">
+                    <Button variant='link' size="sm" className="py-0 mx-1 float-end"
+                        onClick={del}
+                    >
+                        <FontAwesomeIcon icon={faRemove} size='lg' />
                     </Button>
                     <Button
                         variant='link'
@@ -151,16 +152,14 @@ const CategoryRow = ({ category }: { category: ICategory }) => {
                         onClick={async () => {
                             const categoryInfo: ICategoryInfo = { id: category.id, level: category.level }
                             if (!isExpanded) {
-                                await dispatch({ type: ActionTypes.SET_EXPANDED, payload: { id, expanding: true } });
+                                await dispatch({ type: ActionTypes.SET_EXPANDED, payload: { categoryKey } });
                             }
                             await dispatch({ type: ActionTypes.ADD_QUESTION, payload: { categoryInfo } });
                         }}
                     >
                         <img width="22" height="18" src={QPlus} alt="Add Question" />
                     </Button>
-                      */}
                 </div>
-
             }
         </div>
 
@@ -168,7 +167,7 @@ const CategoryRow = ({ category }: { category: ICategory }) => {
 
     // if (category.level !== 1)
     //     return (<div>CategoryRow {category.id}</div>)
-    
+
     return (
         <>
             <ListGroup.Item
@@ -177,15 +176,16 @@ const CategoryRow = ({ category }: { category: ICategory }) => {
                 as="li"
             >
                 {inAdding && state.mode === Mode.AddingCategory ? (
-                    <AddCategory category={category} inLine={true} />
+                    // <AddCategory categoryKey={categoryKey} inLine={true} />
+                    <div />
                 )
                     : ((inEditing && state.mode === Mode.EditingCategory) ||
                         (inViewing && state.mode === Mode.ViewingCategory)) ? (
                         <>
                             {/* <div class="d-lg-none">hide on lg and wider screens</div> */}
                             <div id='divInLine' className="ms-0 d-md-none w-100">
-                                {inEditing && <EditCategory inLine={true} />}
-                                {inViewing && <ViewCategory inLine={true} />}
+                                {inEditing && <EditCategory inLine={false} />}
+                                {inViewing && <ViewCategory inLine={false} />}
                             </div>
                             <div className="d-none d-md-block">
                                 {Row1}
@@ -197,6 +197,8 @@ const CategoryRow = ({ category }: { category: ICategory }) => {
                         )
                 }
             </ListGroup.Item>
+
+            { state.error && state.whichRowId == id && <div className="text-danger">{state.error.message}</div> }
 
             {/* !inAdding && */}
             {(isExpanded || inViewing || inEditing || inAdding) && // Row2
@@ -218,6 +220,8 @@ const CategoryRow = ({ category }: { category: ICategory }) => {
 
                 </ListGroup.Item>
             }
+
+           
         </>
     );
 };

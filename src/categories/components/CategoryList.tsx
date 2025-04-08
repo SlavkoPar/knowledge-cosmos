@@ -11,7 +11,7 @@ const CategoryList = ({ title, categoryKey, level }: IParentInfo) => {
     const { categories } = state;
     // { error, }
     const { execute } = useFetchWithMsal("", {
-        scopes: protectedResources.KnowledgeAPI.scopes.read,
+        scopes: protectedResources.KnowledgeAPI.scopes.read
     });
 
     useEffect(() => {
@@ -19,8 +19,7 @@ const CategoryList = ({ title, categoryKey, level }: IParentInfo) => {
         (async () => {
             console.log('zovem getSubCategories', {categoryKey})
             await getSubCategories(execute, categoryKey)
-                .then((response:boolean)=> {
-                    //setPozvao(true);
+                .then((response: boolean)=> {
                 });
         })()
     }, [getSubCategories, execute, categoryKey]);

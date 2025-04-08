@@ -1,6 +1,6 @@
 import { AuthenticatedTemplate } from '@azure/msal-react';
 
-import { NavigationBar } from './NavigationBar.jsx';
+import { NavigationBar } from './NavigationBar';
 
 export const PageLayout = (props) => {
     /**

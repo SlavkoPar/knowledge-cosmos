@@ -3,7 +3,6 @@ import { IAssignedAnswer, ICategory, IQuest, IQuestion, IQuestionKey } from 'cat
 //import { IOption } from 'common/types';
 import { IAnswer } from 'groups/types';
 import { IDBPDatabase } from 'idb';
-import { IUser } from 'roles/types';
 
 export interface IWhoWhen {
 	date: Date,
@@ -26,15 +25,13 @@ export interface IRecord {
 }
 
 
-
-
 export interface IRecordDto {
-	Created: IWhoWhenDto;
-	Modified: IWhoWhenDto;
-	Archived: boolean;
+	Created?: IWhoWhenDto;
+	Modified?: IWhoWhenDto;
+	Archived?: boolean;
 }
 
-export class WhoWhen2DateAndBy {
+export class WhoWhenDto2DateAndBy {
 	constructor(whoWhenDto: IWhoWhenDto) {
 		if (whoWhenDto) {
 			const { dateTime, nickName } = whoWhenDto;
@@ -47,15 +44,25 @@ export class WhoWhen2DateAndBy {
 	dateAndBy?: IWhoWhen = undefined;
 }
 
+export class WhoWhen2DateAndBy {
+	constructor(whoWhen: IWhoWhen) {
+		if (whoWhen) {
+			const { date, nickName } = whoWhen;
+			this.dateAndBy = {
+				dateTime: new Date(date),
+				nickName
+			}
+		}
+	}
+	dateAndBy?: IWhoWhenDto = undefined;
+}
+
 export interface IAuthUser {
 	color?: string,
 	nickName: string,
 	name: string;
-	password: string,
-	email: string,
-	role: ROLES,
-	registrationConfirmed: boolean,
-	registered?: Date,
+	email?: string,
+	role?: ROLES,
 	visited?: Date
 }
 
@@ -129,7 +136,7 @@ export interface IGlobalContext {
 	globalState: IGlobalState;
 	getUser: (nickName: string) => Promise<any>;
 	OpenDB: () => Promise<any>;
-	loadCats: (execute: (method: string, endpoint: string) => Promise<any>) => void;
+	loadCats: (execute: (method: string, endpoint: string, data: Object | null) => Promise<any>) => void;
 	exportToJSON: (category: ICategory, parentCategory: string) => void;
 	health: () => void;
 	getSubCats: ({ parentCategory, level }: IParentInfo) => Promise<any>;
@@ -151,7 +158,6 @@ export enum GlobalActionTypes {
 	SET_ERROR = 'SET_ERROR',
 	DARK_MODE = "DARK_MODE",
 	LIGHT_MODE = "LIGHT_MODE",
-	SET_REGISTRATION_CONFIRMED = 'SET_REGISTRATION_CONFIRMED',
 	SET_ALL_CATEGORIES = 'SET_ALL_CATEGORIES',
 	SET_QUESTION_AFTER_ASSIGN_ANSWER = 'SET_QUESTION_AFTER_ASSIGN_ANSWER',
 }
@@ -213,8 +219,6 @@ export type GlobalPayload = {
 	[GlobalActionTypes.LIGHT_MODE]: undefined;
 
 	[GlobalActionTypes.DARK_MODE]: undefined;
-
-	[GlobalActionTypes.SET_REGISTRATION_CONFIRMED]: undefined;
 
 	[GlobalActionTypes.SET_ALL_CATEGORIES]: {
 		cats: Map<string, ICat>
@@ -350,6 +354,15 @@ export interface IAnswerRating {
 	fixed: number;
 	notFixed: number; // client clicked on 'Not fixed' button
 	Undefined: number; // not clicked
+}
+
+
+export interface IUser {
+	nickName: string;
+	name: string;
+	color?: string;
+	level?: number;
+	isDarkMode?: boolean;
 }
 
 

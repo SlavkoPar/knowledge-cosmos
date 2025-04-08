@@ -1,23 +1,29 @@
-import { useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faQuestion, faSurprise, faUser, faUserFriends, faReply } from '@fortawesome/free-solid-svg-icons'
 import Q from 'assets/Q.png';
 
+import { GlobalActionTypes} from 'global/types'
+import { useGlobalDispatch  } from 'global/GlobalProvider'
+import { IUser } from 'global/types'
+
 import { AuthenticatedTemplate, UnauthenticatedTemplate, useMsal, useMsalAuthentication, useIsAuthenticated } from '@azure/msal-react';
-import { InteractionStatus, InteractionType, InteractionRequiredAuthError } from "@azure/msal-browser";
+import { InteractionStatus, InteractionType, InteractionRequiredAuthError, AccountInfo } from "@azure/msal-browser";
 import { Nav, Navbar, Dropdown, DropdownButton } from 'react-bootstrap';
 
 import { loginRequest, protectedResources } from 'authConfig';
 
 export const NavigationBar = () => {
+
+
     const { instance, accounts, inProgress } = useMsal();
 
-    let activeAccount;
+    let activeAccount: AccountInfo | null = null;
     if (instance) {
         activeAccount = instance.getActiveAccount();
+        console.log(activeAccount ? activeAccount.name : 'Unknown')
     }
-    console.log(activeAccount ? activeAccount.name : 'Unknown')
 
     const request = {
         loginHint: "name@example.com",
@@ -36,28 +42,27 @@ export const NavigationBar = () => {
     //     // setError(msalError);
     //     return null;
     // }
-
     if (result) {
-        localStorage.setItem('accessToken', result.accessToken)
+        localStorage.setItem('accessToken', result.accessToken);
     }
-
 
     const handleLoginRedirect = () => {
         instance.loginRedirect(loginRequest)
             .catch((error) => console.log(error));
     };
 
-    const handleLoginPopup = () => {
+    const handleLoginPopup = async () => {
         /**
          * When using popup and silent APIs, we recommend setting the redirectUri to a blank page or a page 
          * that does not implement MSAL. Keep in mind that all redirect routes must be registered with the application
          * For more information, please follow this link: https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/login-user.md#redirecturi-considerations 
          */
 
-        instance.loginPopup({
+        await instance.loginPopup({
             ...loginRequest,
             redirectUri: '/redirect'
-        }).catch((error) => console.log(error));
+        })
+        .catch((error) => console.log(error));
     };
 
     const handleLogoutRedirect = () => {

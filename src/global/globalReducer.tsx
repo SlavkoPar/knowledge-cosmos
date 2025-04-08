@@ -5,20 +5,18 @@ import { IGlobalState, GlobalActionTypes, GlobalActions, ROLES, IAuthUser, IGlob
 const initialAuthUser: IAuthUser = {
     nickName: '',
     name: '',
-    password: '',
     email: '',
     color: 'blue',
-    role: ROLES.VIEWER,
-    registrationConfirmed: false
+    role: ROLES.VIEWER
 }
 
 const initGlobalState: IGlobalState = {
     dbp: null,
     authUser: initialAuthUser,
-    isAuthenticated: true,
+    isAuthenticated: false,
     everLoggedIn: true,
-    canEdit: false,
-    isOwner: false,
+    canEdit: true,
+    isOwner: true,
     isDarkMode: true,
     variant: 'dark',
     bg: 'dark',
@@ -122,24 +120,20 @@ const reducer: Reducer<IGlobalState, GlobalActions> = (state, action) => {
         }
 
         case GlobalActionTypes.AUTHENTICATE: {
+            console.log('GlobalActionTypes.AUTHENTICATE', action.payload)
             const { user } = action.payload;
-            const { nickName, name, password, parentRole, email, confirmed } = user;
+            const { nickName, name } = user;
             return {
                 ...state,
                 authUser: {
                     nickName,
                     name,
-                    password,
-                    role: parentRole as ROLES,
-                    email,
+                    email: '',
                     color: 'blue',
-                    registrationConfirmed: confirmed,
                     everLoggedIn: true,
-                    registered: user.created ? user.created.date : new Date()
-                    //visited: user.visited!.date
                 },
-                canEdit: user.parentRole !== ROLES.VIEWER,
-                isOwner: user.parentRole === ROLES.OWNER,
+                canEdit: true, //user.parentRole !== ROLES.VIEWER,
+                isOwner: true, //user.parentRole === ROLES.OWNER,
                 isAuthenticated: true,
                 everLoggedIn: true,
                 error: undefined
@@ -153,16 +147,6 @@ const reducer: Reducer<IGlobalState, GlobalActions> = (state, action) => {
                 dbp,
                 loading: false
             };
-        }
-
-        case GlobalActionTypes.SET_REGISTRATION_CONFIRMED: {
-            return {
-                ...state,
-                authUser: {
-                    ...state.authUser,
-                    registrationConfirmed: true
-                }
-            }
         }
 
         case GlobalActionTypes.UN_AUTHENTICATE: {

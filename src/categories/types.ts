@@ -1,4 +1,4 @@
-import { ActionMap, IWhoWhen, IRecord, IRecordDto, WhoWhen2DateAndBy } from 'global/types';
+import { ActionMap, IWhoWhen, IRecord, IRecordDto, WhoWhenDto2DateAndBy, WhoWhen2DateAndBy } from 'global/types';
 import { IAnswer } from 'groups/types';
 
 export const Mode = {
@@ -126,9 +126,9 @@ export class Question {
 			numOfAssignedAnswers: 0,
 			source: dto.Source,
 			status: dto.Status,
-			created: new WhoWhen2DateAndBy(dto.Created).dateAndBy,
+			created: new WhoWhenDto2DateAndBy(dto.Created!).dateAndBy,
 			modified: dto.Modified
-				? new WhoWhen2DateAndBy(dto.Modified).dateAndBy
+				? new WhoWhenDto2DateAndBy(dto.Modified).dateAndBy
 				: undefined
 		}
 	}
@@ -143,15 +143,15 @@ export class Category {
 			partitionKey: dto.PartitionKey,
 			id: dto.Id,
 			kind: dto.Kind,
-			parentCategory: dto.ParentCategory,
+			parentCategory: dto.ParentCategory!,
 			title: dto.Title,
-			level: dto.Level,
+			level: dto.Level!,
 			variations: dto.Variations,
-			numOfQuestions: dto.NumOfQuestions,
-			hasSubCategories: dto.HasSubCategories,
-			created: new WhoWhen2DateAndBy(dto.Created).dateAndBy,
+			numOfQuestions: dto.NumOfQuestions!,
+			hasSubCategories: dto.HasSubCategories!,
+			created: new WhoWhenDto2DateAndBy(dto.Created!).dateAndBy,
 			modified: dto.Modified
-				? new WhoWhen2DateAndBy(dto.Modified).dateAndBy
+				? new WhoWhenDto2DateAndBy(dto.Modified).dateAndBy
 				: undefined,
 			questions: dto.Questions
 				? dto.Questions.map(questionDto => new Question(questionDto, dto.Id).question)
@@ -161,6 +161,23 @@ export class Category {
 	category: ICategory;
 }
 
+
+export class CategoryDto {
+	constructor(category: ICategory) {
+		this.categoryDto = {
+			PartitionKey: category.partitionKey,
+			Id: category.id,
+			Kind: category.kind,
+			ParentCategory: category.parentCategory,
+			Title: category.title,
+			Level: category.level,
+			Variations: category.variations,
+			Created: new WhoWhen2DateAndBy(category.created!).dateAndBy!, // used for create
+			Modified: new WhoWhen2DateAndBy(category.modified!).dateAndBy! // used for update
+		}
+	}
+	categoryDto: ICategoryDto;
+}
 
 export interface IQuestionDto extends IRecordDto {
 	//partitionKey: string;
@@ -193,15 +210,13 @@ export interface ICategoryDto extends IRecordDto {
 	Id: string;
 	Kind: number;
 	ParentCategory: string | null;
-	// but it is not a valid key
 	Title: string;
-	// words: string[];
-	Level: number;
 	Variations: string[];
-	NumOfQuestions: number;
-	HasSubCategories: boolean;
-	Questions: IQuestionDto[];
-	HasMoreQuestions: boolean;
+	Level?: number;
+	NumOfQuestions?: number;
+	HasSubCategories?: boolean;
+	Questions?: IQuestionDto[];
+	HasMoreQuestions?: boolean;
 }
 
 export interface ICategoryInfo {
@@ -226,7 +241,7 @@ export interface ICategoriesState {
 	mode: string | null;
 	categories: ICategory[];
 	categoryNodesUpTheTree: ICategoryKeyExtended[];
-	categoryExpanded: ICategoryKey | null;
+	categoryKeyExpanded: ICategoryKey | null;
 	categoryId: string | null;
 	questionId: string | null;
 	categoryId_questionId_done?: string;
@@ -235,10 +250,11 @@ export interface ICategoriesState {
 	loading: boolean;
 	questionLoading: boolean,
 	error?: Error;
+	whichRowId?: string; // category.id or question.id
 }
 
 export interface ILocStorage {
-	lastCategoryExpanded: ICategoryKey | null;
+	lastCategoryKeyExpanded: ICategoryKey | null;
 	questionId: string | null;
 }
 
@@ -247,11 +263,11 @@ export interface ICategoriesContext {
 	state: ICategoriesState,
 	reloadCategoryNode: (execute: (method: string, endpoint: string) => Promise<any>, categoryKey: ICategoryKey, questionId: string | null) => Promise<any>;
 	getSubCategories: (execute: (method: string, endpoint: string) => Promise<any>, categoryKey: ICategoryKey) => Promise<any>,
-	createCategory: (category: ICategory) => void,
+	createCategory: (execute: (method: string, endpoint: string) => Promise<any>, category: ICategory) => void,
 	viewCategory: (execute: (method: string, endpoint: string) => Promise<any>, categoryKey: ICategoryKey, includeQuestionId: string) => void,
 	editCategory: (execute: (method: string, endpoint: string) => Promise<any>, categoryKey: ICategoryKey, includeQuestionId: string) => void,
-	updateCategory: (category: ICategory, closeForm: boolean) => void,
-	deleteCategory: (categoryKey: ICategoryKey) => void,
+	updateCategory: (execute: (method: string, endpoint: string) => Promise<any>, category: ICategory, closeForm: boolean) => void,
+	deleteCategory: (execute: (method: string, endpoint: string) => Promise<any>, categoryKey: ICategoryKey) => void,
 	deleteCategoryVariation: (id: string, name: string) => void,
 	expandCategory: (execute: (method: string, endpoint: string) => Promise<any>, categoryKey: ICategoryKey, includeQuestionId: string) => void,
 	collapseCategory: (execute: (method: string, endpoint: string) => Promise<any>, categoryKey: ICategoryKey) => void,
@@ -348,7 +364,10 @@ export type CategoriesPayload = {
 		subCategories: ICategory[];
 	};
 
-	[ActionTypes.ADD_SUB_CATEGORY]: IParentInfo;
+	[ActionTypes.ADD_SUB_CATEGORY]: {
+		categoryKey: ICategoryKey,
+		level: number
+	}
 
 	[ActionTypes.VIEW_CATEGORY]: {
 		category: ICategory;
@@ -381,7 +400,7 @@ export type CategoriesPayload = {
 	[ActionTypes.CANCEL_CATEGORY_FORM]: undefined;
 
 	[ActionTypes.SET_EXPANDED]: {
-		category: ICategory;
+		categoryKey: ICategoryKey;
 	}
 
 	[ActionTypes.SET_COLLAPSED]: {
@@ -390,6 +409,7 @@ export type CategoriesPayload = {
 
 	[ActionTypes.SET_ERROR]: {
 		error: Error;
+		whichRowId?: string;
 	};
 
 	/////////////

@@ -19,7 +19,7 @@ import { globalReducer, initialGlobalState } from "global/globalReducer";
 
 import { Category, IAssignedAnswer, ICategory, ICategoryDto, IQuest, IQuestDto, IQuestion, IQuestionDto, IQuestionKey, Question } from "categories/types";
 import { IGroup, IAnswer } from "groups/types";
-import { IRole, IUser } from 'roles/types';
+import { IUser } from 'global/types';
 
 import { IDBPDatabase, IDBPIndex, openDB } from 'idb' // IDBPTransaction
 import { escapeRegexCharacters } from 'common/utilities'
@@ -66,67 +66,6 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
 
  
 
-
-
-  const addRole = async (
-    dbp: IDBPDatabase,
-    //tx: IDBPTransaction<unknown, string[], "readwrite">, 
-    roleData: IRoleData,
-    parentRole: string,
-    level: number)
-    : Promise<void> => {
-    const { title, roles, users } = roleData;
-
-    const r: IRole = {
-      title,
-      parentRole,
-      hasSubRoles: roles ? roles.length > 0 : false,
-      //title: title,
-      level,
-      users: [],
-      numOfUsers: users?.length || 0,
-      created: {
-        date: new Date(),
-        nickName: 'Boss'
-      }
-    }
-    await dbp.add('Roles', r);
-    console.log('group added', r);
-
-    if (users) {
-      let i = 0;
-      while (i < users.length) {
-        const u: IUserData = users[i];
-        const { nickName, name, password, email, color } = u;
-        const user: IUser = {
-          nickName,
-          parentRole: r.title,
-          role: r.title as ROLES,
-          name,
-          //words: name.toLowerCase().replaceAll('?', '').split(' '),
-          password,
-          email,
-          color,
-          level: 2,
-          confirmed: false,
-          isDarkMode: true
-        }
-        await dbp.add('Users', user);
-        i++;
-      }
-    }
-
-    if (roles) {
-      const parentGroup = r.title;
-      let j = 0;
-      const parentRoles = roles;
-      while (j < parentRoles.length) {
-        addRole(dbp, parentRoles[j], parentRole, level + 1);
-        j++;
-      }
-    }
-    Promise.resolve();
-  }
 
   const addGroup = async (
     dbp: IDBPDatabase,
@@ -330,51 +269,13 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
     catch (err) {
       console.log('error', err);
     }
-
-    // Roles -> Users
-    try {
-      let level = 1;
-      let i = 0;
-      const data: IRoleData[] = roleData;
-      const tx = dbp.transaction(['Roles', 'Users'], 'readwrite');
-      while (i < data.length) {
-        await addRole(dbp, data[i], 'null', level);
-        i++;
-      }
-      console.log('trans groups complete')
-      // dispatch({ type: GlobalActionTypes.SET_DBP, payload: { dbp } })
-      await tx.done;
-      // resolve
-      //resolve();
-    }
-    catch (err) {
-      console.log('error', err);
-    }
-
-    // History
-    // try {
-    //   let i = 0;
-    //   const data: IHistoryData[] = historyData;
-    //   const tx = dbp.transaction('History', 'readwrite');
-    //   while (i < data.length) {
-    //     const row = data[i];
-    //     if (!row.created)
-    //       row.created = new Date();
-    //     await addHistory(dbp, {...row} as IHistory);
-    //     i++;
-    //   }
-    //   await tx.done;
-    // }
-    // catch (err) {
-    //   console.log('error', err);
-
     // }
   }
 
   // ---------------------------
   // load all short categories
   // ---------------------------
-  const loadCats = useCallback(async (): Promise<any> => {
+  const loadCats = useCallback(async (execute: (method: string, endpoint: string, data: Object | null) => Promise<any>): Promise<any> => {
     const { catsLoaded } = globalState;
     if (catsLoaded) {
       var diffMs = (Date.now() - catsLoaded!); // milliseconds between
@@ -387,7 +288,7 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
       try {
         const url = `${process.env.REACT_APP_API_URL}/Category`;
         console.time();
-        await execute("GET", protectedResources.KnowledgeAPI.endpointCategory).then((response: ICategoryDto[] | Response) => {
+        await execute("GET", protectedResources.KnowledgeAPI.endpointCategory, null).then((response: ICategoryDto[] | Response) => {
           console.log({ response }, protectedResources.KnowledgeAPI.endpointCategory)
           const categories = new Map<string, ICategory>();
           const cats = new Map<string, ICat>();
@@ -524,7 +425,7 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
         const regUser: IRegisterUser = { ...userData, level: 1, confirmed: false }
         //await registerUser(regUser, true, dbp);
       }
-      await loadCats();
+      await loadCats(execute);
       dispatch({ type: GlobalActionTypes.SET_DBP, payload: { dbp } });
       // else {
       //   signInUser({nickName: 'Boss', password: 'Boss12345'})

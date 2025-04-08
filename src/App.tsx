@@ -14,31 +14,47 @@ import Health from 'Health';
 import SupportPage from './SupportPage';
 import ChatBotPage from 'ChatBotPage';
 import Export from 'Export';
+import { GlobalActionTypes, IUser } from 'global/types';
+import { AccountInfo } from '@azure/msal-browser';
+import { useMsal } from '@azure/msal-react';
 
 function App() {
   console.log('-----------> App')
 
   const { getUser, OpenDB } = useGlobalContext();
   const { dbp, authUser, isAuthenticated, everLoggedIn, catsLoaded } = useGlobalState()
-  const { nickName, password, role } = authUser;
+  const { nickName, role } = authUser;
 
   const formInitialValues = {
     who: '',
     nickName: '',
-    password: '',
     email: ''
   };
 
   let location = useLocation();
   const navigate = useNavigate();
+  const dispatch = useGlobalDispatch();
+
+  const { instance } = useMsal();
 
   useEffect(() => {
-    (async () => {
-      //if (isAuthenticated) {
-      //await OpenDB(execute);
-      //}
-    })()
-  }, []) // , isAuthenticated
+    //(async () => {
+    //if (isAuthenticated) {
+    //await OpenDB(execute);
+    //}
+    //})()
+    if (!isAuthenticated) {
+      if (instance) {
+        const activeAccount: AccountInfo | null = instance.getActiveAccount();
+        const user: IUser = {
+          nickName: (activeAccount && activeAccount.name) ? activeAccount.name : 'Unknown',
+          name: ''
+        }
+        dispatch({ type: GlobalActionTypes.AUTHENTICATE, payload: { user } });
+      }
+    }
+
+  }, [isAuthenticated]) // , isAuthenticated
 
   const locationPathname = location.pathname;
   const searchParams = new URLSearchParams(location.search);
@@ -53,16 +69,16 @@ function App() {
       if (!isAuthenticated && !isAuthRoute && dbp) {
         if (everLoggedIn) {
           let signedIn = false;
-          if (/*dbp &&*/ nickName !== '') {
-            console.log(`await signInUser(${nickName}, ${password} })`);
-            const loginUser = {
-              nickName
-            }
-            // signedIn = await signInUser(loginUser);
-            // if (!signedIn) {
-            //   navigate('/sign-in')
-            // }
-          }
+          // if (/*dbp &&*/ nickName !== '') {
+          //   console.log(`await signInUser(${nickName} })`);
+          //   const loginUser = {
+          //     nickName
+          //   }
+          //   // signedIn = await signInUser(loginUser);
+          //   // if (!signedIn) {
+          //   //   navigate('/sign-in')
+          //   // }
+          // }
         }
         else {
           // const regUser: IRegisterUser = { 
@@ -128,9 +144,9 @@ function App() {
 
     })()
 
-  }, [dbp, isAuthenticated, nickName, password, everLoggedIn, locationPathname, navigate])
+  }, [dbp, isAuthenticated, nickName, everLoggedIn, locationPathname, navigate])
 
-  if (!catsLoaded)
+  if (!isAuthenticated || !catsLoaded)
     return <div>App loading</div>
 
   return (

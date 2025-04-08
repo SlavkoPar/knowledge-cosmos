@@ -4,13 +4,19 @@ import { useGlobalState } from 'global/GlobalProvider'
 
 import CategoryForm from "categories/components/CategoryForm";
 import { FormMode, ICategory } from "categories/types";
+import useFetchWithMsal from 'hooks/useFetchWithMsal';
+import { protectedResources } from 'authConfig';
 
 const EditCategory = ({ inLine }: { inLine: boolean }) => {
     const globalState = useGlobalState();
     const { state, updateCategory } = useCategoryContext();
     const category = state.categories.find(c => c.inEditing);
 
-    const submitForm = (categoryObject: ICategory) => {
+    const { execute } = useFetchWithMsal("", {
+        scopes: protectedResources.KnowledgeAPI.scopes.write
+    });
+
+    const submitForm = async (categoryObject: ICategory) => {
         const object: ICategory = {
             ...categoryObject,
             modified: {
@@ -18,7 +24,7 @@ const EditCategory = ({ inLine }: { inLine: boolean }) => {
                 nickName: globalState.authUser.nickName
             }
         }
-        updateCategory(object, true /* closeForm */)
+        await updateCategory(execute, object, true /* closeForm */)
     };
 
     return (

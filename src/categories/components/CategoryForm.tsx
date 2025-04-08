@@ -28,7 +28,7 @@ const CategoryForm = ({ inLine, mode, category, submitForm, children }: ICategor
   if (!document.getElementById('div-details')) {
 
   }
-  const showQuestions = !questions.find(q => q.inAdding);
+  const showQuestions = questions.length > 0 //!questions.find(q => q.inAdding);
   /* 
   We have, at two places:
     <EditCategory inLine={true} />

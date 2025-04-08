@@ -31,7 +31,7 @@ const useFetchWithMsal = (accessToken: string, msalRequest: PopupRequest | Redir
      * @param {Object} data: The data to send to the endpoint, if any 
      * @returns JSON response
      */
-    const execute = async (method: string, endpoint: string, data = null) : Promise<any> => {
+    const execute = async (method: string, endpoint: string, data:Object|null = null) : Promise<any> => {
        
         // if (msalError) {
         //     console.log(msalError)

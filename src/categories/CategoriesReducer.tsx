@@ -16,7 +16,7 @@ export const initialCategory: ICategory = {
   // temp _id for inAdding, to server as list key
   // it will be removed on submitForm
   // real _id will be given by the MongoDB 
-  partitionKey: '',
+  partitionKey: 'null',
   id: '',
   kind: 0,
   title: '',
@@ -34,7 +34,7 @@ export const initialState: ICategoriesState = {
   mode: Mode.NULL,
   categories: [],
   categoryNodesUpTheTree: [],
-  categoryExpanded: null,
+  categoryKeyExpanded: null,
   categoryId_questionId_done: undefined,
   categoryId: null,
   questionId: null,
@@ -66,13 +66,13 @@ if ('localStorage' in window) {
   const s = localStorage.getItem('CATEGORIES_STATE');
   if (s !== null) {
     const locStorage = JSON.parse(s);
-    const { lastCategoryExpanded, questionId } = locStorage!;
-    const categoryNodeLoaded = lastCategoryExpanded ? false : true;
+    const { lastCategoryKeyExpanded, questionId } = locStorage!;
+    const categoryNodeLoaded = lastCategoryKeyExpanded ? false : true;
 
     initialCategoriesState = {
       ...initialCategoriesState,
-      categoryExpanded: lastCategoryExpanded,
-      categoryNodeLoaded: lastCategoryExpanded ? false : true,
+      categoryKeyExpanded: lastCategoryKeyExpanded,
+      categoryNodeLoaded: lastCategoryKeyExpanded ? false : true,
       questionId
     }
     console.log('initialCategoriesState nakon citanja iz memorije', initialCategoriesState);
@@ -87,15 +87,16 @@ export const CategoriesReducer: Reducer<ICategoriesState, CategoriesActions> = (
   const newState = reducer(state, action);
   const aTypesToStore = [
     ActionTypes.SET_EXPANDED,
+    ActionTypes.SET_COLLAPSED,
     ActionTypes.VIEW_CATEGORY,
     ActionTypes.EDIT_CATEGORY,
     ActionTypes.VIEW_QUESTION,
     ActionTypes.EDIT_QUESTION
   ];
 
-  const { categoryExpanded, questionId } = newState;
+  const { categoryKeyExpanded, questionId } = newState;
   const locStorage: ILocStorage = {
-    lastCategoryExpanded: categoryExpanded,
+    lastCategoryKeyExpanded: categoryKeyExpanded,
     questionId
   }
   if (aTypesToStore.includes(action.type)) {
@@ -191,10 +192,11 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
     }
 
     case ActionTypes.SET_ERROR: {
-      const { error } = action.payload;
+      const { error, whichRowId } = action.payload; // category.id or question.id
       return {
         ...state,
         error,
+        whichRowId,
         loading: false,
         questionLoading: false
       };
@@ -205,11 +207,11 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
       const category: ICategory = {
         ...initialCategory,
         title: '',
-        level: 765, //level + 1,  //TODO
-        parentCategory: categoryKey.id ?? 'null',
+        level,
+        partitionKey: categoryKey.partitionKey, 
+        parentCategory: categoryKey.id ?? null,
         inAdding: true
       }
-
       return {
         ...state,
         categories: [...state.categories, category],
@@ -286,7 +288,7 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
         mode: Mode.EditingCategory,
         loading: false,
         categoryId: category.id,
-        questionId: null 
+        questionId: null
       };
     }
 
@@ -337,7 +339,9 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
       return {
         ...state,
         mode: Mode.NULL,
-        categories: state.categories.filter(c => c.id !== id)
+        categories: state.categories.filter(c => c.id !== id),
+        error: undefined,
+        whichRowId: undefined
       };
     }
 
@@ -354,19 +358,17 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
     }
 
     case ActionTypes.SET_EXPANDED: {
-      const { category } = action.payload;
-      const { partitionKey, id } = category;
-      const categoryKey = { partitionKey, id }
+      const { categoryKey } = action.payload;
       let { categories } = state;
       return {
         ...state,
-        categories: categories.map(c => c.id === id
-          ? { ...category, isExpanded: true, inViewing: c.inViewing, inEditing: c.inEditing }
+        categories: categories.map(c => c.id === categoryKey.id
+          ? { ...c, isExpanded: true, inViewing: c.inViewing, inEditing: c.inEditing }
           : c
         ),
         loading: false,
         mode: Mode.NULL, // : state.mode,// expanding ? state.mode : Mode.NULL,  // TODO  close form only if inside of colapsed node
-        categoryExpanded: categoryKey,
+        categoryKeyExpanded: categoryKey,
         //categoryId: undefined,
         categoryNodeLoaded: true // prevent reloadCategoryNode
       };
@@ -383,7 +385,6 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
       if (ids.length > 0) {
         categories = categories.filter(c => !ids.includes(c.id))
       }
-
       return {
         ...state,
         categories: categories.map(c => c.id === id
@@ -392,7 +393,8 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
         ),
         loading: false,
         //mode: state.mode,// expanding ? state.mode : Mode.NULL,  // TODO  close form only if inside of colapsed node
-        categoryExpanded: null,
+        categoryKeyExpanded: categoryKey,
+        questionId: null
         // mode: Mode.NULL, // : state.mode,// expanding ? state.mode : Mode.NULL,  // TODO  close form only if inside of colapsed node
 
         //categoryNodeLoaded: true // prevent reloadCategoryNode
@@ -591,14 +593,15 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
   }
 };
 
-function markForClean(categories: ICategory[], parentCategory: ICategoryKey) {
-  const { partitionKey, id } = parentCategory;
+function markForClean(categories: ICategory[], categoryKey: ICategoryKey) {
+  const { id } = categoryKey;
   let deca = categories
     .filter(c => c.parentCategory === id)
-    .map(c => ({ id: c.id, parentCategory: c.parentCategory }))
+    .map(c => ({ partitionKey: '', id: c.id }))
 
   deca.forEach(c => {
-    deca = deca.concat(markForClean(categories, parentCategory))
+    const categoryKey = { partitionKey: '', id: c.id }
+    deca = deca.concat(markForClean(categories, categoryKey))
   })
   return deca
 }
