@@ -1,4 +1,4 @@
-import { ActionMap, IWhoWhen, IRecord, IRecordDto, WhoWhenDto2DateAndBy, WhoWhen2DateAndBy } from 'global/types';
+import { ActionMap, IWhoWhen, IRecord, IRecordDto, Dto2WhoWhen, WhoWhen2Dto } from 'global/types';
 import { IAnswer } from 'groups/types';
 
 export const Mode = {
@@ -61,10 +61,9 @@ export interface IFromUserAssignedAnswer {
 }
 
 export interface IQuestion extends IRecord {
+	partitionKey?: string;
 	id: string;
 	title: string;
-	//words?: string[];
-	//level: number;
 	parentCategory: string;
 	categoryTitle?: string;
 	assignedAnswers: IAssignedAnswer[];
@@ -87,7 +86,7 @@ export interface ICategoryKeyExtended extends ICategoryKey {
 
 
 export interface IQuestionKey {
-	parentCategory: string;
+	partitionKey: string;
 	id: string;
 }
 
@@ -117,18 +116,19 @@ export interface ICategory extends IRecord {
 
 
 export class Question {
-	constructor(dto: IQuestionDto, parentCategory: string) {
+	constructor(dto: IQuestionDto) { //, parentCategory: string) {
 		this.question = {
-			parentCategory: parentCategory,
+			parentCategory: dto.ParentCategory,
+			partitionKey: dto.PartitionKey,
 			id: dto.Id,
 			title: dto.Title,
 			assignedAnswers: [], //dto.AssignedAnswers, // TODO
 			numOfAssignedAnswers: 0,
 			source: dto.Source,
 			status: dto.Status,
-			created: new WhoWhenDto2DateAndBy(dto.Created!).dateAndBy,
+			created: new Dto2WhoWhen(dto.Created!).whoWhen,
 			modified: dto.Modified
-				? new WhoWhenDto2DateAndBy(dto.Modified).dateAndBy
+				? new Dto2WhoWhen(dto.Modified).whoWhen
 				: undefined
 		}
 	}
@@ -149,12 +149,12 @@ export class Category {
 			variations: dto.Variations,
 			numOfQuestions: dto.NumOfQuestions!,
 			hasSubCategories: dto.HasSubCategories!,
-			created: new WhoWhenDto2DateAndBy(dto.Created!).dateAndBy,
+			created: new Dto2WhoWhen(dto.Created!).whoWhen,
 			modified: dto.Modified
-				? new WhoWhenDto2DateAndBy(dto.Modified).dateAndBy
+				? new Dto2WhoWhen(dto.Modified).whoWhen
 				: undefined,
 			questions: dto.Questions
-				? dto.Questions.map(questionDto => new Question(questionDto, dto.Id).question)
+				? dto.Questions.map(questionDto => new Question(questionDto/*, dto.Id*/).question)
 				: []
 		}
 	}
@@ -172,35 +172,66 @@ export class CategoryDto {
 			Title: category.title,
 			Level: category.level,
 			Variations: category.variations,
-			Created: new WhoWhen2DateAndBy(category.created!).dateAndBy!, // used for create
-			Modified: new WhoWhen2DateAndBy(category.modified!).dateAndBy! // used for update
+			Created: new WhoWhen2Dto(category.created).whoWhenDto!,
+			Modified: new WhoWhen2Dto(category.modified).whoWhenDto!
 		}
 	}
 	categoryDto: ICategoryDto;
 }
 
+
+export class QuestionDto {
+	constructor(question: IQuestion) {
+		this.questionDto = {
+			PartitionKey: question.partitionKey,
+			Id: question.id,
+			ParentCategory: question.parentCategory,
+			Title: question.title,
+			AssignedAnswers: [...question.assignedAnswers],
+			NumOfAssignedAnswers: question.numOfAssignedAnswers,
+			Source: question.source,
+			Status: question.status,
+			Created: new WhoWhen2Dto(question.created).whoWhenDto!,
+			Modified: new WhoWhen2Dto(question.modified).whoWhenDto!
+		}
+	}
+	questionDto: IQuestionDto;
+}
+
 export interface IQuestionDto extends IRecordDto {
-	//partitionKey: string;
+	PartitionKey?: string;
 	Id: string;
 	ParentCategory: string;
 	// but it is not a valid key
 	Title: string;
-	AssignedAnswers: number[];
-	// Variations: string[];
+	AssignedAnswers: IAssignedAnswer[];
+	NumOfAssignedAnswers: number,
 	Source: number;
 	Status: number;
 }
 
+export interface IQuestionDtoEx {
+	questionDto: IQuestionDto | null;
+	msg: string;
+}
+
+export interface IQuestionsMore {
+	questions: IQuestionDto[];
+	hasMoreQuestions: boolean;
+}
+
 export interface IQuestDto {
+	PartitionKey: string;
 	ParentCategory: string;
 	Title: string;
 	Id: string;
 }
 
 export interface IQuest {
+	partitionKey: string;
+	id: string;
 	parentCategory: string;
 	title: string;
-	id: string;
 	categoryTitle?: string;
 }
 
@@ -275,10 +306,10 @@ export interface ICategoriesContext {
 	// questions
 	//getCategoryQuestions: ({ parentCategory, level, inAdding }: IParentInfo) => void,
 	loadCategoryQuestions: (parentInfo: IParentInfo) => void,
-	createQuestion: (question: IQuestion, fromModal: boolean) => Promise<any>;
+	createQuestion: (execute: (method: string, endpoint: string) => Promise<any>, question: IQuestion, fromModal: boolean) => Promise<any>;
 	viewQuestion: (execute: (method: string, endpoint: string) => Promise<any>, iquestionKey: IQuestionKey) => void;
 	editQuestion: (execute: (method: string, endpoint: string) => Promise<any>, questionKey: IQuestionKey) => void;
-	updateQuestion: (question: IQuestion) => Promise<any>;
+	updateQuestion: (execute: (method: string, endpoint: string) => Promise<any>, question: IQuestion) => Promise<any>;
 	assignQuestionAnswer: (questionId: string, answerId: number, assigned: IWhoWhen) => Promise<any>;
 	unAssignQuestionAnswer: (questionId: string, answerId: number) => Promise<any>;
 	createAnswer: (answer: IAnswer) => Promise<any>;

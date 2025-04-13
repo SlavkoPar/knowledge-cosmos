@@ -64,9 +64,6 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
     }
   }
 
- 
-
-
   const addGroup = async (
     dbp: IDBPDatabase,
     //tx: IDBPTransaction<unknown, string[], "readwrite">, 
@@ -84,7 +81,7 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
       answers: [],
       numOfAnswers: answers?.length || 0,
       created: {
-        date: new Date(),
+        time: new Date(),
         nickName: 'Boss'
       }
     }
@@ -161,7 +158,7 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
         questions: [],
         numOfQuestions: questions?.length || 0,
         created: {
-          date: new Date(),
+          time: new Date(),
           nickName: 'Boss'
         }
       }
@@ -176,19 +173,19 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
             const q: IQuestionData = questions[i];
             const { title, source, status, assignedAnswers } = q;
             if (assignedAnswers) {
-              assAnswers = assignedAnswers.map(id => ({
-                answer: {
-                  id
-                },
-                user: {
-                  nickName: 'OWNER',
-                  createdBy: 'OWNER'
-                },
-                assigned: {
-                  date: new Date(),
-                  nickName: globalState.authUser.nickName
-                }
-              }))
+              // assAnswers = assignedAnswers.map(id => ({
+              //   answer: {
+              //     id
+              //   },
+              //   user: {
+              //     nickName: 'OWNER',
+              //     createdBy: 'OWNER'
+              //   },
+              //   assigned: {
+              //     date: new Date(),
+              //     nickName: globalState.authUser.nickName
+              //   }
+              // }))
             }
             // TODO
             //const words = q.title.toLowerCase().replaceAll('?', '').split(' ').map((s: string) => s.trim());
@@ -345,9 +342,10 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
           console.timeEnd();
           if (response) {
             const listQuest: IQuest[] = response.map((q: IQuestDto) => ({
-              title: q.Title,
+              partitionKey : q.PartitionKey,
+              id: q.Id,
               parentCategory: q.ParentCategory,
-              id: q.Id
+              title: q.Title
             }))
             resolve(listQuest);
           }
@@ -470,10 +468,12 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
   }
 
   // differs from CategoryProvider, here we don't dispatch
-  const getQuestion = async (execute: (method: string, endpoint: string) => Promise<any>, questionKey: IQuestionKey): Promise<any> => {
+  const getQuestion = async (
+    execute: (method: string, endpoint: string) => Promise<any>,
+    questionKey: IQuestionKey): Promise<any> => {
     return new Promise(async (resolve) => {
       try {
-        const { parentCategory, id } = questionKey;
+        const { partitionKey, id } = questionKey;
         //const url = `${process.env.REACT_APP_API_URL}/Question/${parentCategory}/${id}`;
         //console.log(`FETCHING --->>> ${url}`)
         //dispatch({ type: ActionTypes.SET_LOADING })
@@ -498,15 +498,15 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
             console.log('FETCHING --->>>', error);
           });
         */
-        const url = `${protectedResources.KnowledgeAPI.endpointQuestion}/${parentCategory}/${id}`;
+        const url = `${protectedResources.KnowledgeAPI.endpointQuestion}/${partitionKey}/${id}`;
         await execute("GET", url).then((response: IQuestionDto) => {
           console.timeEnd();
           console.log({ response });
           const questionDto = response!;
-          const question: IQuestion = new Question(questionDto, parentCategory).question;
+          const question: IQuestion = new Question(questionDto/*, parentCategory*/).question;
           question.categoryTitle = 'nadji me';
           resolve(question);
-        }); 
+        });
 
 
       }

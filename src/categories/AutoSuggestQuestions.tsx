@@ -175,13 +175,14 @@ export class AutoSuggestQuestions extends React.Component<{
 			var questDtoList: IQuest[] = await this.searchQuestions(this.execute, escapedValue, 18);
 
 			questDtoList.forEach((quest: IQuest) => {
-				const { id, parentCategory, title } = quest;
-				const questionKey = { parentCategory, id }
+				const { id, partitionKey, parentCategory, title } = quest;
+				const questionKey = { partitionKey, id }
 				if (!questionKeys.includes(questionKey)) {
 					questionKeys.push(questionKey);
 
 					// 2) Group questions by parentCategory
 					const quest: IQuest = {
+						partitionKey,
 						id,
 						parentCategory,
 						title,
@@ -316,7 +317,7 @@ export class AutoSuggestQuestions extends React.Component<{
 	protected onSuggestionSelected(event: React.FormEvent<any>, data: Autosuggest.SuggestionSelectedEventData<IQuest>): void {
 		const question: IQuest = data.suggestion;
 		// alert(`Selected question is ${question.questionId} (${question.text}).`);
-		this.props.onSelectQuestion({ parentCategory: question.parentCategory, id: question.id });
+		this.props.onSelectQuestion({ partitionKey: question.parentCategory, id: question.id });
 	}
 
 	/*

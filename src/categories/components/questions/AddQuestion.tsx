@@ -32,23 +32,21 @@ const AddQuestion = ({ question, inLine, closeModal, showCloseButton, source, se
         const cat = state.categories.find(c => c.id === question.parentCategory)
         question.categoryTitle = cat ? cat.title : '';
     }
-    const [formValues] = useState(question)
+    const [formValues] = useState(question);
 
     const submitForm = async (questionObject: IQuestion) => {
         const obj: any = { ...questionObject }
         delete obj.inAdding;
-        delete obj.id;
+        // delete obj.id;
         const object: IQuestion = {
             ...obj,
-            //id: undefined,
             created: {
-                date: new Date(),
-                by: {
-                    nickName
-                }
-            }
+                time: new Date(),
+                nickName: nickName
+            },
+            modified: undefined
         }
-        const question = await createQuestion(object, closeModal !== undefined);
+        const question = await createQuestion(execute, object, closeModal !== undefined);
         if (question) {
             if (question.message) {
                 setError!(question.message)

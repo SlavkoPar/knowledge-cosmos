@@ -12,7 +12,7 @@ import { sourceOptions } from 'common/sourceOptions'
 import { statusOptions } from 'common/statusOptions'
 import CatList from 'global/Components/SelectCategory/CatList'
 
-import { useCategoryDispatch } from "categories/CategoryProvider";
+import { useCategoryContext, useCategoryDispatch } from "categories/CategoryProvider";
 import Dropdown from 'react-bootstrap/Dropdown';
 import AssignedAnswers from './AssignedAnswers';
 import { useGlobalContext } from 'global/GlobalProvider';
@@ -22,6 +22,8 @@ const QuestionForm = ({ mode, question, submitForm, children, showCloseButton, s
 
   const { globalState } = useGlobalContext();
   const { isDarkMode, variant, bg } = globalState;
+
+  const { state } = useCategoryContext();
 
   const viewing = mode === FormMode.viewing;
   const editing = mode === FormMode.editing;
@@ -210,12 +212,12 @@ const QuestionForm = ({ mode, question, submitForm, children, showCloseButton, s
 
         {(viewing || editing) &&
           <>
-            <AssignedAnswers
+            {/* <AssignedAnswers
               questionId={id!}
               questionTitle={title}
               assignedAnswers={assignedAnswers}
               isDisabled={isDisabled}
-            />
+            /> */}
 
             <CreatedModifiedForm
               created={question.created}
@@ -233,6 +235,9 @@ const QuestionForm = ({ mode, question, submitForm, children, showCloseButton, s
             title={children}
           />
         }
+
+        { state.error  && <div className="text-danger">{state.error.message}</div> }
+
       </Form>
     </div >
   );

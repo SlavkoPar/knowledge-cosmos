@@ -16,7 +16,7 @@ export const CreatedModifiedForm = ({ created, createdBy, modified, modifiedBy, 
 
                 <Form.Group>
                   <Form.Label>Created By: </Form.Label>
-                  <div className={classes}>{createdBy}, {formatDate(created.date)}</div>
+                  <div className={classes}>{createdBy}, {formatDate(created.time)}</div>
                   {/* <div className="p-1 bg-dark text-white">{createdBy}, {formatDate(created.date)}</div> */}
                 </Form.Group>
                 {/* <Form.Group controlId="created_By_userName">
@@ -36,9 +36,9 @@ export const CreatedModifiedForm = ({ created, createdBy, modified, modifiedBy, 
             <>
               {/* <legend style={{ margin: '0px' }}>Modified</legend> */}
               < fieldset className="fieldsets">
-              <Form.Group>
+                <Form.Group>
                   <Form.Label>Modified By: </Form.Label>
-                  <div className="text-muted">{modifiedBy}, {formatDate(modified.date)}</div>
+                  <div className="text-muted">{modifiedBy}, {formatDate(modified.time)}</div>
                   {/* <div className="p-1 bg-dark text-white">{createdBy}, {formatDate(created.date)}</div> */}
                 </Form.Group>
                 {/* <FormGroup>

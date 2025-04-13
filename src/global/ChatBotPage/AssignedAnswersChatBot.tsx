@@ -35,7 +35,7 @@ const AssignedAnswersChatBot = ({ questionId, questionTitle, assignedAnswers, is
 
     const onSelectQuestionAnswer = async (parentGroup: string, answerId: number) => {
         const assigned: IWhoWhen = {
-            date: new Date(),
+            time: new Date(),
             nickName: globalState.authUser.nickName
         }
         // TODO in next version do not update MongoDB immediately, wait until users presses Save

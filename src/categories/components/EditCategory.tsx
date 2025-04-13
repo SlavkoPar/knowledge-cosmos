@@ -9,6 +9,8 @@ import { protectedResources } from 'authConfig';
 
 const EditCategory = ({ inLine }: { inLine: boolean }) => {
     const globalState = useGlobalState();
+    const { nickName } = globalState.authUser;
+
     const { state, updateCategory } = useCategoryContext();
     const category = state.categories.find(c => c.inEditing);
 
@@ -19,9 +21,10 @@ const EditCategory = ({ inLine }: { inLine: boolean }) => {
     const submitForm = async (categoryObject: ICategory) => {
         const object: ICategory = {
             ...categoryObject,
+            created: undefined,
             modified: {
-                date: new Date(),
-                nickName: globalState.authUser.nickName
+                time: new Date(),
+                nickName: nickName
             }
         }
         await updateCategory(execute, object, true /* closeForm */)

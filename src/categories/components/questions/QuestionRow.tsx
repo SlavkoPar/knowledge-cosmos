@@ -20,7 +20,7 @@ import { protectedResources } from 'authConfig';
 
 //const QuestionRow = ({ question, categoryInAdding }: { ref: React.ForwardedRef<HTMLLIElement>, question: IQuestion, categoryInAdding: boolean | undefined }) => {
 const QuestionRow = ({ question, categoryInAdding }: { question: IQuestion, categoryInAdding: boolean | undefined }) => {
-    const { id, parentCategory, title, inViewing, inEditing, inAdding, numOfAssignedAnswers } = question;
+    const { id, partitionKey, parentCategory, title, inViewing, inEditing, inAdding, numOfAssignedAnswers } = question;
 
     const { execute: readExecute } = useFetchWithMsal("", {
         scopes: protectedResources.KnowledgeAPI.scopes.read,
@@ -38,20 +38,20 @@ const QuestionRow = ({ question, categoryInAdding }: { question: IQuestion, cate
     const alreadyAdding = state.mode === Mode.AddingQuestion;
 
     const del = () => {
-        deleteQuestion({ parentCategory, id });
+        deleteQuestion({ partitionKey: parentCategory, id });
     };
 
     const edit = (Id: string) => {
         // Load data from server and reinitialize question
-        editQuestion(writeExecute, { parentCategory, id });
+        editQuestion(writeExecute, { partitionKey: parentCategory, id });
     }
 
     const onSelectQuestion = (id: string) => {
         // Load data from server and reinitialize question
         if (canEdit)
-            editQuestion(writeExecute, { parentCategory, id });
+            editQuestion(writeExecute, { partitionKey: parentCategory, id });
         else
-            viewQuestion(readExecute, { parentCategory, id });
+            viewQuestion(readExecute, { partitionKey: parentCategory, id });
     }
 
     const [hoverRef, hoverProps] = useHover();

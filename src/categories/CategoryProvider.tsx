@@ -3,17 +3,19 @@ import React, { createContext, useContext, useReducer, useCallback, Dispatch } f
 
 import {
   ActionTypes, ICategory, IQuestion, ICategoriesContext, IParentInfo, IFromUserAssignedAnswer,
-  IAssignedAnswer, ICategoryDto, IQuestionDto,
+  IAssignedAnswer, ICategoryDto, 
+  IQuestionDto, IQuestionDtoEx,
   Category,
   Question,
   IQuestionKey,
   ICategoryKey,
   ICategoryKeyExtended,
-  CategoryDto
+  CategoryDto,
+  QuestionDto,
 } from 'categories/types';
 
 import { initialCategoriesState, CategoriesReducer } from 'categories/CategoriesReducer';
-import { IWhoWhen, ICat, WhoWhenDto2DateAndBy } from 'global/types';
+import { IWhoWhen, ICat, Dto2WhoWhen, WhoWhen2Dto } from 'global/types';
 import { IAnswer, IGroup } from 'groups/types';
 import { protectedResources } from 'authConfig';
 
@@ -119,6 +121,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
       dispatch({ type: ActionTypes.SET_CATEGORY_LOADING, payload: { id, loading: false } });
       try {
         const categoryDto = new CategoryDto(category).categoryDto;
+        categoryDto.Created = new WhoWhen2Dto(category.created!).whoWhenDto!;
         const url = `${protectedResources.KnowledgeAPI.endpointCategory}`;
         console.time()
         await execute("POST", url, categoryDto)
@@ -252,6 +255,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
       dispatch({ type: ActionTypes.EDIT_CATEGORY, payload: { category } });
   }, [dispatch]);
 
+
   const updateCategory = useCallback(
     async (execute: (method: string, endpoint: string, data: Object | null) => Promise<any>,
       category: ICategory, closeForm: boolean) => {
@@ -259,6 +263,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
       dispatch({ type: ActionTypes.SET_CATEGORY_LOADING, payload: { id, loading: false } });
       try {
         const categoryDto = new CategoryDto(category).categoryDto;
+
         const url = `${protectedResources.KnowledgeAPI.endpointCategory}`;
         console.time()
         await execute("PUT", url, categoryDto)
@@ -310,7 +315,6 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
             }
           }
           else {
-            console.log('%%%%%%%%%%%%%%%%%%%', response)
             const resp: { msg: string } = response;
             if (response.msg == "OK") {
               dispatch({ type: ActionTypes.DELETE, payload: { id: categoryKey.id } });
@@ -342,7 +346,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
         ...category,
         variations: category.variations.filter((variation: string) => variation !== variationName),
         modified: {
-          date: new Date(),
+          Time: new Date(),
           by: {
             nickName: globalState.authUser.nickName
           }
@@ -384,7 +388,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
             const categoryDto: ICategoryDto = response;
             const { Questions, HasMoreQuestions } = categoryDto;
             Questions!.forEach((questionDto: IQuestionDto) => {
-              const question = new Question(questionDto, parentCategory!).question;
+              const question = new Question(questionDto).question;
               if (includeQuestionId && question.id === includeQuestionId) {
                 question.included = true;
               }
@@ -410,7 +414,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
     }, [dispatch]);
 
 
-  const createQuestion = useCallback(async (question: IQuestion, fromModal: boolean): Promise<any> => {
+  const cccreateQuestion = useCallback(async (question: IQuestion, fromModal: boolean): Promise<any> => {
     dispatch({ type: ActionTypes.SET_LOADING }) // TODO treba li ovo 
     try {
       const tx = dbp!.transaction(['Categories', 'Questions'], 'readwrite');
@@ -436,7 +440,145 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
     }
   }, []);
 
+  const createQuestion = useCallback(
+    async (execute: (method: string, endpoint: string, data: Object | null) => Promise<any>,
+      question: IQuestion) => {
+      const { partitionKey, id, title, modified, parentCategory } = question;
+      dispatch({ type: ActionTypes.SET_CATEGORY_LOADING, payload: { id: parentCategory, loading: false } });
+      try {
+        const questionDto = new QuestionDto(question).questionDto;
+        const url = `${protectedResources.KnowledgeAPI.endpointQuestion}`;
+        console.time()
+        console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> createQuestion', questionDto)
+        await execute("POST", url, questionDto)
+          .then(async (response: IQuestionDtoEx | Response) => {
+            console.timeEnd();
+            if (response instanceof Response) {
+              console.error(response);
+              dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error('Server Error'), whichRowId: id } });
+            }
+            else {
+              const questionDtoEx: IQuestionDtoEx = response;
+              const { questionDto, msg } = questionDtoEx;
+              if (questionDto) {
+                const question = new Question(questionDto).question;
+                console.log('Question successfully created')
+                dispatch({ type: ActionTypes.SET_QUESTION, payload: { question } });
+                //dispatch({ type: ActionTypes.CLOSE_QUESTION_FORM })
+                await loadCats(execute); // reload
+              }
+              else {
+                dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error(msg) } });
+              }
+            }
+          });
+      }
+      catch (error: any) {
+        console.log(error)
+        dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error('Server Error'), whichRowId: id } });
+      }
+    }, [dispatch]);
 
+  const updateQuestion = useCallback(
+    async (execute: (method: string, endpoint: string, data: Object | null) => Promise<any>,
+      question: IQuestion) => {
+      const { partitionKey, id, title, modified, parentCategory } = question;
+      dispatch({ type: ActionTypes.SET_CATEGORY_LOADING, payload: { id: parentCategory, loading: false } });
+      try {
+        const questionDto = new QuestionDto(question).questionDto;
+        const url = `${protectedResources.KnowledgeAPI.endpointQuestion}`;
+        console.time()
+        console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> createQuestion', questionDto)
+        await execute("PUT", url, questionDto)
+          .then(async (response: IQuestionDtoEx | Response) => {
+            console.timeEnd();
+            if (response instanceof Response) {
+              console.error(response);
+              dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error('Server Error'), whichRowId: id } });
+            }
+            else {
+              const questionDtoEx: IQuestionDtoEx = response;
+              const { questionDto, msg } = questionDtoEx;
+              if (questionDto) {
+                const question = new Question(questionDto).question;
+                console.log('Question successfully updated')
+                dispatch({ type: ActionTypes.SET_QUESTION, payload: { question } });
+                //dispatch({ type: ActionTypes.CLOSE_QUESTION_FORM })
+                await loadCats(execute); // reload
+              }
+              else {
+                dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error(msg) } });
+              }
+            }
+          });
+      }
+      catch (error: any) {
+        console.log(error)
+        dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error('Server Error'), whichRowId: id } });
+      }
+    }, [dispatch]);
+
+  const uuupdateQuestion = useCallback(async (q: IQuestion): Promise<any> => {
+    const { id } = q;
+    //dispatch({ type: ActionTypes.SET_CATEGORY_LOADING, payload: { id, loading: false } });
+    try {
+      const question = await dbp!.get('Questions', id!);
+      const obj: IQuestion = {
+        ...question,
+        title: q.title,
+        modified: q.modified,
+        source: q.source,
+        status: q.status
+      }
+      // OVAKO questionDto.Modified = new WhoWhen2DateAndBy(question.modified!).dateAndBy!;
+
+      await dbp!.put('Questions', obj, id);
+      console.log("Question successfully updated");
+      obj.id = id;
+      dispatch({ type: ActionTypes.SET_QUESTION, payload: { question: obj } });
+      return obj;
+    }
+    catch (error: any) {
+      console.log('error', error);
+      dispatch({ type: ActionTypes.SET_ERROR, payload: { error } });
+    }
+    // try {
+    //   const url = `/api/questions/update-question/${question._id}`
+    //   const res = await axios.put(url, question)
+    //   const { status, data } = res;
+    //   if (status === 200) {
+    //     // TODO check setting inViewing, inEditing, inAdding to false
+    //     console.log("Question successfully updated");
+    //     dispatch({ type: ActionTypes.SET_QUESTION, payload: { question: data } });
+    //     return data;
+    //   }
+    //   else {
+    //     console.log('Status is not 200', status)
+    //     dispatch({
+    //       type: ActionTypes.SET_ERROR,
+    //       payload: {
+    //         error: new Error('Status is not 200 status:' + status)
+    //       }
+    //     })
+    //     return {};
+    //   }
+    // }
+    // catch (err: any | Error) {
+    //   if (axios.isError(err)) {
+    //     dispatch({
+    //       type: ActionTypes.SET_ERROR,
+    //       payload: {
+    //         error: new Error(axios.isError(err) ? err.response?.data : err)
+    //       }
+    //     })
+    //     return {};
+    //   }
+    //   else {
+    //     console.log(err);
+    //   }
+    //   return {}
+    // }
+  }, []);
 
   const getQuestionWAS = async (
     execute: (method: string, endpoint: string) => Promise<any>,
@@ -448,14 +590,14 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
     //const category: ICategory = await dbp!.get("Categories", parentCategory)
     //question.id = id;
     try {
-      const { parentCategory, id } = questionKey;
+      const { partitionKey: parentCategory, id } = questionKey;
       //dispatch({ type: ActionTypes.SET_LOADING })
       console.time()
       const url = `${protectedResources.KnowledgeAPI.endpointQuestion}/${parentCategory}/${id}`;
       await execute("GET", url).then((response: IQuestionDto | undefined) => {
         console.timeEnd();
         const questionDto = response!;
-        const question: IQuestion = new Question(questionDto, parentCategory).question;
+        const question: IQuestion = new Question(questionDto).question;
         question.categoryTitle = 'nadji me';
         dispatch({ type, payload: { question } });
       });
@@ -505,22 +647,24 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
   ): Promise<any> => {
     return new Promise(async (resolve) => {
       try {
-        const { parentCategory, id } = questionKey;
+        const { partitionKey: parentCategory, id } = questionKey;
         const url = `${protectedResources.KnowledgeAPI.endpointQuestion}/${parentCategory}/${id}`;
         console.time()
         await execute("GET", url)
-          .then((response: IQuestionDto | Response) => {
+          .then((response: IQuestionDtoEx | Response) => {
             console.timeEnd();
             if (response instanceof Response) {
               console.error(response);
               resolve(new Error('fetch response error'));
             }
             else {
-              const questionDto: IQuestionDto = response!;
-              const question: IQuestion = new Question(questionDto, parentCategory).question;
+              const questionDtoEx: IQuestionDtoEx = response;
+              const { questionDto, msg } = questionDtoEx;
+              //const question: IQuestion = new Question(questionDto, parentCategory).question;
+              const question: IQuestion = new Question(questionDto!).question;
               question.categoryTitle = 'nadji me';
               if (questionDto) {
-                resolve(new Question(questionDto, parentCategory).question);
+                resolve(question);
               }
               else {
                 resolve(new Error(`Question ${id} not found!`));
@@ -551,65 +695,6 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
       dispatch({ type: ActionTypes.EDIT_QUESTION, payload: { question } });
   }, []);
 
-  const updateQuestion = useCallback(async (q: IQuestion): Promise<any> => {
-    const { id } = q;
-    //dispatch({ type: ActionTypes.SET_CATEGORY_LOADING, payload: { id, loading: false } });
-    try {
-      const question = await dbp!.get('Questions', id!);
-      const obj: IQuestion = {
-        ...question,
-        title: q.title,
-        modified: q.modified,
-        source: q.source,
-        status: q.status
-      }
-      await dbp!.put('Questions', obj, id);
-      console.log("Question successfully updated");
-      obj.id = id;
-      dispatch({ type: ActionTypes.SET_QUESTION, payload: { question: obj } });
-      return obj;
-    }
-    catch (error: any) {
-      console.log('error', error);
-      dispatch({ type: ActionTypes.SET_ERROR, payload: { error } });
-    }
-    // try {
-    //   const url = `/api/questions/update-question/${question._id}`
-    //   const res = await axios.put(url, question)
-    //   const { status, data } = res;
-    //   if (status === 200) {
-    //     // TODO check setting inViewing, inEditing, inAdding to false
-    //     console.log("Question successfully updated");
-    //     dispatch({ type: ActionTypes.SET_QUESTION, payload: { question: data } });
-    //     return data;
-    //   }
-    //   else {
-    //     console.log('Status is not 200', status)
-    //     dispatch({
-    //       type: ActionTypes.SET_ERROR,
-    //       payload: {
-    //         error: new Error('Status is not 200 status:' + status)
-    //       }
-    //     })
-    //     return {};
-    //   }
-    // }
-    // catch (err: any | Error) {
-    //   if (axios.isError(err)) {
-    //     dispatch({
-    //       type: ActionTypes.SET_ERROR,
-    //       payload: {
-    //         error: new Error(axios.isError(err) ? err.response?.data : err)
-    //       }
-    //     })
-    //     return {};
-    //   }
-    //   else {
-    //     console.log(err);
-    //   }
-    //   return {}
-    // }
-  }, []);
 
   const assignQuestionAnswer = useCallback(async (questionId: string, answerId: number, assigned: IWhoWhen): Promise<any> => {
     try {

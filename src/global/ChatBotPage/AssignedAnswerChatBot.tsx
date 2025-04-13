@@ -22,7 +22,7 @@ const AssignedAnswerChatBot = ({ questionTitle, questionAnswer, isDisabled, unAs
     const { title, id } = answer;
     const emailFromClient = localStorage.getItem('emailFromClient');
 
-    const rowTitle = `Created by: ${user.createdBy}, ${formatDate(new Date(assigned.date))}`
+    const rowTitle = `Created by: ${user.createdBy}, ${formatDate(new Date(assigned.time))}`
 
     const { authUser, canEdit, isDarkMode, variant, bg, error } = useGlobalState();
 

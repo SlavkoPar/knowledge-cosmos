@@ -5,12 +5,7 @@ import { IAnswer } from 'groups/types';
 import { IDBPDatabase } from 'idb';
 
 export interface IWhoWhen {
-	date: Date,
-	nickName: string
-}
-
-export interface IWhoWhenDto {
-	dateTime: Date,
+	time: Date,
 	nickName: string
 }
 
@@ -25,36 +20,41 @@ export interface IRecord {
 }
 
 
+export interface IWhoWhenDto {
+	Time: Date,
+	NickName: string
+}
+
 export interface IRecordDto {
 	Created?: IWhoWhenDto;
 	Modified?: IWhoWhenDto;
-	Archived?: boolean;
+	Archived?: IWhoWhenDto;
 }
 
-export class WhoWhenDto2DateAndBy {
+export class Dto2WhoWhen {
 	constructor(whoWhenDto: IWhoWhenDto) {
 		if (whoWhenDto) {
-			const { dateTime, nickName } = whoWhenDto;
-			this.dateAndBy = {
-				date: new Date(dateTime),
-				nickName
+			const { Time, NickName } = whoWhenDto;
+			this.whoWhen = {
+				time: new Date(Time),
+				nickName: NickName
 			}
 		}
 	}
-	dateAndBy?: IWhoWhen = undefined;
+	whoWhen?: IWhoWhen = undefined;
 }
 
-export class WhoWhen2DateAndBy {
-	constructor(whoWhen: IWhoWhen) {
+export class WhoWhen2Dto {
+	constructor(whoWhen: IWhoWhen | undefined) {
 		if (whoWhen) {
-			const { date, nickName } = whoWhen;
-			this.dateAndBy = {
-				dateTime: new Date(date),
-				nickName
+			const { time: date, nickName: nickName } = whoWhen;
+			this.whoWhenDto = {
+				Time: new Date(date),
+				NickName: nickName
 			}
 		}
 	}
-	dateAndBy?: IWhoWhenDto = undefined;
+	whoWhenDto: IWhoWhenDto | null = null;
 }
 
 export interface IAuthUser {

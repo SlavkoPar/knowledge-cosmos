@@ -26,8 +26,8 @@ const AddAnswer = ({ answer, closeModal, onAnswerCreated }: IProps) => {
             ...answerObject,
             //_id: undefined,
             created: {
-                date: new Date(),
-                nickName
+                time: new Date(),
+                nickName: nickName
             }
         }
         const answer = await createAnswer(object);

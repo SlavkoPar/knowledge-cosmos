@@ -35,15 +35,15 @@ const SupportPage: React.FC = () => {
 	const { canEdit, authUser, isDarkMode, variant, bg, cats, catsLoaded } = useGlobalState();
 
 	const onSelectQuestion = async (questionKey: IQuestionKey) => {
-		navigate(`/categories/${questionKey.parentCategory}_${questionKey.id}`)
+		navigate(`/categories/${questionKey.partitionKey}_${questionKey.id}`)
 	}
 
 	// useEffect(() => {
 	// 	(async () => {
-			//if (isAuthenticated) {
-			//await OpenDB();
-			//}
-			//await loadCats();
+	//if (isAuthenticated) {
+	//await OpenDB();
+	//}
+	//await loadCats();
 	// 	})()
 	// }, []) // , isAuthenticated
 

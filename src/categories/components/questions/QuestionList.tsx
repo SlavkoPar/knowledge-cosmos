@@ -16,7 +16,7 @@ const QuestionList = ({ title, categoryKey, level }: IParentInfo) => {
   const { categories, questionLoading, error, questionId } = state;
 
   const category = categories.find(c => c.id === categoryKey.id)!
-  const { questions, numOfQuestions, hasMoreQuestions } = category;
+  const { partitionKey, questions, numOfQuestions, hasMoreQuestions } = category;
 
   //error: msalError1, 
   const { execute: readExecute } = useFetchWithMsal("", {
@@ -62,9 +62,9 @@ const QuestionList = ({ title, categoryKey, level }: IParentInfo) => {
       //if (categoryId === categoryKey.id && questionId) {
       if (categoryKey && questionId) {
         if (canEdit)
-          editQuestion(writeExecute, { parentCategory: categoryKey.id, id: questionId })
+          editQuestion(writeExecute, { partitionKey: categoryKey.id, id: questionId })
         else
-          viewQuestion(readExecute, { parentCategory: categoryKey.id, id: questionId })
+          viewQuestion(readExecute, { partitionKey: categoryKey.id, id: questionId })
       }
     }
   }, [viewQuestion, categoryKey, questionId, canEdit]);
@@ -86,6 +86,7 @@ const QuestionList = ({ title, categoryKey, level }: IParentInfo) => {
           <label>No questions</label>
         }
         {questions.map((question: IQuestion) => {
+          question.partitionKey = partitionKey;
           return <ListItem key={question.id}>
             <QuestionRow
               question={question}

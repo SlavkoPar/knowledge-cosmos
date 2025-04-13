@@ -94,8 +94,8 @@ const Providered = ({ categoryId_questionId }: IProps) => {
                     onClick={() => dispatch({
                         type: ActionTypes.ADD_SUB_CATEGORY,
                         payload: {
-                            parentCategory: null,
-                            level: 0
+                            categoryKey,
+                            level: 1
                         }
                     })
                     }

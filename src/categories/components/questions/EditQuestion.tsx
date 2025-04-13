@@ -14,6 +14,7 @@ const EditQuestion = ({ inLine }: { inLine: boolean }) => {
     });
 
     const globalState = useGlobalState();
+    const { nickName } = globalState.authUser;
 
     const dispatch = useCategoryDispatch();
     const { state, updateQuestion, reloadCategoryNode } = useCategoryContext();
@@ -21,22 +22,23 @@ const EditQuestion = ({ inLine }: { inLine: boolean }) => {
 
     if (questionLoading)
         return <div>Loading question..</div>
-        
+
     const category = categories.find(c => c.inEditing);
     const question = category!.questions.find(q => q.inEditing)
 
     const submitForm = async (questionObject: IQuestion) => {
         const object: IQuestion = {
             ...questionObject,
+            created: undefined,
             modified: {
-                date: new Date(),
-                nickName: globalState.authUser.nickName
+                time: new Date(),
+                nickName: nickName
             }
         }
-        const q = await updateQuestion(object);
+        const q = await updateQuestion(execute, object);
         if (question!.parentCategory !== q.parentCategory) {
             dispatch({ type: ActionTypes.CLEAN_TREE, payload: { id: q.parentCategory } })
-            await reloadCategoryNode(execute, { partitionKey: '', id: q.parentCategory}, q.id);
+            await reloadCategoryNode(execute, { partitionKey: '', id: q.parentCategory }, q.id);
         }
     };
 

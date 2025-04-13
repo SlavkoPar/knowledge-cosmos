@@ -2,7 +2,7 @@ import { Reducer } from 'react'
 import { Mode, ActionTypes, ICategoriesState, ICategory, IQuestion, CategoriesActions, ILocStorage, ICategoryKey, ICategoryKeyExtended } from "categories/types";
 
 export const initialQuestion: IQuestion = {
-  id: '', // real id will be given by DB
+  id: 'will be given by DB',
   parentCategory: '',
   categoryTitle: '',
   title: '',
@@ -13,9 +13,6 @@ export const initialQuestion: IQuestion = {
 }
 
 export const initialCategory: ICategory = {
-  // temp _id for inAdding, to server as list key
-  // it will be removed on submitForm
-  // real _id will be given by the MongoDB 
   partitionKey: 'null',
   id: '',
   kind: 0,
@@ -208,8 +205,8 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
         ...initialCategory,
         title: '',
         level,
-        partitionKey: categoryKey.partitionKey, 
-        parentCategory: categoryKey.id ?? null,
+        partitionKey: categoryKey.partitionKey ?? 'null',
+        parentCategory: categoryKey.id ?? 'null',
         inAdding: true
       }
       return {
@@ -315,7 +312,7 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
         categories: state.categories.map(c => c.id === parentCategory
           ? {
             ...c,
-            questions: c.questions.concat(questions.map(q => (q.included
+            questions: c.questions.concat(questions.map((q: IQuestion) => (q.included
               ? {
                 ...q,
                 inViewing: state.mode === Mode.ViewingQuestion,
@@ -409,12 +406,13 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
       const question: IQuestion = {
         ...initialQuestion,
         parentCategory: id,
+        numOfAssignedAnswers: 0,
         inAdding: true
       }
       return {
         ...state,
         categories: state.categories.map(c => c.id === id
-          ? { ...c, questions: [question, ...c.questions], inAdding: true } // , numOfQuestions: c.numOfQuestions + 1
+          ? { ...c, questions: [question, ...c.questions], inAdding: true, numOfQuestions: c.numOfQuestions + 1 }
           : { ...c, inAdding: false }),
         mode: Mode.AddingQuestion
       };
@@ -510,7 +508,7 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
         categories: state.categories.map(c => c.id === question.parentCategory
           ? {
             ...c,
-            questions: c.questions.map(q => q.id === question.id
+            questions: c.questions.map((q: IQuestion) => q.id === question.id
               ? {
                 ...question,
                 inEditing: true
@@ -536,7 +534,7 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
 
     case ActionTypes.DELETE_QUESTION: {
       const { questionKey } = action.payload;
-      const { parentCategory, id } = questionKey
+      const { partitionKey: parentCategory, id } = questionKey
       return {
         ...state,
         categories: state.categories.map(c => c.id === parentCategory

@@ -136,14 +136,9 @@ const CategoryRow = ({ category }: { category: ICategory }) => {
                 </>
             }
 
-            {/* TODO what about archive questions */}
-            {canEdit && !alreadyAdding && hoverProps.isHovered && !hasSubCategories && numOfQuestions === 0 &&
+            {/* TODO what about archive questions  numOfQuestions === 0 &&*/}
+            {canEdit && !alreadyAdding && hoverProps.isHovered && !hasSubCategories && 
                 <div className="position-absolute d-flex align-items-center top-0 end-0">
-                    <Button variant='link' size="sm" className="py-0 mx-1 float-end"
-                        onClick={del}
-                    >
-                        <FontAwesomeIcon icon={faRemove} size='lg' />
-                    </Button>
                     <Button
                         variant='link'
                         size="sm"
@@ -158,6 +153,12 @@ const CategoryRow = ({ category }: { category: ICategory }) => {
                         }}
                     >
                         <img width="22" height="18" src={QPlus} alt="Add Question" />
+                    </Button>
+
+                    <Button variant='link' size="sm" className="py-0 mx-1 float-end"
+                        onClick={del}
+                    >
+                        <FontAwesomeIcon icon={faRemove} size='lg' />
                     </Button>
                 </div>
             }
