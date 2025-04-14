@@ -90,7 +90,7 @@ const CategoryForm = ({ inLine, mode, category, submitForm, children }: ICategor
           <Stack direction="horizontal" gap={1}>
             <div className="px-0"><Form.Label>Variations:</Form.Label></div>
             <div className="px-1 border border-1 border-secondary rounded">
-              <VariationList id={id} variations={variations.map(variation => ({ name: variation } as IVariation))} />
+              <VariationList categoryKey={{partitionKey, id}} variations={variations.map(variation => ({ name: variation } as IVariation))} />
             </div>
             <div className="ps-2"><Form.Label>Kind:</Form.Label></div>
             <div className="px-1 border border-1 border-secondary rounded">

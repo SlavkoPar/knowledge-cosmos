@@ -1,17 +1,18 @@
 import React, { forwardRef, useCallback, useEffect, useRef, useState } from "react";
-import { IParentInfo, IVariation } from "categories/types";
+import { ICategoryKey, IParentInfo, IVariation } from "categories/types";
 import { useCategoryContext } from "categories/CategoryProvider";
 import { useGlobalState } from "global/GlobalProvider";
 import { List, ListItem, Loading } from "common/components/InfiniteList";
 import VariationRow from "categories/VariationRow";
 import { ListGroup, Stack } from "react-bootstrap";
 
-const VariationList = ({ id, variations }: { id: string, variations: IVariation[] }) => {
+const VariationList = ({ categoryKey, variations }: { categoryKey: ICategoryKey, variations: IVariation[] }) => {
 
   const { canEdit } = useGlobalState();
 
   const { state } = useCategoryContext();
   const { categories, error } = state;
+
 
   //const group = categories.find(c => c.id === parentCategory)!
   // const { tags, numOfTags, hasMore } = group;
@@ -48,7 +49,7 @@ const VariationList = ({ id, variations }: { id: string, variations: IVariation[
         {
           variations.map((tag: IVariation) => {
             return <VariationRow
-              id={id}
+              categoryKey={categoryKey}
               tag={tag}
               categoryInAdding={undefined}
             />

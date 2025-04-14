@@ -5,7 +5,7 @@ import { faEdit, faRemove, faThumbsUp, faPlus, faReply } from '@fortawesome/free
 import { ListGroup, Button, Badge } from "react-bootstrap";
 
 import { useGlobalState } from 'global/GlobalProvider'
-import { ActionTypes, ICategoryInfo, Mode } from "categories/types";
+import { ActionTypes, ICategoryInfo, ICategoryKey, Mode } from "categories/types";
 import { useCategoryContext, useCategoryDispatch } from 'categories/CategoryProvider'
 import { useHover } from 'hooks/useHover';
 import { IVariation } from 'categories/types'
@@ -15,7 +15,8 @@ import { IVariation } from 'categories/types'
 // import ViewTag from "categorys/components/tags/ViewTag";
 
 //const TagRow = ({ tag, categoryInAdding }: { ref: React.ForwardedRef<HTMLLIElement>, tag: IVariation, categoryInAdding: boolean | undefined }) => {
-const VariationRow = ({ id, tag, categoryInAdding }: { id: string, tag: IVariation, categoryInAdding: boolean | undefined }) => {
+const VariationRow = ({ categoryKey, tag, categoryInAdding }: { categoryKey: ICategoryKey, tag: IVariation, categoryInAdding: boolean | undefined }) => {
+    const { partitionKey, id} = categoryKey;
     const { name } = tag;
     const { parentCategory, level, inViewing, inEditing, inAdding, numOfTags } = {
         parentCategory: '',
@@ -35,7 +36,7 @@ const VariationRow = ({ id, tag, categoryInAdding }: { id: string, tag: IVariati
     const alreadyAdding = false //state.mode === Mode.AddingTag;
 
     const del = () => {
-        deleteCategoryVariation(id, name);
+        deleteCategoryVariation(categoryKey, name);
     };
 
     const edit = (id: number) => {
@@ -98,7 +99,7 @@ const VariationRow = ({ id, tag, categoryInAdding }: { id: string, tag: IVariati
                     title="Add Tag"
                     onClick={() => {
                         console.log('click q')
-                        const categoryInfo: ICategoryInfo = { id, level }
+                        const categoryInfo: ICategoryInfo = { partitionKey, id, level }
                         //dispatch({ type: ActionTypes.ADD_ANSWER, payload: { categoryInfo } })
                     }}
                 >

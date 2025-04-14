@@ -17,6 +17,10 @@ import Q from 'assets/Q.png';
 import QPlus from 'assets/QPlus.png';
 import useFetchWithMsal from 'hooks/useFetchWithMsal';
 import { protectedResources } from 'authConfig';
+//import { date } from 'yup';
+
+import { IWhoWhen } from 'global/types';
+
 
 //const QuestionRow = ({ question, categoryInAdding }: { ref: React.ForwardedRef<HTMLLIElement>, question: IQuestion, categoryInAdding: boolean | undefined }) => {
 const QuestionRow = ({ question, categoryInAdding }: { question: IQuestion, categoryInAdding: boolean | undefined }) => {
@@ -30,28 +34,31 @@ const QuestionRow = ({ question, categoryInAdding }: { question: IQuestion, cate
         scopes: protectedResources.KnowledgeAPI.scopes.write,
     });
 
-
-    const { canEdit, isDarkMode, variant, bg } = useGlobalState();
+    const { canEdit, isDarkMode, variant, bg, authUser } = useGlobalState();
     const { state, viewQuestion, editQuestion, deleteQuestion } = useCategoryContext();
     const dispatch = useCategoryDispatch();
 
     const alreadyAdding = state.mode === Mode.AddingQuestion;
 
     const del = () => {
-        deleteQuestion({ partitionKey: parentCategory, id });
+        question.archived = { 
+            time: new Date(),
+            nickName: authUser.nickName 
+        }
+        deleteQuestion(writeExecute, question);
     };
 
     const edit = (Id: string) => {
         // Load data from server and reinitialize question
-        editQuestion(writeExecute, { partitionKey: parentCategory, id });
+        editQuestion(writeExecute, { partitionKey, id });
     }
 
     const onSelectQuestion = (id: string) => {
         // Load data from server and reinitialize question
         if (canEdit)
-            editQuestion(writeExecute, { partitionKey: parentCategory, id });
+            editQuestion(writeExecute, { partitionKey, id });
         else
-            viewQuestion(readExecute, { partitionKey: parentCategory, id });
+            viewQuestion(readExecute, { partitionKey, id });
     }
 
     const [hoverRef, hoverProps] = useHover();
@@ -106,7 +113,7 @@ const QuestionRow = ({ question, categoryInAdding }: { question: IQuestion, cate
                         className="ms-1 p-0 text-secondary d-flex align-items-center"
                         title="Add Question"
                         onClick={() => {
-                            const categoryInfo: ICategoryInfo = { id: parentCategory, level: 0 }
+                            const categoryInfo: ICategoryInfo = { partitionKey, id: parentCategory, level: 0 }
                             dispatch({ type: ActionTypes.ADD_QUESTION, payload: { categoryInfo } })
                         }}
                     >

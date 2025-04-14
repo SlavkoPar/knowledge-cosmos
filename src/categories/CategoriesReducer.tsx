@@ -2,6 +2,7 @@ import { Reducer } from 'react'
 import { Mode, ActionTypes, ICategoriesState, ICategory, IQuestion, CategoriesActions, ILocStorage, ICategoryKey, ICategoryKeyExtended } from "categories/types";
 
 export const initialQuestion: IQuestion = {
+  partitionKey: '',
   id: 'will be given by DB',
   parentCategory: '',
   categoryTitle: '',
@@ -11,6 +12,7 @@ export const initialQuestion: IQuestion = {
   source: 0,
   status: 0
 }
+
 
 export const initialCategory: ICategory = {
   partitionKey: 'null',
@@ -405,8 +407,8 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
       const { id, level } = categoryInfo;
       const question: IQuestion = {
         ...initialQuestion,
+        partitionKey: id,
         parentCategory: id,
-        numOfAssignedAnswers: 0,
         inAdding: true
       }
       return {
@@ -441,6 +443,7 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
         ...state,
         categories,
         mode: Mode.NULL,
+        error: undefined,
         loading: false
       };
     }
@@ -533,8 +536,8 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
     }
 
     case ActionTypes.DELETE_QUESTION: {
-      const { questionKey } = action.payload;
-      const { partitionKey: parentCategory, id } = questionKey
+      const { question } = action.payload;
+      const { parentCategory, id } = question;
       return {
         ...state,
         categories: state.categories.map(c => c.id === parentCategory

@@ -40,21 +40,22 @@ const AddQuestion = ({ question, inLine, closeModal, showCloseButton, source, se
         // delete obj.id;
         const object: IQuestion = {
             ...obj,
+            partitionKey: question.partitionKey,
             created: {
                 time: new Date(),
                 nickName: nickName
             },
             modified: undefined
         }
-        const question = await createQuestion(execute, object, closeModal !== undefined);
-        if (question) {
-            if (question.message) {
-                setError!(question.message)
+        const q = await createQuestion(execute, object, closeModal !== undefined);
+        if (q) {
+            if (q.message) {
+                setError!(q.message)
             }
             else if (closeModal) {
                 closeModal();
-                dispatch({ type: ActionTypes.CLEAN_TREE, payload: { id: question.parentCategory } })
-                await reloadCategoryNode(execute, { partitionKey: '', id: question.parentCategory }, question.id);
+                dispatch({ type: ActionTypes.CLEAN_TREE, payload: { id: q.parentCategory } })
+                await reloadCategoryNode(execute, { partitionKey: '', id: q.parentCategory }, q.id);
             }
         }
     }

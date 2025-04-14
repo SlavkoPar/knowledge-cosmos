@@ -190,6 +190,7 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
             // TODO
             //const words = q.title.toLowerCase().replaceAll('?', '').split(' ').map((s: string) => s.trim());
             const question: IQuestion = {
+              partitionKey: cat.partitionKey,
               parentCategory: cat.id,
               id: uuidv4(),
               title,

@@ -3,7 +3,7 @@ import React, { createContext, useContext, useReducer, useCallback, Dispatch } f
 
 import {
   ActionTypes, ICategory, IQuestion, ICategoriesContext, IParentInfo, IFromUserAssignedAnswer,
-  IAssignedAnswer, ICategoryDto, 
+  IAssignedAnswer, ICategoryDto,
   IQuestionDto, IQuestionDtoEx,
   Category,
   Question,
@@ -35,6 +35,64 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
   const [state, dispatch] = useReducer(CategoriesReducer, initialCategoriesState);
   const { categoryNodesUpTheTree } = state;
   console.log('----->>> CategoryProvider', { initialCategoriesState, categoryNodesUpTheTree })
+
+  const execute = async (method: string, endpoint: string, data: Object | null = null): Promise<any> => {
+
+    // if (msalError) {
+    //     console.log(msalError)
+    //     setError(msalError);
+    //     return null;
+    // }
+
+    const accessToken = localStorage.getItem("accessToken");
+    if (accessToken) {
+      try {
+        // console.log({accessToken})
+        let response = null;
+
+        const headers = new Headers();
+        const bearer = `Bearer ${accessToken}`;
+        headers.append("Authorization", bearer);
+
+        if (data) headers.append('Content-Type', 'application/json');
+
+        let options = {
+          method: method,
+          headers: headers,
+          body: data ? JSON.stringify(data) : null,
+        };
+
+        //setIsLoading(true);
+        response = (await fetch(endpoint, options));
+
+        if ((response.status === 200 || response.status === 201)) {
+          let responseData = response;
+
+          try {
+            responseData = await response.json();
+          }
+          catch (error) {
+            console.log(error);
+          }
+          finally {
+            // setData(responseData);
+            // setIsLoading(false);
+            // console.log({responseData})
+            return responseData;
+          }
+        }
+
+        //setIsLoading(false);
+        return response;
+      }
+      catch (e) {
+        console.log('-------------->>> execute', method, endpoint, e)
+        //setError(e as AuthError);
+        //setIsLoading(false);
+        throw e;
+      }
+    }
+  };
 
   const reloadCategoryNode = useCallback(
     async (execute: (method: string, endpoint: string) => Promise<any>,
@@ -339,19 +397,19 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
   }, [dispatch]);
 
 
-  const deleteCategoryVariation = async (id: string, variationName: string) => {
+  const deleteCategoryVariation = async (categoryKey: ICategoryKey, variationName: string) => {
     try {
-      const category = await dbp!.get('Categories', id);
-      const obj: ICategory = {
-        ...category,
-        variations: category.variations.filter((variation: string) => variation !== variationName),
-        modified: {
-          Time: new Date(),
-          by: {
-            nickName: globalState.authUser.nickName
-          }
-        }
-      }
+      // const category = await dbp!.get('Categories', id);
+      // const obj: ICategory = {
+      //   ...category,
+      //   variations: category.variations.filter((variation: string) => variation !== variationName),
+      //   modified: {
+      //     Time: new Date(),
+      //     by: {
+      //       nickName: globalState.authUser.nickName
+      //     }
+      //   }
+      // }
       // POPRAVI TODO
       //updateCategory(obj, false);
       console.log("Category Tag successfully deleted");
@@ -414,32 +472,6 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
     }, [dispatch]);
 
 
-  const cccreateQuestion = useCallback(async (question: IQuestion, fromModal: boolean): Promise<any> => {
-    dispatch({ type: ActionTypes.SET_LOADING }) // TODO treba li ovo 
-    try {
-      const tx = dbp!.transaction(['Categories', 'Questions'], 'readwrite');
-      const id = await tx.objectStore('Questions').add(question);
-      question.id = id.toString();
-      console.log('Question successfully created')
-
-      const category: ICategory = await tx.objectStore('Categories').get(question.parentCategory);
-      category.numOfQuestions += 1;
-      await tx.objectStore('Categories').put(category);
-      // TODO check setting inViewing, inEditing, inAdding to false
-
-      dispatch({ type: ActionTypes.SET_QUESTION, payload: { question } });
-      return question;
-    }
-    catch (error: any) {
-      console.log('error', error);
-      if (fromModal) {
-        return { message: error.message }; //'Something is wrong' };
-      }
-      dispatch({ type: ActionTypes.SET_ERROR, payload: { error } });
-      return {};
-    }
-  }, []);
-
   const createQuestion = useCallback(
     async (execute: (method: string, endpoint: string, data: Object | null) => Promise<any>,
       question: IQuestion) => {
@@ -453,12 +485,14 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
         await execute("POST", url, questionDto)
           .then(async (response: IQuestionDtoEx | Response) => {
             console.timeEnd();
+            console.error(response)
             if (response instanceof Response) {
               console.error(response);
               dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error('Server Error'), whichRowId: id } });
             }
             else {
               const questionDtoEx: IQuestionDtoEx = response;
+              console.log("::::::::::::::::::::", { questionDtoEx });
               const { questionDto, msg } = questionDtoEx;
               if (questionDto) {
                 const question = new Question(questionDto).question;
@@ -518,128 +552,45 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
       }
     }, [dispatch]);
 
-  const uuupdateQuestion = useCallback(async (q: IQuestion): Promise<any> => {
-    const { id } = q;
-    //dispatch({ type: ActionTypes.SET_CATEGORY_LOADING, payload: { id, loading: false } });
-    try {
-      const question = await dbp!.get('Questions', id!);
-      const obj: IQuestion = {
-        ...question,
-        title: q.title,
-        modified: q.modified,
-        source: q.source,
-        status: q.status
+
+  const deleteQuestion = useCallback(
+    async (execute: (method: string, endpoint: string, data: Object | null) => Promise<any>,
+      question: IQuestion) => {
+      const { partitionKey, id, title, modified, parentCategory } = question;
+      dispatch({ type: ActionTypes.SET_CATEGORY_LOADING, payload: { id: parentCategory, loading: false } });
+      try {
+        const questionDto = new QuestionDto(question).questionDto;
+        questionDto.Archived = new WhoWhen2Dto(question.archived!).whoWhenDto!;
+        const url = `${protectedResources.KnowledgeAPI.endpointQuestion}`;
+        console.time()
+        await execute("DELETE", url, questionDto)
+          .then(async (response: IQuestionDtoEx | Response) => {
+            console.timeEnd();
+            if (response instanceof Response) {
+              console.error(response);
+              dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error('Server Error'), whichRowId: id } });
+            }
+            else {
+              const questionDtoEx: IQuestionDtoEx = response;
+              const { questionDto, msg } = questionDtoEx;
+              if (questionDto) {
+                const question = new Question(questionDto).question;
+                console.log('Question successfully deleted')
+                dispatch({ type: ActionTypes.DELETE_QUESTION, payload: { question } });
+                //dispatch({ type: ActionTypes.CLOSE_QUESTION_FORM })
+                await loadCats(execute); // reload
+              }
+              else {
+                dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error(msg) } });
+              }
+            }
+          });
       }
-      // OVAKO questionDto.Modified = new WhoWhen2DateAndBy(question.modified!).dateAndBy!;
-
-      await dbp!.put('Questions', obj, id);
-      console.log("Question successfully updated");
-      obj.id = id;
-      dispatch({ type: ActionTypes.SET_QUESTION, payload: { question: obj } });
-      return obj;
-    }
-    catch (error: any) {
-      console.log('error', error);
-      dispatch({ type: ActionTypes.SET_ERROR, payload: { error } });
-    }
-    // try {
-    //   const url = `/api/questions/update-question/${question._id}`
-    //   const res = await axios.put(url, question)
-    //   const { status, data } = res;
-    //   if (status === 200) {
-    //     // TODO check setting inViewing, inEditing, inAdding to false
-    //     console.log("Question successfully updated");
-    //     dispatch({ type: ActionTypes.SET_QUESTION, payload: { question: data } });
-    //     return data;
-    //   }
-    //   else {
-    //     console.log('Status is not 200', status)
-    //     dispatch({
-    //       type: ActionTypes.SET_ERROR,
-    //       payload: {
-    //         error: new Error('Status is not 200 status:' + status)
-    //       }
-    //     })
-    //     return {};
-    //   }
-    // }
-    // catch (err: any | Error) {
-    //   if (axios.isError(err)) {
-    //     dispatch({
-    //       type: ActionTypes.SET_ERROR,
-    //       payload: {
-    //         error: new Error(axios.isError(err) ? err.response?.data : err)
-    //       }
-    //     })
-    //     return {};
-    //   }
-    //   else {
-    //     console.log(err);
-    //   }
-    //   return {}
-    // }
-  }, []);
-
-  const getQuestionWAS = async (
-    execute: (method: string, endpoint: string) => Promise<any>,
-    questionKey: IQuestionKey, type: ActionTypes.VIEW_QUESTION | ActionTypes.EDIT_QUESTION) => {
-    // const url = `/api/questions/get-question/${id}`;
-    //try {
-    //const question: IQuestion = await dbp!.get("Questions", id);
-    //const { parentCategory } = question;
-    //const category: ICategory = await dbp!.get("Categories", parentCategory)
-    //question.id = id;
-    try {
-      const { partitionKey: parentCategory, id } = questionKey;
-      //dispatch({ type: ActionTypes.SET_LOADING })
-      console.time()
-      const url = `${protectedResources.KnowledgeAPI.endpointQuestion}/${parentCategory}/${id}`;
-      await execute("GET", url).then((response: IQuestionDto | undefined) => {
-        console.timeEnd();
-        const questionDto = response!;
-        const question: IQuestion = new Question(questionDto).question;
-        question.categoryTitle = 'nadji me';
-        dispatch({ type, payload: { question } });
-      });
-    }
-    catch (error: any) {
-      console.log(error)
-      dispatch({ type: ActionTypes.SET_ERROR, payload: { error } });
-    }
-    // const { fromUserAssignedAnswer } = question;
-    // if (fromUserAssignedAnswer) {
-    //   question.questionAnswers.forEach(questionAnswer => {
-    //     const user = fromUserAssignedAnswer!.find((fromUser: IFromUserAssignedAnswer) =>
-    //       fromUser.id === questionAnswer.assigned.by.userId);
-    //     questionAnswer.user.createdBy = user ? user.createdBy : 'unknown'
-    //   })
-    //   delete question.fromUserAssignedAnswer;
-    // }
-    // }
-    // catch (error: any) {
-    //   console.log(error);
-    //   dispatch({ type: ActionTypes.SET_ERROR, payload: error });
-    // }
-
-    //console.log(`FETCHING --->>> ${url}`)
-    // dispatch({ type: ActionTypes.SET_LOADING })
-    // axios
-    //   .get(url)
-    //   .then(({ data }) => {
-    //     const question: IQuestion = data;
-    //     const { fromUserAssignedAnswer } = question;
-    //     question.questionAnswers.forEach(questionAnswer => {
-    //       const user = fromUserAssignedAnswer!.find((fromUser: IFromUserAssignedAnswer) => fromUser._id === questionAnswer.assigned.by.userId);
-    //       questionAnswer.user.createdBy = user ? user.createdBy : 'unknown'
-    //     })
-    //     delete question.fromUserAssignedAnswer;
-    //     dispatch({ type, payload: { question } });
-    //   })
-    //   .catch((error) => {
-    //     console.log(error);
-    //     dispatch({ type: ActionTypes.SET_ERROR, payload: error });
-    //   });
-  };
+      catch (error: any) {
+        console.log(error)
+        dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error('Server Error'), whichRowId: id } });
+      }
+    }, [dispatch]);
 
   const getQuestion = async (
     execute: (method: string, endpoint: string) => Promise<any>,
@@ -647,8 +598,8 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
   ): Promise<any> => {
     return new Promise(async (resolve) => {
       try {
-        const { partitionKey: parentCategory, id } = questionKey;
-        const url = `${protectedResources.KnowledgeAPI.endpointQuestion}/${parentCategory}/${id}`;
+        const { partitionKey, id } = questionKey;
+        const url = `${protectedResources.KnowledgeAPI.endpointQuestion}/${partitionKey}/${id}`;
         console.time()
         await execute("GET", url)
           .then((response: IQuestionDtoEx | Response) => {
@@ -801,32 +752,6 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
     return null;
   }, []);
 
-  const deleteQuestion = async (questionKey: IQuestionKey) => {
-    dispatch({ type: ActionTypes.SET_LOADING })
-    try {
-      const res = await dbp!.delete('Questions', questionKey.id);
-      console.log("Question successfully deleted");
-      dispatch({ type: ActionTypes.DELETE_QUESTION, payload: { questionKey } });
-    }
-    catch (error: any) {
-      console.log('error', error);
-      dispatch({ type: ActionTypes.SET_ERROR, payload: { error } });
-    }
-
-    // dispatch({ type: ActionTypes.SET_LOADING })
-    // axios
-    //   .delete(`/api/questions/delete-question/${_id}`)
-    //   .then(res => {
-    //     if (res.status === 200) {
-    //       console.log("Question successfully deleted");
-    //       dispatch({ type: ActionTypes.DELETE_QUESTION, payload: { question: res.data.question } });
-    //     }
-    //   })
-    //   .catch((error) => {
-    //     console.log(error);
-    //     dispatch({ type: ActionTypes.SET_ERROR, payload: error });
-    //   });
-  };
 
   const contextValue: ICategoriesContext = {
     state, reloadCategoryNode,

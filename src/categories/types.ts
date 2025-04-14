@@ -61,7 +61,7 @@ export interface IFromUserAssignedAnswer {
 }
 
 export interface IQuestion extends IRecord {
-	partitionKey?: string;
+	partitionKey: string;
 	id: string;
 	title: string;
 	parentCategory: string;
@@ -199,7 +199,7 @@ export class QuestionDto {
 }
 
 export interface IQuestionDto extends IRecordDto {
-	PartitionKey?: string;
+	PartitionKey: string;
 	Id: string;
 	ParentCategory: string;
 	// but it is not a valid key
@@ -251,6 +251,7 @@ export interface ICategoryDto extends IRecordDto {
 }
 
 export interface ICategoryInfo {
+	partitionKey: string;
 	id: string,
 	level: number
 }
@@ -299,7 +300,7 @@ export interface ICategoriesContext {
 	editCategory: (execute: (method: string, endpoint: string) => Promise<any>, categoryKey: ICategoryKey, includeQuestionId: string) => void,
 	updateCategory: (execute: (method: string, endpoint: string) => Promise<any>, category: ICategory, closeForm: boolean) => void,
 	deleteCategory: (execute: (method: string, endpoint: string) => Promise<any>, categoryKey: ICategoryKey) => void,
-	deleteCategoryVariation: (id: string, name: string) => void,
+	deleteCategoryVariation: (categoryKey: ICategoryKey, name: string) => void,
 	expandCategory: (execute: (method: string, endpoint: string) => Promise<any>, categoryKey: ICategoryKey, includeQuestionId: string) => void,
 	collapseCategory: (execute: (method: string, endpoint: string) => Promise<any>, categoryKey: ICategoryKey) => void,
 	//////////////
@@ -313,7 +314,7 @@ export interface ICategoriesContext {
 	assignQuestionAnswer: (questionId: string, answerId: number, assigned: IWhoWhen) => Promise<any>;
 	unAssignQuestionAnswer: (questionId: string, answerId: number) => Promise<any>;
 	createAnswer: (answer: IAnswer) => Promise<any>;
-	deleteQuestion: (questionKey: IQuestionKey) => void;
+	deleteQuestion: (execute: (method: string, endpoint: string) => Promise<any>, question: IQuestion) => void;
 }
 
 export interface ICategoryFormProps {
@@ -476,7 +477,7 @@ export type CategoriesPayload = {
 	};
 
 	[ActionTypes.DELETE_QUESTION]: {
-		questionKey: IQuestionKey
+		question: IQuestion
 	};
 
 	[ActionTypes.CLOSE_QUESTION_FORM]: {

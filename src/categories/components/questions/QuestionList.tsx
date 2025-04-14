@@ -86,7 +86,7 @@ const QuestionList = ({ title, categoryKey, level }: IParentInfo) => {
           <label>No questions</label>
         }
         {questions.map((question: IQuestion) => {
-          question.partitionKey = partitionKey;
+          //question.partitionKey = partitionKey;
           return <ListItem key={question.id}>
             <QuestionRow
               question={question}

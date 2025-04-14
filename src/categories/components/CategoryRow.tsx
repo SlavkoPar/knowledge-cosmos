@@ -145,7 +145,7 @@ const CategoryRow = ({ category }: { category: ICategory }) => {
                         className="py-0 mx-1 text-secondary float-end"
                         title="Add Question"
                         onClick={async () => {
-                            const categoryInfo: ICategoryInfo = { id: category.id, level: category.level }
+                            const categoryInfo: ICategoryInfo = { partitionKey, id: category.id, level: category.level }
                             if (!isExpanded) {
                                 await dispatch({ type: ActionTypes.SET_EXPANDED, payload: { categoryKey } });
                             }

@@ -14,6 +14,7 @@ export interface IRecord {
 	createdBy?: string,
 	modified?: IWhoWhen,
 	modifiedBy?: string,
+	archived?: IWhoWhen,
 	inViewing?: boolean,
 	inEditing?: boolean,
 	inAdding?: boolean
