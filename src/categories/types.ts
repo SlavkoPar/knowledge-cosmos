@@ -122,6 +122,7 @@ export class Question {
 			partitionKey: dto.PartitionKey,
 			id: dto.Id,
 			title: dto.Title,
+			categoryTitle: dto.CategoryTitle,
 			assignedAnswers: [], //dto.AssignedAnswers, // TODO
 			numOfAssignedAnswers: 0,
 			source: dto.Source,
@@ -187,6 +188,7 @@ export class QuestionDto {
 			Id: question.id,
 			ParentCategory: question.parentCategory,
 			Title: question.title,
+			CategoryTitle: "",
 			AssignedAnswers: [...question.assignedAnswers],
 			NumOfAssignedAnswers: question.numOfAssignedAnswers,
 			Source: question.source,
@@ -204,6 +206,7 @@ export interface IQuestionDto extends IRecordDto {
 	ParentCategory: string;
 	// but it is not a valid key
 	Title: string;
+	CategoryTitle: string;
 	AssignedAnswers: IAssignedAnswer[];
 	NumOfAssignedAnswers: number,
 	Source: number;
@@ -293,24 +296,24 @@ export interface ILocStorage {
 
 export interface ICategoriesContext {
 	state: ICategoriesState,
-	reloadCategoryNode: (execute: (method: string, endpoint: string) => Promise<any>, categoryKey: ICategoryKey, questionId: string | null) => Promise<any>;
-	getSubCategories: (execute: (method: string, endpoint: string) => Promise<any>, categoryKey: ICategoryKey) => Promise<any>,
-	createCategory: (execute: (method: string, endpoint: string) => Promise<any>, category: ICategory) => void,
-	viewCategory: (execute: (method: string, endpoint: string) => Promise<any>, categoryKey: ICategoryKey, includeQuestionId: string) => void,
-	editCategory: (execute: (method: string, endpoint: string) => Promise<any>, categoryKey: ICategoryKey, includeQuestionId: string) => void,
-	updateCategory: (execute: (method: string, endpoint: string) => Promise<any>, category: ICategory, closeForm: boolean) => void,
-	deleteCategory: (execute: (method: string, endpoint: string) => Promise<any>, categoryKey: ICategoryKey) => void,
+	reloadCategoryNode: (categoryKey: ICategoryKey, questionId: string | null) => Promise<any>;
+	getSubCategories: (categoryKey: ICategoryKey) => Promise<any>,
+	createCategory: (category: ICategory) => void,
+	viewCategory: (categoryKey: ICategoryKey, includeQuestionId: string) => void,
+	editCategory: (categoryKey: ICategoryKey, includeQuestionId: string) => void,
+	updateCategory: (category: ICategory, closeForm: boolean) => void,
+	deleteCategory: (categoryKey: ICategoryKey) => void,
 	deleteCategoryVariation: (categoryKey: ICategoryKey, name: string) => void,
-	expandCategory: (execute: (method: string, endpoint: string) => Promise<any>, categoryKey: ICategoryKey, includeQuestionId: string) => void,
-	collapseCategory: (execute: (method: string, endpoint: string) => Promise<any>, categoryKey: ICategoryKey) => void,
+	expandCategory: (categoryKey: ICategoryKey, includeQuestionId: string) => void,
+	collapseCategory: (categoryKey: ICategoryKey) => void,
 	//////////////
 	// questions
 	//getCategoryQuestions: ({ parentCategory, level, inAdding }: IParentInfo) => void,
 	loadCategoryQuestions: (parentInfo: IParentInfo) => void,
-	createQuestion: (execute: (method: string, endpoint: string) => Promise<any>, question: IQuestion, fromModal: boolean) => Promise<any>;
-	viewQuestion: (execute: (method: string, endpoint: string) => Promise<any>, iquestionKey: IQuestionKey) => void;
-	editQuestion: (execute: (method: string, endpoint: string) => Promise<any>, questionKey: IQuestionKey) => void;
-	updateQuestion: (execute: (method: string, endpoint: string) => Promise<any>, question: IQuestion) => Promise<any>;
+	createQuestion: (question: IQuestion, fromModal: boolean) => Promise<any>;
+	viewQuestion: (questionKey: IQuestionKey) => void;
+	editQuestion: (questionKey: IQuestionKey) => void;
+	updateQuestion: (question: IQuestion) => Promise<any>;
 	assignQuestionAnswer: (questionId: string, answerId: number, assigned: IWhoWhen) => Promise<any>;
 	unAssignQuestionAnswer: (questionId: string, answerId: number) => Promise<any>;
 	createAnswer: (answer: IAnswer) => Promise<any>;

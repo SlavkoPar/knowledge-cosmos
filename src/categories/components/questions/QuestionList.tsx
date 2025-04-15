@@ -62,9 +62,9 @@ const QuestionList = ({ title, categoryKey, level }: IParentInfo) => {
       //if (categoryId === categoryKey.id && questionId) {
       if (categoryKey && questionId) {
         if (canEdit)
-          editQuestion(writeExecute, { partitionKey: categoryKey.id, id: questionId })
+          editQuestion({ partitionKey: categoryKey.id, id: questionId })
         else
-          viewQuestion(readExecute, { partitionKey: categoryKey.id, id: questionId })
+          viewQuestion({ partitionKey: categoryKey.id, id: questionId })
       }
     }
   }, [viewQuestion, categoryKey, questionId, canEdit]);

@@ -38,41 +38,31 @@ const CategoryRow = ({ category }: { category: ICategory }) => {
 
     const dispatch = useCategoryDispatch();
 
-    //error: msalError1, 
-    const { execute: readExecute } = useFetchWithMsal("", {
-        scopes: protectedResources.KnowledgeAPI.scopes.read,
-    });
-
-    // error: msalError2, 
-    const { execute: writeExecute } = useFetchWithMsal("", {
-        scopes: protectedResources.KnowledgeAPI.scopes.write,
-    });
-
     const alreadyAdding = state.mode === Mode.AddingCategory;
     // TODO proveri ovo
     const showQuestions = (isExpanded && numOfQuestions > 0) // || questions.find(q => q.inAdding) // && !questions.find(q => q.inAdding); // We don't have questions loaded
 
     const del = () => {
-        deleteCategory(writeExecute, categoryKey);
+        deleteCategory(categoryKey);
     };
 
     const expand = async () => {
         if (isExpanded)
-            await collapseCategory(readExecute, categoryKey);
+            await collapseCategory(categoryKey);
         else
-            await expandCategory(readExecute, categoryKey, questionId ?? 'null');
+            await expandCategory(categoryKey, questionId ?? 'null');
     }
 
     const edit = () => {
         // Load data from server and reinitialize category
-        editCategory(writeExecute, categoryKey, questionId ?? 'null');
+        editCategory(categoryKey, questionId ?? 'null');
     }
 
     const onSelectCategory = () => {
         if (canEdit)
-            editCategory(writeExecute, categoryKey, questionId ?? 'null');
+            editCategory(categoryKey, questionId ?? 'null');
         else
-            viewCategory(readExecute, categoryKey, questionId ?? 'null');
+            viewCategory(categoryKey, questionId ?? 'null');
     }
 
     const [hoverRef, hoverProps] = useHover();

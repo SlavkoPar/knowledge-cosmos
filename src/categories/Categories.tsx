@@ -30,10 +30,6 @@ const Providered = ({ categoryId_questionId }: IProps) => {
     const { categoryKeyExpanded, categoryId_questionId_done, questionId, categoryNodeLoaded } = state;
     console.log('Providered', { categoryKeyExpanded, categoryNodeLoaded })
 
-    // { error, execute }
-    const { execute } = useFetchWithMsal("", {
-        scopes: protectedResources.KnowledgeAPI.scopes.read,
-    });
     const { isDarkMode, authUser } = useGlobalState();
 
     const [modalShow, setModalShow] = useState(false);
@@ -65,12 +61,12 @@ const Providered = ({ categoryId_questionId }: IProps) => {
                     const arr = categoryId_questionId.split('_');
                     const categoryId = arr[0];
                     const questionId = arr[1];
-                    await reloadCategoryNode(execute, { partitionKey: '', id: categoryId }, questionId).then(() => { return null; });
+                    await reloadCategoryNode({ partitionKey: '', id: categoryId }, questionId).then(() => { return null; });
                 }
             }
             else if (categoryKeyExpanded && !categoryNodeLoaded) {
                 console.log('2) ===>>> Categories calling reloadCategoryNode:', { categoryId_questionId, categoryKeyExpanded, categoryId_questionId_done });
-                await reloadCategoryNode(execute, categoryKeyExpanded, questionId).then(() => { return null; });
+                await reloadCategoryNode(categoryKeyExpanded, questionId).then(() => { return null; });
             }
         })()
     }, [categoryKeyExpanded, categoryNodeLoaded, reloadCategoryNode, categoryId_questionId, categoryId_questionId_done])

@@ -18,6 +18,8 @@ import { initialCategoriesState, CategoriesReducer } from 'categories/Categories
 import { IWhoWhen, ICat, Dto2WhoWhen, WhoWhen2Dto } from 'global/types';
 import { IAnswer, IGroup } from 'groups/types';
 import { protectedResources } from 'authConfig';
+import { useMsal, useMsalAuthentication } from '@azure/msal-react';
+import { InteractionType } from '@azure/msal-browser';
 
 const CategoriesContext = createContext<ICategoriesContext>({} as any);
 const CategoryDispatchContext = createContext<Dispatch<any>>(() => null);
@@ -36,68 +38,77 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
   const { categoryNodesUpTheTree } = state;
   console.log('----->>> CategoryProvider', { initialCategoriesState, categoryNodesUpTheTree })
 
-  const execute = async (method: string, endpoint: string, data: Object | null = null): Promise<any> => {
 
-    // if (msalError) {
-    //     console.log(msalError)
-    //     setError(msalError);
-    //     return null;
-    // }
+  // const { instance } = useMsal();
+  // const msalRequest = {
+  //   scopes: protectedResources.KnowledgeAPI.scopes.write
+  // }
 
-    const accessToken = localStorage.getItem("accessToken");
-    if (accessToken) {
-      try {
-        // console.log({accessToken})
-        let response = null;
+  // const { result, error: msalError } = useMsalAuthentication(InteractionType.Popup, {
+  //   ...msalRequest,
+  //   account: instance.getActiveAccount() ?? undefined,
+  //   redirectUri: '/redirect'
+  // });
 
-        const headers = new Headers();
-        const bearer = `Bearer ${accessToken}`;
-        headers.append("Authorization", bearer);
+  // if (!result) {
+  //   console.error('=================>>> !result'); //, method, endpoint)
+  //   dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error('getActiveAccount') } });
+  // }
 
-        if (data) headers.append('Content-Type', 'application/json');
 
-        let options = {
-          method: method,
-          headers: headers,
-          body: data ? JSON.stringify(data) : null,
-        };
+  const Execute = async (method: string, endpoint: string, data: Object | null = null): Promise<any> => {
+      const accessToken = localStorage.getItem("accessToken");
+      if (accessToken) {
+        try {
+          console.log({ accessToken })
+          let response = null;
 
-        //setIsLoading(true);
-        response = (await fetch(endpoint, options));
+          const headers = new Headers();
+          const bearer = `Bearer ${accessToken}`;
+          headers.append("Authorization", bearer);
 
-        if ((response.status === 200 || response.status === 201)) {
-          let responseData = response;
+          if (data) headers.append('Content-Type', 'application/json');
 
-          try {
-            responseData = await response.json();
+          let options = {
+            method: method,
+            headers: headers,
+            body: data ? JSON.stringify(data) : null,
+          };
+
+          response = (await fetch(endpoint, options));
+          if (response.ok) {
+            if ((response.status === 200 || response.status === 201)) {
+              let responseData = null; //response;
+              try {
+                responseData = await response.json();
+              }
+              catch (error) {
+                dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error(`Response status: ${response.status}`) } });
+              }
+              finally {
+                return responseData;
+              }
+            }
           }
-          catch (error) {
-            console.log(error);
-          }
-          finally {
-            // setData(responseData);
-            // setIsLoading(false);
-            // console.log({responseData})
-            return responseData;
+          else {
+            const { errors } = await response.json();
+            const error = new Error(
+              errors?.map((e: { message: any; }) => e.message).join('\n') ?? 'unknown',
+            )
+            dispatch({ type: ActionTypes.SET_ERROR, payload: { error } });
           }
         }
-
-        //setIsLoading(false);
-        return response;
+        catch (e) {
+          console.log('-------------->>> execute', method, endpoint, e)
+          dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error(`fetch eror`) } });
+        }
       }
-      catch (e) {
-        console.log('-------------->>> execute', method, endpoint, e)
-        //setError(e as AuthError);
-        //setIsLoading(false);
-        throw e;
-      }
-    }
-  };
+      return null;
+  }
+   // }, [dispatch]);
 
   const reloadCategoryNode = useCallback(
-    async (execute: (method: string, endpoint: string) => Promise<any>,
-      categoryKey: ICategoryKey | null,
-      questionId: string | null): Promise<any> => {
+    async (categoryKey: ICategoryKey | null, questionId: string | null): Promise<any> => {
       return new Promise(async (resolve) => {
         try {
           console.log('CategoryProvider.reloadCategoryNode')
@@ -111,13 +122,13 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
           console.time()
           const url = `${protectedResources.KnowledgeAPI.endpointCat}/${cat.partitionKey}/${id}`;
           console.log('calling CatController.GetCatsUpTheTree', url)
-          await execute("GET", url)
+          await Execute("GET", url)
             .then((response: ICategoryDto[]) => {
               console.timeEnd();
               // console.log({ response });
-              if (response instanceof Response) {
-                dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error('fetch Response') } });
-              }
+              // if (response instanceof Response) {
+              //   dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error('fetch Response') } });
+              // }
               const data: ICategoryDto[] = response;
               const categoryNodesUpTheTree = data.map((categoryDto: ICategoryDto) => {
                 const { PartitionKey, Id, Title } = categoryDto;
@@ -141,9 +152,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
     }, [dispatch]);
 
 
-  const getSubCategories = useCallback(async (
-    execute: (method: string, endpoint: string) => Promise<any>,
-    categoryKey: ICategoryKey) => {
+  const getSubCategories = useCallback(async (categoryKey: ICategoryKey) => {
     return new Promise(async (resolve) => {
       const { partitionKey, id } = categoryKey;
       try {
@@ -151,13 +160,13 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
         const url = `${protectedResources.KnowledgeAPI.endpointCategory}/${partitionKey}/${id}`;
         console.log('calling getSubCategories:', url)
         console.time();
-        await execute("GET", url).then((response: ICategoryDto[]) => {
+        await Execute("GET", url).then((response: ICategoryDto[]) => {
           console.timeEnd();
-          if (response instanceof Response) {
-            console.log('response instanceof Response', { response });
-            dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error('fetch Response') } });
-            resolve(false);
-          }
+          // if (response instanceof Response) {
+          //   console.log('response instanceof Response', { response });
+          //   dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error('fetch Response') } });
+          //   resolve(false);
+          // }
           const data: ICategoryDto[] = response;
           const subCategories = data!.map((categoryDto: ICategoryDto) => new Category(categoryDto).category);
           dispatch({ type: ActionTypes.SET_SUB_CATEGORIES, payload: { subCategories } });
@@ -173,8 +182,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
 
 
   const createCategory = useCallback(
-    async (execute: (method: string, endpoint: string, data: Object | null) => Promise<any>,
-      category: ICategory) => {
+    async (category: ICategory) => {
       const { partitionKey, id, variations, title, kind, modified } = category;
       dispatch({ type: ActionTypes.SET_CATEGORY_LOADING, payload: { id, loading: false } });
       try {
@@ -182,7 +190,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
         categoryDto.Created = new WhoWhen2Dto(category.created!).whoWhenDto!;
         const url = `${protectedResources.KnowledgeAPI.endpointCategory}`;
         console.time()
-        await execute("POST", url, categoryDto)
+        await Execute("POST", url, categoryDto)
           .then(async (response: ICategoryDto | Response) => {
             console.timeEnd();
             if (response instanceof Response) {
@@ -196,7 +204,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
                 console.log('Category successfully created')
                 dispatch({ type: ActionTypes.SET_ADDED_CATEGORY, payload: { category: { ...category, questions: [] } } });
                 dispatch({ type: ActionTypes.CLOSE_CATEGORY_FORM })
-                await loadCats(execute); // reload
+                await loadCats(Execute); // reload
               }
               else {
                 dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error(`Category ${id} not found!`) } });
@@ -211,16 +219,13 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
     }, [dispatch]);
 
 
-  const getCategory = async (
-    execute: (method: string, endpoint: string) => Promise<any>,
-    categoryKey: ICategoryKey,
-    includeQuestionId: string): Promise<any> => {
+  const getCategory = async (categoryKey: ICategoryKey, includeQuestionId: string): Promise<any> => {
     const { partitionKey, id } = categoryKey;
     return new Promise(async (resolve) => {
       try {
         const url = `${protectedResources.KnowledgeAPI.endpointCategory}/${partitionKey}/${id}/${PAGE_SIZE}/${includeQuestionId}`;
         console.time()
-        await execute("GET", url)
+        await Execute("GET", url)
           .then((response: ICategoryDto | Response) => {
             console.timeEnd();
             if (response instanceof Response) {
@@ -246,9 +251,9 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
   }
 
   const expandCategory = useCallback(
-    async (execute: (method: string, endpoint: string) => Promise<any>, categoryKey: ICategoryKey, includeQuestionId: string) => {
+    async (categoryKey: ICategoryKey, includeQuestionId: string) => {
       try {
-        const category: ICategory | Error = await getCategory(execute, categoryKey, includeQuestionId); // to reload Category
+        const category: ICategory | Error = await getCategory(categoryKey, includeQuestionId); // to reload Category
         // .then(async (category: ICategory) => {
         // console.log('getCategory', { category })
         if (category instanceof Error) {
@@ -283,7 +288,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
     }, [dispatch]);
 
   const collapseCategory = useCallback(
-    async (execute: (method: string, endpoint: string) => Promise<any>, categoryKey: ICategoryKey) => {
+    async (categoryKey: ICategoryKey) => {
       try {
         //dispatch({ type: ActionTypes.CLEAN_SUB_TREE, payload: { categoryKey } });// clean subTree
         dispatch({ type: ActionTypes.SET_COLLAPSED, payload: { categoryKey } });
@@ -294,9 +299,9 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
       }
     }, [dispatch]);
 
-  const viewCategory = useCallback(async (execute: (method: string, endpoint: string) => Promise<any>, categoryKey: ICategoryKey, includeQuestionId: string) => {
+  const viewCategory = useCallback(async (categoryKey: ICategoryKey, includeQuestionId: string) => {
     dispatch({ type: ActionTypes.SET_LOADING });
-    const category = await getCategory(execute, categoryKey, includeQuestionId);
+    const category = await getCategory(categoryKey, includeQuestionId);
     if (category instanceof Error)
       dispatch({ type: ActionTypes.SET_ERROR, payload: { error: category } });
     else
@@ -304,9 +309,9 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
   }, [dispatch]);
 
 
-  const editCategory = useCallback(async (execute: (method: string, endpoint: string) => Promise<any>, categoryKey: ICategoryKey, includeQuestionId: string) => {
+  const editCategory = useCallback(async ( categoryKey: ICategoryKey, includeQuestionId: string) => {
     dispatch({ type: ActionTypes.SET_LOADING });
-    const category = await getCategory(execute, categoryKey, includeQuestionId);
+    const category = await getCategory(categoryKey, includeQuestionId);
     if (category instanceof Error)
       dispatch({ type: ActionTypes.SET_ERROR, payload: { error: category } });
     else
@@ -315,8 +320,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
 
 
   const updateCategory = useCallback(
-    async (execute: (method: string, endpoint: string, data: Object | null) => Promise<any>,
-      category: ICategory, closeForm: boolean) => {
+    async (category: ICategory, closeForm: boolean) => {
       const { partitionKey, id, variations, title, kind, modified } = category;
       dispatch({ type: ActionTypes.SET_CATEGORY_LOADING, payload: { id, loading: false } });
       try {
@@ -324,7 +328,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
 
         const url = `${protectedResources.KnowledgeAPI.endpointCategory}`;
         console.time()
-        await execute("PUT", url, categoryDto)
+        await Execute("PUT", url, categoryDto)
           .then((response: ICategoryDto | Response) => {
             console.timeEnd();
             if (response instanceof Response) {
@@ -355,15 +359,12 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
     }, [dispatch]);
 
 
-  const deleteCategory = useCallback(async (
-    execute: (method: string, endpoint: string, data: Object | null) => Promise<any>,
-    //execute: (method: string, endpoint: string) => Promise<any>,
-    categoryKey: ICategoryKey) => {
+  const deleteCategory = useCallback(async (categoryKey: ICategoryKey) => {
     //dispatch({ type: ActionTypes.SET_CATEGORY_LOADING, payload: { id, loading: false } });
     try {
       const url = `${protectedResources.KnowledgeAPI.endpointCategory}` ///${categoryKey.partitionKey}/${categoryKey.id}`;
       console.time()
-      await execute("DELETE", url, { PartitionKey: categoryKey.partitionKey, Id: categoryKey.id })
+      await Execute("DELETE", url, { PartitionKey: categoryKey.partitionKey, Id: categoryKey.id })
         .then(async (response: any | Response) => {
           console.timeEnd();
           if (response instanceof Response) {
@@ -376,7 +377,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
             const resp: { msg: string } = response;
             if (response.msg == "OK") {
               dispatch({ type: ActionTypes.DELETE, payload: { id: categoryKey.id } });
-              await loadCats(execute); // reload
+              await loadCats(Execute); // reload
             }
             else if (resp.msg === "HasSubCategories") {
               dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error("First remove sub categories"), whichRowId: categoryKey.id } });
@@ -427,7 +428,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
 
   const PAGE_SIZE = 12;
   const loadCategoryQuestions = useCallback(
-    async ({ execute, categoryKey, startCursor, includeQuestionId }: IParentInfo)
+    async ({ categoryKey, startCursor, includeQuestionId }: IParentInfo)
       : Promise<any> => {
       const questions: IQuestion[] = [];
       try {
@@ -437,12 +438,14 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
           const url = `${protectedResources.KnowledgeAPI.endpointQuestion}/${parentCategory}/${startCursor}/${PAGE_SIZE}/${includeQuestionId}`;
           console.time()
           console.log('>>>>>>>>>>>>loadCategoryQuestions of:', { url })
-          await execute!("GET", url).then((response: ICategoryDto | Response) => {
+          await Execute!("GET", url).then((response: ICategoryDto | null) => {
             console.timeEnd();
             console.log({ response });
-            if (response instanceof Response) {
-              throw (response);
-            }
+            // if (response instanceof Response) {
+            //   throw (response);
+            // }
+            if (response === null) 
+              return null;
             const categoryDto: ICategoryDto = response;
             const { Questions, HasMoreQuestions } = categoryDto;
             Questions!.forEach((questionDto: IQuestionDto) => {
@@ -473,8 +476,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
 
 
   const createQuestion = useCallback(
-    async (execute: (method: string, endpoint: string, data: Object | null) => Promise<any>,
-      question: IQuestion) => {
+    async (question: IQuestion) => {
       const { partitionKey, id, title, modified, parentCategory } = question;
       dispatch({ type: ActionTypes.SET_CATEGORY_LOADING, payload: { id: parentCategory, loading: false } });
       try {
@@ -482,10 +484,9 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
         const url = `${protectedResources.KnowledgeAPI.endpointQuestion}`;
         console.time()
         console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> createQuestion', questionDto)
-        await execute("POST", url, questionDto)
+        await Execute("POST", url, questionDto)
           .then(async (response: IQuestionDtoEx | Response) => {
             console.timeEnd();
-            console.error(response)
             if (response instanceof Response) {
               console.error(response);
               dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error('Server Error'), whichRowId: id } });
@@ -499,7 +500,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
                 console.log('Question successfully created')
                 dispatch({ type: ActionTypes.SET_QUESTION, payload: { question } });
                 //dispatch({ type: ActionTypes.CLOSE_QUESTION_FORM })
-                await loadCats(execute); // reload
+                await loadCats(Execute); // reload
               }
               else {
                 dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error(msg) } });
@@ -514,8 +515,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
     }, [dispatch]);
 
   const updateQuestion = useCallback(
-    async (execute: (method: string, endpoint: string, data: Object | null) => Promise<any>,
-      question: IQuestion) => {
+    async (question: IQuestion) => {
       const { partitionKey, id, title, modified, parentCategory } = question;
       dispatch({ type: ActionTypes.SET_CATEGORY_LOADING, payload: { id: parentCategory, loading: false } });
       try {
@@ -523,7 +523,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
         const url = `${protectedResources.KnowledgeAPI.endpointQuestion}`;
         console.time()
         console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> createQuestion', questionDto)
-        await execute("PUT", url, questionDto)
+        await Execute("PUT", url, questionDto)
           .then(async (response: IQuestionDtoEx | Response) => {
             console.timeEnd();
             if (response instanceof Response) {
@@ -538,7 +538,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
                 console.log('Question successfully updated')
                 dispatch({ type: ActionTypes.SET_QUESTION, payload: { question } });
                 //dispatch({ type: ActionTypes.CLOSE_QUESTION_FORM })
-                await loadCats(execute); // reload
+                await loadCats(Execute); // reload
               }
               else {
                 dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error(msg) } });
@@ -592,28 +592,21 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
       }
     }, [dispatch]);
 
-  const getQuestion = async (
-    execute: (method: string, endpoint: string) => Promise<any>,
-    questionKey: IQuestionKey
-  ): Promise<any> => {
+  const getQuestion = async (questionKey: IQuestionKey): Promise<any> => {
     return new Promise(async (resolve) => {
       try {
         const { partitionKey, id } = questionKey;
         const url = `${protectedResources.KnowledgeAPI.endpointQuestion}/${partitionKey}/${id}`;
         console.time()
-        await execute("GET", url)
-          .then((response: IQuestionDtoEx | Response) => {
+        await Execute("GET", url)
+          .then((questionDtoEx: IQuestionDtoEx | null) => {
             console.timeEnd();
-            if (response instanceof Response) {
-              console.error(response);
-              resolve(new Error('fetch response error'));
+            if (questionDtoEx === null) {
+              resolve(null);
             }
             else {
-              const questionDtoEx: IQuestionDtoEx = response;
               const { questionDto, msg } = questionDtoEx;
-              //const question: IQuestion = new Question(questionDto, parentCategory).question;
               const question: IQuestion = new Question(questionDto!).question;
-              question.categoryTitle = 'nadji me';
               if (questionDto) {
                 resolve(question);
               }
@@ -630,16 +623,16 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
     })
   }
 
-  const viewQuestion = useCallback(async (execute: (method: string, endpoint: string) => Promise<any>, questionKey: IQuestionKey) => {
-    const question: IQuestion | Error = await getQuestion(execute, questionKey);
+  const viewQuestion = useCallback(async (questionKey: IQuestionKey) => {
+    const question: IQuestion | Error = await getQuestion(questionKey);
     if (question instanceof Error)
       dispatch({ type: ActionTypes.SET_ERROR, payload: { error: question } });
     else
       dispatch({ type: ActionTypes.VIEW_QUESTION, payload: { question } });
   }, []);
 
-  const editQuestion = useCallback(async (execute: (method: string, endpoint: string) => Promise<any>, questionKey: IQuestionKey) => {
-    const question: IQuestion | Error = await getQuestion(execute, questionKey);
+  const editQuestion = useCallback(async (questionKey: IQuestionKey) => {
+    const question: IQuestion | Error = await getQuestion(questionKey);
     if (question instanceof Error)
       dispatch({ type: ActionTypes.SET_ERROR, payload: { error: question } });
     else

@@ -6,17 +6,12 @@ import { useGlobalState } from 'global/GlobalProvider'
 import CategoryForm from "categories/components/CategoryForm";
 import InLineCategoryForm from "categories/components/InLineCategoryForm";
 import { FormMode, ICategory, ICategoryKey } from "categories/types";
-import useFetchWithMsal from 'hooks/useFetchWithMsal';
-import { protectedResources } from 'authConfig';
 
 const AddCategory = ({ categoryKey, inLine }: { categoryKey: ICategoryKey, inLine: boolean }) => {
     const globalState = useGlobalState();
     const { nickName } = globalState.authUser;
     const { createCategory, state } = useCategoryContext();
 
-    const { execute } = useFetchWithMsal("", {
-        scopes: protectedResources.KnowledgeAPI.scopes.write
-    });
 
     // do not use categoryKey
     const category: ICategory = state.categories.find(c => c.inAdding)!;
@@ -37,7 +32,7 @@ const AddCategory = ({ categoryKey, inLine }: { categoryKey: ICategoryKey, inLin
             },
             modified: undefined
         }
-        await createCategory(execute, object);
+        await createCategory(object);
     }
 
     return (

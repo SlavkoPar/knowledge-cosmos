@@ -50,15 +50,15 @@ const QuestionRow = ({ question, categoryInAdding }: { question: IQuestion, cate
 
     const edit = (Id: string) => {
         // Load data from server and reinitialize question
-        editQuestion(writeExecute, { partitionKey, id });
+        editQuestion({ partitionKey, id });
     }
 
     const onSelectQuestion = (id: string) => {
         // Load data from server and reinitialize question
         if (canEdit)
-            editQuestion(writeExecute, { partitionKey, id });
+            editQuestion({ partitionKey, id });
         else
-            viewQuestion(readExecute, { partitionKey, id });
+            viewQuestion( { partitionKey, id });
     }
 
     const [hoverRef, hoverProps] = useHover();

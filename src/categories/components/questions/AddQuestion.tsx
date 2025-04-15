@@ -47,7 +47,7 @@ const AddQuestion = ({ question, inLine, closeModal, showCloseButton, source, se
             },
             modified: undefined
         }
-        const q = await createQuestion(execute, object, closeModal !== undefined);
+        const q = await createQuestion(object, closeModal !== undefined);
         if (q) {
             if (q.message) {
                 setError!(q.message)
@@ -55,7 +55,7 @@ const AddQuestion = ({ question, inLine, closeModal, showCloseButton, source, se
             else if (closeModal) {
                 closeModal();
                 dispatch({ type: ActionTypes.CLEAN_TREE, payload: { id: q.parentCategory } })
-                await reloadCategoryNode(execute, { partitionKey: '', id: q.parentCategory }, q.id);
+                await reloadCategoryNode({ partitionKey: '', id: q.parentCategory }, q.id);
             }
         }
     }

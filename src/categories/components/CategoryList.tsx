@@ -18,11 +18,11 @@ const CategoryList = ({ title, categoryKey, level }: IParentInfo) => {
         //getSubCategories(execute, categoryKey);
         (async () => {
             console.log('zovem getSubCategories', {categoryKey})
-            await getSubCategories(execute, categoryKey)
+            await getSubCategories(categoryKey)
                 .then((response: boolean)=> {
                 });
         })()
-    }, [getSubCategories, execute, categoryKey]);
+    }, [getSubCategories, categoryKey]);
 
    
     const mySubCategories = categoryKey.id === 'null'
