@@ -45,15 +45,13 @@ export class AutoSuggestQuestions extends React.Component<{
 	tekst: string | undefined,
 	onSelectQuestion: (questionKey: IQuestionKey) => void,
 	allCategories: Map<string, ICat>,
-	execute: (method: string, endpoint: string) => Promise<any>,
-	searchQuestions: (execute: (method: string, endpoint: string) => Promise<any>, filter: string, count: number) => Promise<IQuest[]>
+	searchQuestions: (filter: string, count: number) => Promise<IQuest[]>
 }, any> {
 	// region Fields
 	state: any;
 	isMob: boolean;
 	allCategories: Map<string, ICat>;
-	execute: (method: string, endpoint: string) => Promise<any>;
-	searchQuestions: (execute: (method: string, endpoint: string) => Promise<any>, filter: string, count: number) => Promise<IQuest[]>;
+	searchQuestions: (filter: string, count: number) => Promise<IQuest[]>;
 	debouncedLoadSuggestions: (value: string) => void;
 	//inputAutosuggest: React.RefObject<HTMLInputElement>;
 	// endregion region Constructor
@@ -68,7 +66,6 @@ export class AutoSuggestQuestions extends React.Component<{
 		};
 		//this.inputAutosuggest = createRef<HTMLInputElement>();
 		this.allCategories = props.allCategories;
-		this.execute = props.execute;
 		this.searchQuestions = props.searchQuestions;
 		this.isMob = isMobile;
 		this.loadSuggestions = this.loadSuggestions.bind(this);
@@ -172,7 +169,7 @@ export class AutoSuggestQuestions extends React.Component<{
 		const questionKeys: IQuestionKey[] = [];
 		try {
 			console.log('--------->>>>> getSuggestions')
-			var questDtoList: IQuest[] = await this.searchQuestions(this.execute, escapedValue, 18);
+			var questDtoList: IQuest[] = await this.searchQuestions(escapedValue, 18);
 
 			questDtoList.forEach((quest: IQuest) => {
 				const { id, partitionKey, parentCategory, title } = quest;

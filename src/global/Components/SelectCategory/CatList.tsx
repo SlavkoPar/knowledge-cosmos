@@ -6,27 +6,28 @@ import { ICategory } from "categories/types";
 import { CatsActionTypes, ICatInfo } from "global/types";
 import { useGlobalContext } from "global/GlobalProvider";
 
-const CatList = ({ parentCategory, level, setParentCategory }: ICatInfo) => {
+const CatList = ({ categoryKey, level, setParentCategory }: ICatInfo) => {
     const [state, dispatch] = useReducer(CatsReducer, initialState);
     const { getSubCats } = useGlobalContext();
     useEffect(() => {
         (async () => {
-            const subCats = await getSubCats({ parentCategory, level });
-            console.log('getSubCats', parentCategory, level, subCats);
+            const subCats = await getSubCats(categoryKey);
+            console.log('getSubCats', categoryKey, subCats);
             dispatch({ type: CatsActionTypes.SET_SUB_CATS, payload: { subCats } });
         })()
-    }, [getSubCats, parentCategory, level]);
+    }, [getSubCats, categoryKey]);
 
+    const parentCategory = categoryKey.id === 'null' ? null : categoryKey.id;
     const mySubCategories = state.cats.filter(c => c.parentCategory === parentCategory);
+    console.log({mySubCategories})
 
     const setParentCat = (cat: ICategory) => {
-        dispatch({ type: CatsActionTypes.SET_PARENT_CATEGORY, payload: { category: cat } })
+        dispatch({ type: CatsActionTypes.SET_PARENT_CAT, payload: { category: cat } })
         setParentCategory!(cat);
     }
 
     return (
         <div className={level > 1 ? 'ms-4' : ''}>
-            <>
                 <ListGroup as="ul" variant='dark' className="mb-0">
                     {mySubCategories.map(category =>
                         <CatRow
@@ -39,8 +40,7 @@ const CatList = ({ parentCategory, level, setParentCategory }: ICatInfo) => {
                     }
                 </ListGroup>
 
-                {state.error && state.error}
-            </>
+                {state.error && state.error.message}
         </div>
     );
 };

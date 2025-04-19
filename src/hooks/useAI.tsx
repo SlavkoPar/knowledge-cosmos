@@ -3,8 +3,6 @@ import React, { useEffect, useState } from "react";
 import { ICategory, IQuestion, IQuestionKey } from 'categories/types';
 import { useGlobalContext } from "global/GlobalProvider";
 import { IAnswer } from "groups/types";
-import useFetchWithMsal from "./useFetchWithMsal";
-import { protectedResources } from "authConfig";
 
 export interface INewQuestion {
   question: IQuestion | null;
@@ -18,10 +16,6 @@ export interface INextAnswer {
 }
 
 export const useAI = async (categories: ICategory[]) => {
-
-  const { execute } = useFetchWithMsal("", {
-		scopes: protectedResources.KnowledgeAPI.scopes.read,
-	});
 
   const { getCatsByKind, getQuestion, getAnswer } = useGlobalContext();
 
@@ -39,7 +33,7 @@ export const useAI = async (categories: ICategory[]) => {
   // }, [])
 
   const setNewQuestion = async (questionKey: IQuestionKey) : Promise<INewQuestion> => {
-    const question = await getQuestion(execute, questionKey);
+    const question = await getQuestion(questionKey);
     setQuestion(question);
     let hasMoreAnswers = false;
     let firstAnswer: IAnswer | undefined = undefined;

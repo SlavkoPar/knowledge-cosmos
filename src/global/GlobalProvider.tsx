@@ -17,7 +17,7 @@ import {
 
 import { globalReducer, initialGlobalState } from "global/globalReducer";
 
-import { Category, IAssignedAnswer, ICategory, ICategoryDto, IQuest, IQuestDto, IQuestion, IQuestionDto, IQuestionKey, Question } from "categories/types";
+import { Category, IAssignedAnswer, ICategory, ICategoryDto, ICategoryKey, IQuest, IQuestDto, IQuestion, IQuestionDto, IQuestionKey, Question } from "categories/types";
 import { IGroup, IAnswer } from "groups/types";
 import { IUser } from 'global/types';
 
@@ -47,11 +47,56 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
 
   console.log('--------> GlobalProvider')
 
-  // { error, execute }
-  const { execute } = useFetchWithMsal("", {  // execute is going to be used in loadCats only
-    scopes: protectedResources.KnowledgeAPI.scopes.read,
-  });
+  const Execute = async (method: string, endpoint: string, data: Object | null = null): Promise<any> => {
+    const accessToken = localStorage.getItem("accessToken");
+    if (accessToken) {
+      try {
+        console.log({ accessToken })
+        let response = null;
 
+        const headers = new Headers();
+        const bearer = `Bearer ${accessToken}`;
+        headers.append("Authorization", bearer);
+
+        if (data) headers.append('Content-Type', 'application/json');
+
+        let options = {
+          method: method,
+          headers: headers,
+          body: data ? JSON.stringify(data) : null,
+        };
+
+        response = (await fetch(endpoint, options));
+        if (response.ok) {
+          if ((response.status === 200 || response.status === 201)) {
+            let responseData = null; //response;
+            try {
+              responseData = await response.json();
+            }
+            catch (error) {
+              dispatch({ type: GlobalActionTypes.SET_ERROR, payload: { error: new Error(`Response status: ${response.status}`) } });
+            }
+            finally {
+              return responseData;
+            }
+          }
+        }
+        else {
+          const { errors } = await response.json();
+          const error = new Error(
+            errors?.map((e: { message: any; }) => e.message).join('\n') ?? 'unknown',
+          )
+          dispatch({ type: GlobalActionTypes.SET_ERROR, payload: { error } });
+        }
+      }
+      catch (e) {
+        console.log('-------------->>> execute', method, endpoint, e)
+        dispatch({ type: GlobalActionTypes.SET_ERROR, payload: { error: new Error(`fetch eror`) } });
+      }
+    }
+    return null;
+  }
+  // }, [dispatch]);
   const getUser = async (nickName: string) => {
     try {
       const { dbp } = globalState;
@@ -229,51 +274,13 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
   }
 
   const addInitialData = async (dbp: IDBPDatabase): Promise<void> => {
-    //new Promise<void>(async (resolve) => {
-    // Categries -> Questions
-    /*
-    try {
-      let level = 1;
-      let i = 0;
-      const data: ICategoryData[] = categoryData;
-      const tx = dbp.transaction(['Categories', 'Questions'], 'readwrite');
-      while (i < data.length) {
-        await addCategory(dbp, data[i], 'null', level);
-        i++;
-      }
-      console.log('trans categories complete')
-      // dispatch({ type: GlobalActionTypes.SET_DBP, payload: { dbp } })
-      await tx.done;
-    }
-    catch (err) {
-      console.log('error', err);
-    }
-    */
-
-    // Groups -> Answers
-    try {
-      let level = 1;
-      let i = 0;
-      const data: IGroupData[] = groupData;
-      const tx = dbp.transaction(['Groups', 'Answers'], 'readwrite');
-      while (i < data.length) {
-        await addGroup(dbp, data[i], 'null', level);
-        i++;
-      }
-      console.log('trans groups complete')
-      // dispatch({ type: GlobalActionTypes.SET_DBP, payload: { dbp } })
-      await tx.done;
-    }
-    catch (err) {
-      console.log('error', err);
-    }
-    // }
+   
   }
 
   // ---------------------------
   // load all short categories
   // ---------------------------
-  const loadCats = useCallback(async (execute: (method: string, endpoint: string, data: Object | null) => Promise<any>): Promise<any> => {
+  const loadCats = useCallback(async (): Promise<any> => {
     const { catsLoaded } = globalState;
     if (catsLoaded) {
       var diffMs = (Date.now() - catsLoaded!); // milliseconds between
@@ -286,7 +293,7 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
       try {
         const url = `${process.env.REACT_APP_API_URL}/Category`;
         console.time();
-        await execute("GET", protectedResources.KnowledgeAPI.endpointCategory, null).then((response: ICategoryDto[] | Response) => {
+        await Execute("GET", protectedResources.KnowledgeAPI.endpointCategory, null).then((response: ICategoryDto[] | Response) => {
           console.log({ response }, protectedResources.KnowledgeAPI.endpointCategory)
           const categories = new Map<string, ICategory>();
           const cats = new Map<string, ICat>();
@@ -332,18 +339,18 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
 
 
   //const searchQuestions = useCallback(async (execute: (method: string, endpoint: string) => Promise<any>, filter: string, count: number): Promise<any> => {
-  const searchQuestions = async (execute: (method: string, endpoint: string) => Promise<any>, filter: string, count: number): Promise<any> => {
+  const searchQuestions = async (filter: string, count: number): Promise<any> => {
     return new Promise(async (resolve) => {
       try {
         console.time();
         const filterEncoded = encodeURIComponent(filter);
         const url = `${protectedResources.KnowledgeAPI.endpointQuestion}/${filterEncoded}/${count}/null`;
-        await execute("GET", url).then((response: IQuestDto[] | undefined) => {
+        await Execute("GET", url).then((response: IQuestDto[] | undefined) => {
           console.log({ response }, protectedResources.KnowledgeAPI.endpointCategory);
           console.timeEnd();
           if (response) {
             const listQuest: IQuest[] = response.map((q: IQuestDto) => ({
-              partitionKey : q.PartitionKey,
+              partitionKey: q.PartitionKey,
               id: q.Id,
               parentCategory: q.ParentCategory,
               title: q.Title
@@ -366,73 +373,7 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
 
   const OpenDB = useCallback(async (): Promise<any> => {
     try {
-      let initializeData = false;
-      const dbp = await openDB('SupportKnowledge', 1, {
-        upgrade(db, oldVersion, newVersion, transaction, event) {
-          //console.error('Error loading database.');
-
-          // Categories
-          const store = db.createObjectStore('Categories', { keyPath: 'id' });
-          store.createIndex('title_idx', 'title', { unique: true });
-          store.createIndex('parentCategory_idx', 'parentCategory', { unique: false });
-
-          // Questions
-          const questionsStore = db.createObjectStore('Questions', { keyPath: 'id' });
-          questionsStore.createIndex('words_idx', 'words', { multiEntry: true, unique: false });
-          questionsStore.createIndex('parentCategory_title_idx', ['parentCategory', 'title'], { unique: true });
-          questionsStore.createIndex('parentCategory_idx', 'parentCategory', { unique: false });
-
-          // Groups
-          const groupStore = db.createObjectStore('Groups', { keyPath: 'id' });
-          groupStore.createIndex('title_idx', 'title', { unique: true });
-          groupStore.createIndex('parentGroup_idx', 'parentGroup', { unique: false });
-
-          // Answers
-          const answerStore = db.createObjectStore('Answers', { autoIncrement: true });
-          answerStore.createIndex('words_idx', 'words', { multiEntry: true, unique: false });
-          answerStore.createIndex('parentGroup_title_idx', ['parentGroup', 'title'], { unique: true });
-          answerStore.createIndex('parentGroup_idx', 'parentGroup', { unique: false });
-
-          // Roles
-          const roleStore = db.createObjectStore('Roles', { keyPath: 'title' });
-          roleStore.createIndex('title_idx', 'title', { unique: true });
-          roleStore.createIndex('parentRole_idx', 'parentRole', { unique: false });
-
-          // Users
-          const userStore = db.createObjectStore('Users', { keyPath: 'nickName' });
-          groupStore.createIndex('nickName_idx', 'nickName', { unique: true });
-          userStore.createIndex('words_idx', 'words', { multiEntry: true, unique: false });
-          userStore.createIndex('parentRole_nickName_idx', ['parentRole', 'nickName'], { unique: true });
-          userStore.createIndex('parentRole_idx', 'parentRole', { unique: false });
-
-          // History
-          const historyStore = db.createObjectStore('History', { autoIncrement: true });
-          historyStore.createIndex('conversation_idx', 'conversation', { unique: false }); // used for getLastConversation
-          historyStore.createIndex('question_conversation_answer_idx', ['questionId', 'conversation', 'answerId'], { unique: false });
-
-          initializeData = true;
-        },
-        terminated() {
-          alert('terminated')
-        }
-      })
-      // Add initial data
-      if (initializeData) {
-        await addInitialData(dbp);
-        const userData: IUserData = roleData[0].users![0];
-        const { nickName, name, password, email } = userData;
-        const regUser: IRegisterUser = { ...userData, level: 1, confirmed: false }
-        //await registerUser(regUser, true, dbp);
-      }
-      await loadCats(execute);
-      dispatch({ type: GlobalActionTypes.SET_DBP, payload: { dbp } });
-      // else {
-      //   signInUser({nickName: 'Boss', password: 'Boss12345'})
-      // }
-      // This event handles the event whereby a new version of the database needs to be created
-      // Either one has not been created before, or a new version number has been submitted via the
-      // window.indexedDB.open line above
-      //it is only implemented in recent browsers
+      await loadCats();
       return true;
     }
     catch (err: any) {
@@ -440,7 +381,7 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
       dispatch({
         type: GlobalActionTypes.SET_ERROR,
         payload: {
-          error: new Error("")
+          error: new Error("Greska Teska")
         }
       });
       return false;
@@ -469,15 +410,13 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
   }
 
   // differs from CategoryProvider, here we don't dispatch
-  const getQuestion = async (
-    execute: (method: string, endpoint: string) => Promise<any>,
-    questionKey: IQuestionKey): Promise<any> => {
+  const getQuestion = async (questionKey: IQuestionKey) : Promise<any> => {
     return new Promise(async (resolve) => {
       try {
         const { partitionKey, id } = questionKey;
         //const url = `${process.env.REACT_APP_API_URL}/Question/${parentCategory}/${id}`;
         //console.log(`FETCHING --->>> ${url}`)
-        //dispatch({ type: ActionTypes.SET_LOADING })
+        //dispatch({ type: GlobalActionTypes.SET_LOADING, payload: {} })
         console.time()
         /*
         axios
@@ -500,12 +439,10 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
           });
         */
         const url = `${protectedResources.KnowledgeAPI.endpointQuestion}/${partitionKey}/${id}`;
-        await execute("GET", url).then((response: IQuestionDto) => {
+        await Execute("GET", url).then((questionDto: IQuestionDto) => {
           console.timeEnd();
-          console.log({ response });
-          const questionDto = response!;
-          const question: IQuestion = new Question(questionDto/*, parentCategory*/).question;
-          question.categoryTitle = 'nadji me';
+          console.log({ response: questionDto });
+          const question: IQuestion = new Question(questionDto).question;
           resolve(question);
         });
 
@@ -550,7 +487,7 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
   //////////////////////////////////////////////////////////////////////////////////////////////////
   // Select Category
   // TOD mozda ne mora iz baze
-  const getSubCats = async ({ parentCategory, level }: IParentInfo): Promise<any> => {
+  const getSubCatsWas = async ({ parentCategory, level }: IParentInfo): Promise<any> => {
     try {
       const { dbp } = globalState;
       const tx = dbp!.transaction('Categories')
@@ -593,6 +530,35 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
       dispatch({ type: GlobalActionTypes.SET_ERROR, payload: { error: err } });
     }
   }
+
+
+const getSubCats = useCallback(async (categoryKey: ICategoryKey) => {
+    return new Promise(async (resolve) => {
+      const { partitionKey, id } = categoryKey;
+      try {
+        //dispatch({ type: GlobalActionTypes.SET_LOADING, payload: {} });
+        const url = `${protectedResources.KnowledgeAPI.endpointCategory}/${partitionKey}/${id}`;
+        console.log('calling getSubCategories:', url)
+        console.time();
+        await Execute("GET", url).then((categoryDtos: ICategoryDto[]) => {
+          console.timeEnd();
+          const subCategories = categoryDtos!.map((categoryDto: ICategoryDto) => new Category(categoryDto).category);
+          const subCats = subCategories.map((c: ICategory) => ({
+            ...c,
+            questions: [],
+            isExpanded: false
+          }))
+          resolve(subCats);
+        });
+      }
+      catch (error: any) {
+        console.log(error)
+        resolve([]);
+        //dispatch({ type: GlobalActionTypes.SET_ERROR, payload: { error } });
+      }
+    })
+  }, []);
+
 
   const exportToObj = async (index: IDBPIndex<unknown, ["Categories"], "Categories", "parentCategory_idx", "readonly">,
     category: ICategory) => {

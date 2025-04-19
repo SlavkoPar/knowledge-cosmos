@@ -10,7 +10,7 @@ export const initialState: ICatsState = {
 }
 
 export const CatsReducer: Reducer<ICatsState, CatsActions> = (state, action) => {
-  
+
   switch (action.type) {
     case CatsActionTypes.SET_LOADING:
       return {
@@ -52,7 +52,7 @@ export const CatsReducer: Reducer<ICatsState, CatsActions> = (state, action) => 
       };
     }
 
-    case CatsActionTypes.SET_PARENT_CATEGORY: {
+    case CatsActionTypes.SET_PARENT_CAT: {
       const { category } = action.payload;
       const { id, title } = category;
       return {

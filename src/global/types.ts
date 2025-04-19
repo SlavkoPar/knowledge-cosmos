@@ -1,5 +1,5 @@
 // Define the Global State
-import { IAssignedAnswer, ICategory, IQuest, IQuestion, IQuestionKey } from 'categories/types';
+import { IAssignedAnswer, ICategory, ICategoryKey, IQuest, IQuestion, IQuestionKey } from 'categories/types';
 //import { IOption } from 'common/types';
 import { IAnswer } from 'groups/types';
 import { IDBPDatabase } from 'idb';
@@ -137,13 +137,13 @@ export interface IGlobalContext {
 	globalState: IGlobalState;
 	getUser: (nickName: string) => Promise<any>;
 	OpenDB: () => Promise<any>;
-	loadCats: (execute: (method: string, endpoint: string, data: Object | null) => Promise<any>) => void;
+	loadCats: () => void;
 	exportToJSON: (category: ICategory, parentCategory: string) => void;
 	health: () => void;
-	getSubCats: ({ parentCategory, level }: IParentInfo) => Promise<any>;
+	getSubCats: (categoryKey: ICategoryKey) => Promise<any>;
 	getCatsByKind: (kind: number) => Promise<ICat[]>;
-	searchQuestions: (execute: (method: string, endpoint: string) => Promise<any>, filter: string, count: number) => Promise<IQuest[]>;
-	getQuestion: (execute: (method: string, endpoint: string) => Promise<any>, questionKey: IQuestionKey) => Promise<IQuestion | null>;
+	searchQuestions: (filter: string, count: number) => Promise<IQuest[]>;
+	getQuestion: (questionKey: IQuestionKey) => Promise<IQuestion | null>;
 	joinAssignedAnswers: (assignedAnswers: IAssignedAnswer[]) => Promise<IAssignedAnswer[]>;
 	getAnswer: (id: number) => Promise<IAnswer | undefined>;
 	getMaxConversation: (dbp: IDBPDatabase) => Promise<number>;
@@ -236,14 +236,14 @@ export type GlobalPayload = {
 
 export interface ICatsState {
 	loading: boolean,
-	parentCategory: IDBValidKey | null,
+	parentCategory: string | null,
 	title: string,
 	cats: ICategory[], // drop down categories
 	error?: Error;
 }
 
 export interface ICatInfo {
-	parentCategory: string,
+	categoryKey: ICategoryKey,
 	level: number,
 	setParentCategory: (category: ICategory) => void;
 }
@@ -253,7 +253,7 @@ export enum CatsActionTypes {
 	SET_SUB_CATS = 'SET_SUB_CATS',
 	SET_ERROR = 'SET_ERROR',
 	SET_EXPANDED = 'SET_EXPANDED',
-	SET_PARENT_CATEGORY = 'SET_PARENT_CATEGORY'
+	SET_PARENT_CAT = 'SET_PARENT_CAT'
 }
 
 export type CatsPayload = {
@@ -272,7 +272,7 @@ export type CatsPayload = {
 		error: Error;
 	};
 
-	[CatsActionTypes.SET_PARENT_CATEGORY]: {
+	[CatsActionTypes.SET_PARENT_CAT]: {
 		category: ICategory;
 	};
 

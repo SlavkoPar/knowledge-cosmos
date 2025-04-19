@@ -5,7 +5,7 @@ import { useFormik } from "formik";
 import { Form, CloseButton, Row, Col, Stack } from "react-bootstrap";
 import { CreatedModifiedForm } from "common/CreateModifiedForm"
 import { FormButtons } from "common/FormButtons"
-import { ActionTypes, FormMode, ICategory, IQuestion, IQuestionFormProps } from "categories/types";
+import { ActionTypes, FormMode, ICategory, ICategoryKey, IQuestion, IQuestionFormProps } from "categories/types";
 
 import { Select } from 'common/components/Select';
 import { sourceOptions } from 'common/sourceOptions'
@@ -29,7 +29,9 @@ const QuestionForm = ({ mode, question, submitForm, children, showCloseButton, s
   const editing = mode === FormMode.editing;
   const adding = mode === FormMode.adding;
 
-  const { title, id, assignedAnswers } = question;
+  const { partitionKey, parentCategory, title, id, assignedAnswers } = question;
+  // const categoryKey = {partitionKey, id: parentCategory};
+  const categoryKey: ICategoryKey = {partitionKey: 'null', id: 'null'};
 
   const dispatch = useCategoryDispatch();
 
@@ -104,7 +106,7 @@ const QuestionForm = ({ mode, question, submitForm, children, showCloseButton, s
                 <Dropdown.Menu className="p-0">
                   <Dropdown.Item className="p-0 m-0 rounded-3">
                     <CatList
-                      parentCategory='null'
+                      categoryKey={categoryKey}
                       level={1}
                       setParentCategory={setParentCategory}
                     />
@@ -236,7 +238,7 @@ const QuestionForm = ({ mode, question, submitForm, children, showCloseButton, s
           />
         }
 
-        { state.error  && <div className="text-danger">{state.error.message}</div> }
+        {state.error && <div className="text-danger">{state.error.message}</div>}
 
       </Form>
     </div >

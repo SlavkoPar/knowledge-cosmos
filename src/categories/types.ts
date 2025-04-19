@@ -180,6 +180,12 @@ export class CategoryDto {
 	categoryDto: ICategoryDto;
 }
 
+export interface ICategoryDtoEx {
+	categoryDto: ICategoryDto | null;
+	msg: string;
+}
+
+
 
 export class QuestionDto {
 	constructor(question: IQuestion) {
@@ -253,6 +259,12 @@ export interface ICategoryDto extends IRecordDto {
 	HasMoreQuestions?: boolean;
 }
 
+export interface ICategoryDtoListEx {
+	categoryDtoList: ICategoryDto[];
+	msg: string;
+}
+
+
 export interface ICategoryInfo {
 	partitionKey: string;
 	id: string,
@@ -317,7 +329,7 @@ export interface ICategoriesContext {
 	assignQuestionAnswer: (questionId: string, answerId: number, assigned: IWhoWhen) => Promise<any>;
 	unAssignQuestionAnswer: (questionId: string, answerId: number) => Promise<any>;
 	createAnswer: (answer: IAnswer) => Promise<any>;
-	deleteQuestion: (execute: (method: string, endpoint: string) => Promise<any>, question: IQuestion) => void;
+	deleteQuestion: (question: IQuestion) => void;
 }
 
 export interface ICategoryFormProps {

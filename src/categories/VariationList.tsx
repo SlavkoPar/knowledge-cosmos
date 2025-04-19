@@ -46,7 +46,7 @@ const VariationList = ({ categoryKey, variations }: { categoryKey: ICategoryKey,
         {variations.length === 0 &&
           <div>No variations</div>
         }
-        {
+        {variations.length > 0 &&
           variations.map((tag: IVariation) => {
             return <VariationRow
               categoryKey={categoryKey}

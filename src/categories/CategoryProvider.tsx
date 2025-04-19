@@ -3,7 +3,8 @@ import React, { createContext, useContext, useReducer, useCallback, Dispatch } f
 
 import {
   ActionTypes, ICategory, IQuestion, ICategoriesContext, IParentInfo, IFromUserAssignedAnswer,
-  IAssignedAnswer, ICategoryDto,
+  IAssignedAnswer,
+  ICategoryDto, ICategoryDtoEx, ICategoryDtoListEx,
   IQuestionDto, IQuestionDtoEx,
   Category,
   Question,
@@ -56,56 +57,66 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
   // }
 
 
-  const Execute = async (method: string, endpoint: string, data: Object | null = null): Promise<any> => {
-      const accessToken = localStorage.getItem("accessToken");
-      if (accessToken) {
-        try {
-          console.log({ accessToken })
-          let response = null;
+  const Execute = async (
+    method: string,
+    endpoint: string,
+    data: Object | null = null,
+    whichRowId: string | undefined = undefined
+  ): Promise<any> => {
+    const accessToken = localStorage.getItem("accessToken");
+    if (accessToken) {
+      try {
+        console.log({ accessToken })
+        let response = null;
 
-          const headers = new Headers();
-          const bearer = `Bearer ${accessToken}`;
-          headers.append("Authorization", bearer);
+        const headers = new Headers();
+        const bearer = `Bearer ${accessToken}`;
+        headers.append("Authorization", bearer);
 
-          if (data) headers.append('Content-Type', 'application/json');
+        if (data) headers.append('Content-Type', 'application/json');
 
-          let options = {
-            method: method,
-            headers: headers,
-            body: data ? JSON.stringify(data) : null,
-          };
+        let options = {
+          method: method,
+          headers: headers,
+          body: data ? JSON.stringify(data) : null,
+        };
 
-          response = (await fetch(endpoint, options));
-          if (response.ok) {
-            if ((response.status === 200 || response.status === 201)) {
-              let responseData = null; //response;
-              try {
-                responseData = await response.json();
-              }
-              catch (error) {
-                dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error(`Response status: ${response.status}`) } });
-              }
-              finally {
-                return responseData;
-              }
+        response = (await fetch(endpoint, options));
+        if (response.ok) {
+          if ((response.status === 200 || response.status === 201)) {
+            let responseData = null; //response;
+            try {
+              responseData = await response.json();
+            }
+            catch (error) {
+              dispatch({
+                type: ActionTypes.SET_ERROR, payload: {
+                  error: new Error(`Response status: ${response.status}`),
+                  whichRowId
+                }
+              });
+            }
+            finally {
+              return responseData;
             }
           }
-          else {
-            const { errors } = await response.json();
-            const error = new Error(
-              errors?.map((e: { message: any; }) => e.message).join('\n') ?? 'unknown',
-            )
-            dispatch({ type: ActionTypes.SET_ERROR, payload: { error } });
-          }
         }
-        catch (e) {
-          console.log('-------------->>> execute', method, endpoint, e)
-          dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error(`fetch eror`) } });
+        else {
+          const { errors } = await response.json();
+          const error = new Error(
+            errors?.map((e: { message: any; }) => e.message).join('\n') ?? 'unknown',
+          )
+          dispatch({ type: ActionTypes.SET_ERROR, payload: { error, whichRowId } });
         }
       }
-      return null;
+      catch (e) {
+        console.log('-------------->>> execute', method, endpoint, e)
+        dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error(`fetch eror`), whichRowId } });
+      }
+    }
+    return null;
   }
-   // }, [dispatch]);
+  // }, [dispatch]);
 
   const reloadCategoryNode = useCallback(
     async (categoryKey: ICategoryKey | null, questionId: string | null): Promise<any> => {
@@ -123,14 +134,10 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
           const url = `${protectedResources.KnowledgeAPI.endpointCat}/${cat.partitionKey}/${id}`;
           console.log('calling CatController.GetCatsUpTheTree', url)
           await Execute("GET", url)
-            .then((response: ICategoryDto[]) => {
+            .then((categoryDtoListEx: ICategoryDtoListEx) => {
+              const {categoryDtoList, msg} = categoryDtoListEx;
               console.timeEnd();
-              // console.log({ response });
-              // if (response instanceof Response) {
-              //   dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error('fetch Response') } });
-              // }
-              const data: ICategoryDto[] = response;
-              const categoryNodesUpTheTree = data.map((categoryDto: ICategoryDto) => {
+              const categoryNodesUpTheTree = categoryDtoList.map((categoryDto: ICategoryDto) => {
                 const { PartitionKey, Id, Title } = categoryDto;
                 return { partitionKey: PartitionKey, id: Id, title: Title } as ICategoryKeyExtended
               })
@@ -160,15 +167,9 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
         const url = `${protectedResources.KnowledgeAPI.endpointCategory}/${partitionKey}/${id}`;
         console.log('calling getSubCategories:', url)
         console.time();
-        await Execute("GET", url).then((response: ICategoryDto[]) => {
+        await Execute("GET", url).then((categoryDtos: ICategoryDto[]) => {
           console.timeEnd();
-          // if (response instanceof Response) {
-          //   console.log('response instanceof Response', { response });
-          //   dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error('fetch Response') } });
-          //   resolve(false);
-          // }
-          const data: ICategoryDto[] = response;
-          const subCategories = data!.map((categoryDto: ICategoryDto) => new Category(categoryDto).category);
+          const subCategories = categoryDtos!.map((categoryDto: ICategoryDto) => new Category(categoryDto).category);
           dispatch({ type: ActionTypes.SET_SUB_CATEGORIES, payload: { subCategories } });
           resolve(true);
         });
@@ -186,28 +187,21 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
       const { partitionKey, id, variations, title, kind, modified } = category;
       dispatch({ type: ActionTypes.SET_CATEGORY_LOADING, payload: { id, loading: false } });
       try {
-        const categoryDto = new CategoryDto(category).categoryDto;
-        categoryDto.Created = new WhoWhen2Dto(category.created!).whoWhenDto!;
+        const categoryDto = new CategoryDto(category).categoryDto;       
+        console.log("categoryDto", { categoryDto })
         const url = `${protectedResources.KnowledgeAPI.endpointCategory}`;
         console.time()
-        await Execute("POST", url, categoryDto)
-          .then(async (response: ICategoryDto | Response) => {
+        await Execute("POST", url, categoryDto, id)
+          .then(async (categoryDtoEx: ICategoryDtoEx | null) => {
             console.timeEnd();
-            if (response instanceof Response) {
-              console.error(response);
-              dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error('Server Error'), whichRowId: id } });
-            }
-            else {
-              const categoryDto: ICategoryDto = response;
+            if (categoryDtoEx) {
+              const { categoryDto } = categoryDtoEx;
               if (categoryDto) {
                 const category = new Category(categoryDto).category;
                 console.log('Category successfully created')
                 dispatch({ type: ActionTypes.SET_ADDED_CATEGORY, payload: { category: { ...category, questions: [] } } });
                 dispatch({ type: ActionTypes.CLOSE_CATEGORY_FORM })
-                await loadCats(Execute); // reload
-              }
-              else {
-                dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error(`Category ${id} not found!`) } });
+                await loadCats(); // reload
               }
             }
           });
@@ -221,25 +215,20 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
 
   const getCategory = async (categoryKey: ICategoryKey, includeQuestionId: string): Promise<any> => {
     const { partitionKey, id } = categoryKey;
+    console.log({ categoryKey, includeQuestionId })
     return new Promise(async (resolve) => {
       try {
         const url = `${protectedResources.KnowledgeAPI.endpointCategory}/${partitionKey}/${id}/${PAGE_SIZE}/${includeQuestionId}`;
         console.time()
         await Execute("GET", url)
-          .then((response: ICategoryDto | Response) => {
+          .then((categoryDtoEx: ICategoryDtoEx) => {
             console.timeEnd();
-            if (response instanceof Response) {
-              console.error(response);
-              resolve(new Error('fetch response error'));
+            const { categoryDto, msg } = categoryDtoEx;
+            if (categoryDto) {
+              resolve(new Category(categoryDto).category);
             }
             else {
-              const categoryDto: ICategoryDto = response;
-              if (categoryDto) {
-                resolve(new Category(categoryDto).category);
-              }
-              else {
-                resolve(new Error(`Category ${id} not found!`));
-              }
+              resolve(new Error(msg));
             }
           });
       }
@@ -255,9 +244,10 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
       try {
         const category: ICategory | Error = await getCategory(categoryKey, includeQuestionId); // to reload Category
         // .then(async (category: ICategory) => {
-        // console.log('getCategory', { category })
+        console.log('getCategory', { category })
         if (category instanceof Error) {
           dispatch({ type: ActionTypes.SET_ERROR, payload: { error: category } });
+          console.error({category})
         }
         else {
           console.log('vratio getCategory', category)
@@ -309,7 +299,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
   }, [dispatch]);
 
 
-  const editCategory = useCallback(async ( categoryKey: ICategoryKey, includeQuestionId: string) => {
+  const editCategory = useCallback(async (categoryKey: ICategoryKey, includeQuestionId: string) => {
     dispatch({ type: ActionTypes.SET_LOADING });
     const category = await getCategory(categoryKey, includeQuestionId);
     if (category instanceof Error)
@@ -377,7 +367,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
             const resp: { msg: string } = response;
             if (response.msg == "OK") {
               dispatch({ type: ActionTypes.DELETE, payload: { id: categoryKey.id } });
-              await loadCats(Execute); // reload
+              await loadCats(); // reload
             }
             else if (resp.msg === "HasSubCategories") {
               dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error("First remove sub categories"), whichRowId: categoryKey.id } });
@@ -432,28 +422,26 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
       : Promise<any> => {
       const questions: IQuestion[] = [];
       try {
+        const partitionKey = categoryKey.partitionKey;
         const parentCategory = categoryKey.id;
         dispatch({ type: ActionTypes.SET_CATEGORY_QUESTIONS_LOADING, payload: { questionLoading: true } })
         try {
-          const url = `${protectedResources.KnowledgeAPI.endpointQuestion}/${parentCategory}/${startCursor}/${PAGE_SIZE}/${includeQuestionId}`;
+          const url = `${protectedResources.KnowledgeAPI.endpointQuestion}/${partitionKey}/${parentCategory}/${startCursor}/${PAGE_SIZE}/${includeQuestionId}`;
           console.time()
-          console.log('>>>>>>>>>>>>loadCategoryQuestions of:', { url })
-          await Execute!("GET", url).then((response: ICategoryDto | null) => {
+          console.log('>>>>>>>>>>>>loadCategoryQuestions URL:', { url })
+          await Execute!("GET", url).then((categoryDtoEx: ICategoryDtoEx) => {
             console.timeEnd();
-            console.log({ response });
-            // if (response instanceof Response) {
-            //   throw (response);
-            // }
-            if (response === null) 
+            const {	categoryDto, msg } = categoryDtoEx;
+            console.log('>>>>>>>>>>>>loadCategoryQuestions categoryDto:', { categoryDto })
+            if (categoryDto === null)
               return null;
-            const categoryDto: ICategoryDto = response;
-            const { Questions, HasMoreQuestions } = categoryDto;
+            const { Title, Questions, HasMoreQuestions } = categoryDto;
             Questions!.forEach((questionDto: IQuestionDto) => {
               const question = new Question(questionDto).question;
               if (includeQuestionId && question.id === includeQuestionId) {
                 question.included = true;
               }
-              question.categoryTitle = 'nadji me';
+              question.categoryTitle = Title;
               questions.push(question);
             })
             dispatch({
@@ -485,25 +473,17 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
         console.time()
         console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> createQuestion', questionDto)
         await Execute("POST", url, questionDto)
-          .then(async (response: IQuestionDtoEx | Response) => {
+          .then(async (questionDtoEx: IQuestionDtoEx | null) => {
             console.timeEnd();
-            if (response instanceof Response) {
-              console.error(response);
-              dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error('Server Error'), whichRowId: id } });
-            }
-            else {
-              const questionDtoEx: IQuestionDtoEx = response;
+            if (questionDtoEx) {
               console.log("::::::::::::::::::::", { questionDtoEx });
-              const { questionDto, msg } = questionDtoEx;
+              const { questionDto } = questionDtoEx;
               if (questionDto) {
                 const question = new Question(questionDto).question;
                 console.log('Question successfully created')
                 dispatch({ type: ActionTypes.SET_QUESTION, payload: { question } });
                 //dispatch({ type: ActionTypes.CLOSE_QUESTION_FORM })
-                await loadCats(Execute); // reload
-              }
-              else {
-                dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error(msg) } });
+                await loadCats(); // reload
               }
             }
           });
@@ -538,7 +518,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
                 console.log('Question successfully updated')
                 dispatch({ type: ActionTypes.SET_QUESTION, payload: { question } });
                 //dispatch({ type: ActionTypes.CLOSE_QUESTION_FORM })
-                await loadCats(Execute); // reload
+                await loadCats(); // reload
               }
               else {
                 dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error(msg) } });
@@ -554,8 +534,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
 
 
   const deleteQuestion = useCallback(
-    async (execute: (method: string, endpoint: string, data: Object | null) => Promise<any>,
-      question: IQuestion) => {
+    async (question: IQuestion) => {
       const { partitionKey, id, title, modified, parentCategory } = question;
       dispatch({ type: ActionTypes.SET_CATEGORY_LOADING, payload: { id: parentCategory, loading: false } });
       try {
@@ -563,7 +542,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
         questionDto.Archived = new WhoWhen2Dto(question.archived!).whoWhenDto!;
         const url = `${protectedResources.KnowledgeAPI.endpointQuestion}`;
         console.time()
-        await execute("DELETE", url, questionDto)
+        await Execute("DELETE", url, questionDto)
           .then(async (response: IQuestionDtoEx | Response) => {
             console.timeEnd();
             if (response instanceof Response) {
@@ -578,7 +557,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
                 console.log('Question successfully deleted')
                 dispatch({ type: ActionTypes.DELETE_QUESTION, payload: { question } });
                 //dispatch({ type: ActionTypes.CLOSE_QUESTION_FORM })
-                await loadCats(execute); // reload
+                await loadCats(); // reload
               }
               else {
                 dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error(msg) } });
@@ -599,21 +578,21 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
         const url = `${protectedResources.KnowledgeAPI.endpointQuestion}/${partitionKey}/${id}`;
         console.time()
         await Execute("GET", url)
-          .then((questionDtoEx: IQuestionDtoEx | null) => {
+          .then((questionDtoEx: IQuestionDtoEx) => {
             console.timeEnd();
-            if (questionDtoEx === null) {
-              resolve(null);
+            // if (questionDtoEx === null) {
+            //   resolve(null);
+            // }
+            // else {
+            const { questionDto, msg } = questionDtoEx;
+            const question: IQuestion = new Question(questionDto!).question;
+            if (questionDto) {
+              resolve(question);
             }
             else {
-              const { questionDto, msg } = questionDtoEx;
-              const question: IQuestion = new Question(questionDto!).question;
-              if (questionDto) {
-                resolve(question);
-              }
-              else {
-                resolve(new Error(`Question ${id} not found!`));
-              }
+              resolve(new Error(msg));
             }
+            //}
           });
       }
       catch (error: any) {

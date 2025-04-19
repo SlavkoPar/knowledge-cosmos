@@ -357,7 +357,6 @@ const ChatBotPage: React.FC = () => {
 										tekst={tekst}
 										onSelectQuestion={onSelectQuestion}
 										allCategories={cats}
-										execute={execute}
 										searchQuestions={searchQuestions}
 									/>
 								</>

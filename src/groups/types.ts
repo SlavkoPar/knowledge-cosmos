@@ -114,7 +114,6 @@ export interface IGroupsContext {
 	state: IGroupsState,
 	reloadGroupNode: (groupId: string, answerId: string | null) => Promise<any>;
 	getSubGroups: ({ parentGroup, level }: IParentInfo) => void,
-	getSubCats: ({ parentGroup, level }: IParentInfo) => Promise<any>,
 	createGroup: (group: IGroup) => void,
 	viewGroup: (id: string) => void,
 	editGroup: (id: string) => void,

@@ -203,12 +203,12 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
 
     case ActionTypes.ADD_SUB_CATEGORY: {
       const { categoryKey, level } = action.payload;
+      const { partitionKey, id } = categoryKey;
       const category: ICategory = {
         ...initialCategory,
-        title: '',
         level,
-        partitionKey: categoryKey.partitionKey ?? 'null',
-        parentCategory: categoryKey.id ?? 'null',
+        partitionKey,
+        parentCategory: id,
         inAdding: true
       }
       return {

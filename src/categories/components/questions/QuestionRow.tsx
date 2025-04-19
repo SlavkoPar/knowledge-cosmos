@@ -15,9 +15,6 @@ import EditQuestion from "categories/components/questions/EditQuestion";
 import ViewQuestion from "categories/components/questions/ViewQuestion";
 import Q from 'assets/Q.png';
 import QPlus from 'assets/QPlus.png';
-import useFetchWithMsal from 'hooks/useFetchWithMsal';
-import { protectedResources } from 'authConfig';
-//import { date } from 'yup';
 
 import { IWhoWhen } from 'global/types';
 
@@ -25,14 +22,6 @@ import { IWhoWhen } from 'global/types';
 //const QuestionRow = ({ question, categoryInAdding }: { ref: React.ForwardedRef<HTMLLIElement>, question: IQuestion, categoryInAdding: boolean | undefined }) => {
 const QuestionRow = ({ question, categoryInAdding }: { question: IQuestion, categoryInAdding: boolean | undefined }) => {
     const { id, partitionKey, parentCategory, title, inViewing, inEditing, inAdding, numOfAssignedAnswers } = question;
-
-    const { execute: readExecute } = useFetchWithMsal("", {
-        scopes: protectedResources.KnowledgeAPI.scopes.read,
-    });
-
-    const { execute: writeExecute } = useFetchWithMsal("", {
-        scopes: protectedResources.KnowledgeAPI.scopes.write,
-    });
 
     const { canEdit, isDarkMode, variant, bg, authUser } = useGlobalState();
     const { state, viewQuestion, editQuestion, deleteQuestion } = useCategoryContext();
@@ -45,7 +34,7 @@ const QuestionRow = ({ question, categoryInAdding }: { question: IQuestion, cate
             time: new Date(),
             nickName: authUser.nickName 
         }
-        deleteQuestion(writeExecute, question);
+        deleteQuestion(question);
     };
 
     const edit = (Id: string) => {

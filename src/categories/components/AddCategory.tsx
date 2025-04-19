@@ -12,7 +12,6 @@ const AddCategory = ({ categoryKey, inLine }: { categoryKey: ICategoryKey, inLin
     const { nickName } = globalState.authUser;
     const { createCategory, state } = useCategoryContext();
 
-
     // do not use categoryKey
     const category: ICategory = state.categories.find(c => c.inAdding)!;
     console.assert(category, 'category.inAdding should have been found')
@@ -21,10 +20,9 @@ const AddCategory = ({ categoryKey, inLine }: { categoryKey: ICategoryKey, inLin
 
     const submitForm = async (categoryObject: ICategory) => {
         delete categoryObject.inAdding;
-        const prtitionKey = categoryObject.title.split(' ')[0].toUpperCase()
         const object: ICategory = {
             ...categoryObject,
-            partitionKey: category.partitionKey,
+            partitionKey: categoryKey.partitionKey,
             id: categoryObject.title.split(' ')[0].toUpperCase(),
             created: {
                 time: new Date(),
@@ -32,6 +30,7 @@ const AddCategory = ({ categoryKey, inLine }: { categoryKey: ICategoryKey, inLin
             },
             modified: undefined
         }
+        console.log("**********object", object)
         await createCategory(object);
     }
 
