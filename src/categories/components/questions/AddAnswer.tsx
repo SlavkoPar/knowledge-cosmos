@@ -21,7 +21,7 @@ const AddAnswer = ({ answer, closeModal, onAnswerCreated }: IProps) => {
     const [formValues] = useState(answer)
 
     const submitAnswer = async (answerObject: IAnswer) => {
-        delete answerObject.id;
+        //delete answerObject.id;  PROVERI
         const object: IAnswer = {
             ...answerObject,
             //_id: undefined,

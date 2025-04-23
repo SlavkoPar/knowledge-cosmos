@@ -6,9 +6,9 @@ import { useGlobalContext } from "global/GlobalProvider";
 import AssignedAnswer from "./AssignedAnswer";
 import { AutoSuggestAnswers } from 'categories/AutoSuggestAnswers'
 import { IWhoWhen } from "global/types";
-import { IAnswer } from "groups/types";
+import { IAnswer, IAnswerKey } from "groups/types";
 import AddAnswer from "categories/components/questions/AddAnswer"
-import { initialAnswer } from "groups/types"; // PRE
+import { initialAnswer } from "groups/GroupsReducer"; // PRE
 
 interface IProps {
     questionId: string,
@@ -43,25 +43,28 @@ const AssignedAnswers = ({ questionId, questionTitle, assignedAnswers, isDisable
     const { state, assignQuestionAnswer, unAssignQuestionAnswer } = useCategoryContext();
     const [showAssign, setShowAssign] = useState(false);
 
-    const onSelectQuestionAnswer = async (parentGroup: string, answerId: number) => {
+    const onSelectQuestionAnswer = async (answerKey: IAnswerKey) => {
         const assigned: IWhoWhen = {
             time: new Date(),
             nickName: globalState.authUser.nickName
         }
         // TODO in next version do not update MongoDB immediately, wait until users presses Save
         // User could have canceled question update
-        await assignQuestionAnswer(questionId, answerId, assigned);
+        await assignQuestionAnswer(questionId, answerKey, assigned);
         setShowAssign(false);
     }
 
     const onAnswerCreated = async (answer: IAnswer | null) => {
-        if (answer)
-            await onSelectQuestionAnswer(answer.parentGroup, answer.id!)
+        if (answer) {
+            const { partitionKey, id } =  answer;
+            const answerKey = {partitionKey, id} 
+            await onSelectQuestionAnswer(answerKey);
+        }
         handleClose()
     }
 
-    const unAssignAnswer = async (answerId: number) => {
-        await unAssignQuestionAnswer(questionId, answerId);
+    const unAssignAnswer = async (answerKey: IAnswerKey) => {
+        await unAssignQuestionAnswer(questionId, answerKey);
     }
 
     return (
@@ -153,7 +156,7 @@ const AssignedAnswers = ({ questionId, questionTitle, assignedAnswers, isDisable
                 </Modal.Header>
                 <Modal.Body style={{ height: '40vh', width: '50vw' }} className="question-answers">
 
-                    <AutoSuggestAnswers
+                    {/* <AutoSuggestAnswers
                         dbp={dbp!}
                         tekst={''}
                         alreadyAssigned={
@@ -162,7 +165,7 @@ const AssignedAnswers = ({ questionId, questionTitle, assignedAnswers, isDisable
                                 : assignedAnswers.map((a: IAssignedAnswer) => a.answer.id)
                         }
                         onSelectQuestionAnswer={onSelectQuestionAnswer}
-                    />
+                    /> */}
                 </Modal.Body>
             </Modal>
         </div>

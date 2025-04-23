@@ -115,6 +115,9 @@ export const NavigationBar = () => {
                         <img width="22" height="18" src={Q} alt="Add Question" />{' '}Questions
                     </NavLink>
 
+                    <NavLink to="/groups" className="nav-link">
+                        <img width="22" height="18" src={Q} alt="Add Answer" />{' '}Answers
+                    </NavLink>
 
                     {/* <NavLink to={`/supporter/0/${encodeURIComponent('Does Firefox support Manifest 3?')}/xyz`} className="nav-link" */}
                     <NavLink to={`/ChatBotPage/0/${encodeURIComponent('work bater')}/xyz`} className="nav-link"

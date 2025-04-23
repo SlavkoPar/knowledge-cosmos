@@ -17,7 +17,7 @@ import {
 
 import { initialCategoriesState, CategoriesReducer } from 'categories/CategoriesReducer';
 import { IWhoWhen, ICat, Dto2WhoWhen, WhoWhen2Dto } from 'global/types';
-import { IAnswer, IGroup } from 'groups/types';
+import { IAnswer, IAnswerKey, IGroup } from 'groups/types';
 import { protectedResources } from 'authConfig';
 import { useMsal, useMsalAuthentication } from '@azure/msal-react';
 import { InteractionType } from '@azure/msal-browser';
@@ -135,7 +135,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
           console.log('calling CatController.GetCatsUpTheTree', url)
           await Execute("GET", url)
             .then((categoryDtoListEx: ICategoryDtoListEx) => {
-              const {categoryDtoList, msg} = categoryDtoListEx;
+              const { categoryDtoList, msg } = categoryDtoListEx;
               console.timeEnd();
               const categoryNodesUpTheTree = categoryDtoList.map((categoryDto: ICategoryDto) => {
                 const { PartitionKey, Id, Title } = categoryDto;
@@ -187,7 +187,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
       const { partitionKey, id, variations, title, kind, modified } = category;
       dispatch({ type: ActionTypes.SET_CATEGORY_LOADING, payload: { id, loading: false } });
       try {
-        const categoryDto = new CategoryDto(category).categoryDto;       
+        const categoryDto = new CategoryDto(category).categoryDto;
         console.log("categoryDto", { categoryDto })
         const url = `${protectedResources.KnowledgeAPI.endpointCategory}`;
         console.time()
@@ -247,7 +247,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
         console.log('getCategory', { category })
         if (category instanceof Error) {
           dispatch({ type: ActionTypes.SET_ERROR, payload: { error: category } });
-          console.error({category})
+          console.error({ category })
         }
         else {
           console.log('vratio getCategory', category)
@@ -431,7 +431,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
           console.log('>>>>>>>>>>>>loadCategoryQuestions URL:', { url })
           await Execute!("GET", url).then((categoryDtoEx: ICategoryDtoEx) => {
             console.timeEnd();
-            const {	categoryDto, msg } = categoryDtoEx;
+            const { categoryDto, msg } = categoryDtoEx;
             console.log('>>>>>>>>>>>>loadCategoryQuestions categoryDto:', { categoryDto })
             if (categoryDto === null)
               return null;
@@ -619,20 +619,23 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
   }, []);
 
 
-  const assignQuestionAnswer = useCallback(async (questionId: string, answerId: number, assigned: IWhoWhen): Promise<any> => {
+    const assignQuestionAnswer = useCallback(async (questionId: string, answerKey: IAnswerKey, assigned: IWhoWhen): Promise<any> => {
+      return [];
+      /*
     try {
+      const { parentGroup: partitionKey, id } = answerKey;
       const question: IQuestion = await dbp!.get('Questions', questionId);
-      const answer: IAnswer = await dbp!.get('Answers', answerId);
+      const answer: IAnswer = await dbp!.get('Answers', id);
       const newAssignedAnwser: IAssignedAnswer = {
-        answer: {
-          id: answerId
-          // title: answer.title
+        answerKey: {
+          parentGroup: '',
+          id: 'xxx', //answerId
         },
-        user: {
-          nickName: globalState.authUser.nickName,
-          createdBy: 'date string'
-        },
-        assigned
+        title: answer.title,
+        assigned: {
+          time: new Date(),
+          nickName: globalState.authUser.nickName
+        }
       }
       const assignedAnswers = [...question.assignedAnswers, newAssignedAnwser];
       const obj: IQuestion = {
@@ -652,15 +655,17 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
       console.log('error', error);
       dispatch({ type: ActionTypes.SET_ERROR, payload: { error } });
     }
+    */
   }, []);
 
 
-  const unAssignQuestionAnswer = useCallback(async (questionId: string, answerId: number): Promise<any> => {
+  const unAssignQuestionAnswer = useCallback(async (questionId: string, answerKey: IAnswerKey): Promise<any> => {
     try {
+      const { partitionKey, id } = answerKey;
       const question = await dbp!.get('Questions', questionId);
       // const answer: IAnswer = await dbp!.get('Answers', answerId);
 
-      const assignedAnswers = question.assignedAnswers.filter((aa: IAssignedAnswer) => aa.answer.id !== answerId);
+      const assignedAnswers = question.assignedAnswers.filter((aa: IAssignedAnswer) => aa.answerKey.id !== id);
       const obj: IQuestion = {
         ...question,
         assignedAnswers,

@@ -9,33 +9,35 @@ import { IAssignedAnswer } from "categories/types";
 import { useCategoryContext } from "categories/CategoryProvider";
 import { formatDate } from 'common/utilities'
 import React, { useState } from "react";
+import { IAnswerKey } from 'groups/types';
 
 interface IProps {
     questionTitle: string,
     assignedAnswer: IAssignedAnswer,
     groupInAdding: boolean | undefined,
     isDisabled: boolean,
-    unAssignAnswer: (answerId: number) => void
+    unAssignAnswer: (answerKey: IAnswerKey) => void
 }
-const AssignedAnswer = ({ questionTitle, assignedAnswer: questionAnswer, isDisabled, unAssignAnswer }: IProps) => {
+const AssignedAnswer = ({ questionTitle, assignedAnswer, isDisabled, unAssignAnswer }: IProps) => {
 
-    const { answer, assigned, user } = questionAnswer;
-    const { title, id } = answer;
+    const { answerKey, title, assigned } = assignedAnswer;
+    const { partitionKey, id } = answerKey;
+
+    const { time, nickName } = assigned;
     const emailFromClient = localStorage.getItem('emailFromClient');
 
-    const rowTitle = `Created by: ${user.createdBy}, ${formatDate(new Date(assigned.time))}`
+    const rowTitle = `Created by: ${nickName}, ${formatDate(new Date(time))}`
 
     const { authUser, canEdit, isDarkMode, variant, bg } = useGlobalState();
 
-    const { nickName, email } = authUser;
-
+    //const { nickName, email } = authUser;
 
     const { state } = useCategoryContext();
 
     const alreadyAdding = false;
 
     const del = () => {
-        unAssignAnswer(answer.id)
+        unAssignAnswer(answerKey)
     };
 
     const edit = (id: number) => {
@@ -43,7 +45,7 @@ const AssignedAnswer = ({ questionTitle, assignedAnswer: questionAnswer, isDisab
         //editAnswer(id);
     }
 
-    const onSelectAnswer = (id: number) => {
+    const onSelectAnswer = (id: string) => {
         // Load data from server and reinitialize answer
         //viewAnswer(id);
     }
@@ -110,7 +112,7 @@ const AssignedAnswer = ({ questionTitle, assignedAnswer: questionAnswer, isDisab
                 size="sm"
                 className="py-0 mx-1 text-decoration-none text-info text-wrap"
                 title={rowTitle}
-                onClick={() => onSelectAnswer(answer.id)}
+                onClick={() => onSelectAnswer(id)}
                 disabled={alreadyAdding}
             >
                 {title}

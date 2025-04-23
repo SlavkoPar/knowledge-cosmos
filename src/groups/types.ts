@@ -1,4 +1,4 @@
-import { ActionMap, IWhoWhen, IRecord } from 'global/types';
+import { ActionMap, IWhoWhen, IRecord, IRecordDto, Dto2WhoWhen, WhoWhen2Dto } from 'global/types';
 
 export const Mode = {
 	UNDEFINED: undefined,
@@ -7,6 +7,11 @@ export const Mode = {
 	ViewingGroup: 'ViewingGroup',
 	EditingGroup: 'EditingGroup',
 	DeletingGroup: 'DeletingGroup',
+
+	// tags
+	AddingVariation: 'AddingVariation',
+	EditingVariation: 'EditingVariation',
+	ViewingVariation: 'ViewingVariation',
 
 	//////////////////////////////////////
 	// answers
@@ -22,113 +27,306 @@ export enum FormMode {
 	editing
 }
 
-export interface IAnswerAnswer {
-	groupId: IDBValidKey;
-	answerId: IDBValidKey;
-	_id: IDBValidKey,
+// export interface IAnswerAnswer {
+// 	groupId: string;
+// 	answerId: number;
+// 	id: number,
+// 	answer: {
+// 		id: number,
+// 		title: string
+// 	},
+// 	user: {
+// 		id?: number,
+// 		createdBy: string
+// 	}
+// 	assigned: IDateAndBy
+// }
+
+export interface IAssignedAnswer {
 	answer: {
-		_id: IDBValidKey,
-		title: string
-	},
+		id: number,
+		title?: string
+	}
 	user: {
-		_id?: IDBValidKey,
+		nickName: string,
 		createdBy: string
 	}
 	assigned: IWhoWhen
 }
 
 export interface IFromUserAssignedAnswer {
-	_id: IDBValidKey,
+	id: string,
 	createdBy: string
 }
 
 export interface IAnswer extends IRecord {
-	id?: number,
-	title: string,
-	level: number,
-	parentGroup: string,
-	groupTitle?: string,
-	numOfAnswers?: number,
-	source: number,
-	status: number,
-	fromUserAssignedAnswer?: IFromUserAssignedAnswer[]
+	partitionKey: string;
+	id: string;
+	title: string;
+	parentGroup: string;
+	groupTitle?: string;
+	assignedAnswers: IAssignedAnswer[];
+	numOfAssignedAnswers: number;
+	source: number;
+	status: number;
+	fromUserAssignedAnswer?: IFromUserAssignedAnswer[];
+	GroupTitle?: string;
+	included?: boolean;
+}
+
+export interface IGroupKey {
+	partitionKey: string;
+	id: string;
+}
+
+export interface IGroupKeyExtended extends IGroupKey {
+	title: string;
+}
+
+
+export interface IAnswerKey {
+	partitionKey: string;
+	id: string;
+}
+
+
+export interface IVariation {
+	name: string;
 }
 
 export interface IGroup extends IRecord {
+	partitionKey: string; // | null is a valid value so you can store data with null value in indexeddb 
 	id: string;
-	parentGroup: string; // | null is a valid value so you can store data with null value in indexeddb 
+	kind: number;
+	parentGroup: string | null; // | null is a valid value so you can store data with null value in indexeddb 
 	// but it is not a valid key
 	title: string;
+	// words: string[];
 	level: number;
+	variations: string[];
 	answers: IAnswer[];
 	numOfAnswers: number;
-	hasMore?: boolean;
+	hasMoreAnswers?: boolean;
 	isExpanded?: boolean;
-	hasSubGroups: boolean
+	hasSubGroups: boolean;
+	groups?: IGroup[]; // used for export to json
+	titlesUpTheTree?: string;
 }
 
+
+export class Answer {
+	constructor(dto: IAnswerDto) { //, parentGroup: string) {
+		this.answer = {
+			parentGroup: dto.ParentGroup,
+			partitionKey: dto.PartitionKey,
+			id: dto.Id,
+			title: dto.Title,
+			groupTitle: dto.GroupTitle,
+			assignedAnswers: [], //dto.AssignedAnswers, // TODO
+			numOfAssignedAnswers: 0,
+			source: dto.Source,
+			status: dto.Status,
+			created: new Dto2WhoWhen(dto.Created!).whoWhen,
+			modified: dto.Modified
+				? new Dto2WhoWhen(dto.Modified).whoWhen
+				: undefined
+		}
+	}
+	answer: IAnswer
+}
+
+
+
+export class Group {
+	constructor(dto: IGroupDto) {
+		this.group = {
+			partitionKey: dto.PartitionKey,
+			id: dto.Id,
+			kind: dto.Kind,
+			parentGroup: dto.ParentGroup!,
+			title: dto.Title,
+			level: dto.Level!,
+			variations: dto.Variations ?? [],
+			numOfAnswers: dto.NumOfAnswers!,
+			hasSubGroups: dto.HasSubGroups!,
+			created: new Dto2WhoWhen(dto.Created!).whoWhen,
+			modified: dto.Modified
+				? new Dto2WhoWhen(dto.Modified).whoWhen
+				: undefined,
+			answers: dto.Answers
+				? dto.Answers.map(answerDto => new Answer(answerDto/*, dto.Id*/).answer)
+				: []
+		}
+	}
+	group: IGroup;
+}
+
+
+export class GroupDto {
+	constructor(group: IGroup) {
+		this.groupDto = {
+			PartitionKey: group.partitionKey,
+			Id: group.id,
+			Kind: group.kind,
+			ParentGroup: group.parentGroup,
+			Title: group.title,
+			Level: group.level,
+			Variations: group.variations,
+			Created: new WhoWhen2Dto(group.created).whoWhenDto!,
+			Modified: new WhoWhen2Dto(group.modified).whoWhenDto!
+		}
+	}
+	groupDto: IGroupDto;
+}
+
+export interface IGroupDtoEx {
+	groupDto: IGroupDto | null;
+	msg: string;
+}
+
+
+
+export class AnswerDto {
+	constructor(answer: IAnswer) {
+		this.answerDto = {
+			PartitionKey: answer.partitionKey,
+			Id: answer.id,
+			ParentGroup: answer.parentGroup,
+			Title: answer.title,
+			GroupTitle: "",
+			AssignedAnswers: [...answer.assignedAnswers],
+			NumOfAssignedAnswers: answer.numOfAssignedAnswers,
+			Source: answer.source,
+			Status: answer.status,
+			Created: new WhoWhen2Dto(answer.created).whoWhenDto!,
+			Modified: new WhoWhen2Dto(answer.modified).whoWhenDto!
+		}
+	}
+	answerDto: IAnswerDto;
+}
+
+export interface IAnswerDto extends IRecordDto {
+	PartitionKey: string;
+	Id: string;
+	ParentGroup: string;
+	// but it is not a valid key
+	Title: string;
+	GroupTitle: string;
+	AssignedAnswers: IAssignedAnswer[];
+	NumOfAssignedAnswers: number,
+	Source: number;
+	Status: number;
+}
+
+export interface IAnswerDtoEx {
+	answerDto: IAnswerDto | null;
+	msg: string;
+}
+
+export interface IAnswersMore {
+	answers: IAnswerDto[];
+	hasMoreAnswers: boolean;
+}
+
+export interface IAnsDto {
+	PartitionKey: string;
+	ParentGroup: string;
+	Title: string;
+	Id: string;
+}
+
+export interface IAns {
+	partitionKey: string;
+	id: string;
+	parentGroup: string;
+	title: string;
+	groupTitle?: string;
+}
+
+
+export interface IGroupDto extends IRecordDto {
+	PartitionKey: string;
+	Id: string;
+	Kind: number;
+	ParentGroup: string | null;
+	Title: string;
+	Variations: string[];
+	Level?: number;
+	NumOfAnswers?: number;
+	HasSubGroups?: boolean;
+	Answers?: IAnswerDto[];
+	HasMoreAnswers?: boolean;
+}
+
+export interface IGroupDtoListEx {
+	groupDtoList: IGroupDto[];
+	msg: string;
+}
+
+
 export interface IGroupInfo {
+	partitionKey: string;
 	id: string,
 	level: number
 }
 
-
 export interface IParentInfo {
-	parentGroup: string,
-	level: number,
+	execute?: (method: string, endpoint: string) => Promise<any>,
+	// partitionKey: string | null,
+	// parentGroup: string | null,
+	groupKey: IGroupKey,
+	startCursor?: number,
+	includeAnswerId?: string | null
+	level?: number,
 	title?: string, // to easier follow getting the list of sub-groups
 	inAdding?: boolean,
-	startCursor?: number,
-	includeAnswerId?: number
 }
 
-export interface ICatInfo {
-	parentGroup: string,
-	level: number,
-	setParentGroup: (group: IGroup) => void;
-}
 
 export interface IGroupsState {
-	mode: string | null,
-	groups: IGroup[],
-	currentGroupExpanded: string,
-	lastGroupExpanded: string | null;
-	groupId_answerId_done: string | null;
-	parentNodes: IParentGroups;
-	loading: boolean,
+	mode: string | null;
+	groups: IGroup[];
+	groupNodesUpTheTree: IGroupKeyExtended[];
+	groupKeyExpanded: IGroupKey | null;
+	groupId: string | null;
+	answerId: string | null;
+	groupId_answerId_done?: string;
+	groupNodeLoaded: boolean;
+	//reloadGroupInfo: IParentGroups;
+	loading: boolean;
 	answerLoading: boolean,
 	error?: Error;
+	whichRowId?: string; // group.id or answer.id
 }
 
-export interface ICatsState {
-	loading: boolean,
-	parentGroup: IDBValidKey | null,
-	title: string,
-	cats: IGroup[], // drop down groups
-	error?: Error;
+export interface ILocStorage {
+	lastGroupKeyExpanded: IGroupKey | null;
+	answerId: string | null;
 }
-
 
 
 export interface IGroupsContext {
 	state: IGroupsState,
-	reloadGroupNode: (groupId: string, answerId: string | null) => Promise<any>;
-	getSubGroups: ({ parentGroup, level }: IParentInfo) => void,
+	reloadGroupNode: (groupKey: IGroupKey, answerId: string | null) => Promise<any>;
+	getSubGroups: (groupKey: IGroupKey) => Promise<any>,
 	createGroup: (group: IGroup) => void,
-	viewGroup: (id: string) => void,
-	editGroup: (id: string) => void,
-	updateGroup: (group: IGroup) => void,
-	deleteGroup: (id: string) => void,
-	expandGroup: (group: IGroup, expand: boolean) => void,
+	viewGroup: (groupKey: IGroupKey, includeAnswerId: string) => void,
+	editGroup: (groupKey: IGroupKey, includeAnswerId: string) => void,
+	updateGroup: (group: IGroup, closeForm: boolean) => void,
+	deleteGroup: (groupKey: IGroupKey) => void,
+	deleteGroupVariation: (groupKey: IGroupKey, name: string) => void,
+	expandGroup: (groupKey: IGroupKey, includeAnswerId: string) => void,
+	collapseGroup: (groupKey: IGroupKey) => void,
 	//////////////
 	// answers
 	//getGroupAnswers: ({ parentGroup, level, inAdding }: IParentInfo) => void,
-	loadGroupAnswers: ({ parentGroup }: IParentInfo) => void,
-	createAnswer: (answer: IAnswer, fromModal: boolean) => Promise<any>;
-	viewAnswer: (id: number) => void;
-	editAnswer: (id: number) => void;
+	loadGroupAnswers: (parentInfo: IParentInfo) => void,
+	//createAnswer: (answer: IAnswer, fromModal: boolean) => Promise<any>;
+	viewAnswer: (answerKey: IAnswerKey) => void;
+	editAnswer: (answerKey: IAnswerKey) => void;
 	updateAnswer: (answer: IAnswer) => Promise<any>;
-	deleteAnswer: (id: number, parentGroup: string) => void
+	createAnswer: (answer: IAnswer) => Promise<any>;
+	deleteAnswer: (answer: IAnswer) => void;
 }
 
 export interface IGroupFormProps {
@@ -139,22 +337,14 @@ export interface IGroupFormProps {
 	children: string
 }
 
-
 export interface IAnswerFormProps {
 	answer: IAnswer;
 	mode: FormMode;
 	closeModal?: () => void;
 	submitForm: (answer: IAnswer) => void,
 	showCloseButton: boolean;
+	source: number,
 	children: string
-}
-
-
-
-
-export interface IParentGroups {
-	groupId: string | null;
-	answerId: string | null;
 }
 
 
@@ -176,7 +366,9 @@ export enum ActionTypes {
 	CLOSE_GROUP_FORM = 'CLOSE_GROUP_FORM',
 	CANCEL_GROUP_FORM = 'CANCEL_GROUP_FORM',
 	SET_EXPANDED = 'SET_EXPANDED',
-	SET_PARENT_GROUPS = "SET_PARENT_GROUPS",
+	SET_COLLAPSED = 'SET_COLLAPSED',
+
+	RELOAD_GROUP_NODE = "RELOAD_GROUP_NODE",
 
 	// answers
 	LOAD_GROUP_ANSWERS = 'LOAD_GROUP_ANSWERS',
@@ -186,6 +378,7 @@ export enum ActionTypes {
 
 	SET_ANSWER = 'SET_ANSWER',
 	SET_ANSWER_AFTER_ASSIGN_ANSWER = 'SET_ANSWER_AFTER_ASSIGN_ANSWER',
+	SET_ANSWER_ANSWERS = 'SET_ANSWER_ANSWERS',
 	DELETE_ANSWER = 'DELETE_ANSWER',
 
 	CLOSE_ANSWER_FORM = 'CLOSE_ANSWER_FORM',
@@ -205,15 +398,20 @@ export type GroupsPayload = {
 	}
 
 
-	[ActionTypes.SET_PARENT_GROUPS]: {
-		parentNodes: IParentGroups
+	[ActionTypes.RELOAD_GROUP_NODE]: {
+		groupNodesUpTheTree: IGroupKeyExtended[];
+		groupId: string | null;
+		answerId: string | null;
 	};
 
 	[ActionTypes.SET_SUB_GROUPS]: {
 		subGroups: IGroup[];
 	};
 
-	[ActionTypes.ADD_SUB_GROUP]: IParentInfo;
+	[ActionTypes.ADD_SUB_GROUP]: {
+		groupKey: IGroupKey,
+		level: number
+	}
 
 	[ActionTypes.VIEW_GROUP]: {
 		group: IGroup;
@@ -236,7 +434,7 @@ export type GroupsPayload = {
 	};
 
 	[ActionTypes.CLEAN_SUB_TREE]: {
-		group: IGroup;
+		groupKey: IGroupKey;
 	};
 
 	[ActionTypes.CLEAN_TREE]: undefined;
@@ -246,20 +444,24 @@ export type GroupsPayload = {
 	[ActionTypes.CANCEL_GROUP_FORM]: undefined;
 
 	[ActionTypes.SET_EXPANDED]: {
-		id: string;
-		expanding: boolean;
+		groupKey: IGroupKey;
+	}
+
+	[ActionTypes.SET_COLLAPSED]: {
+		groupKey: IGroupKey;
 	}
 
 	[ActionTypes.SET_ERROR]: {
 		error: Error;
+		whichRowId?: string;
 	};
 
 	/////////////
 	// answers
 	[ActionTypes.LOAD_GROUP_ANSWERS]: {
-		parentGroup: string,
+		parentGroup: string | null,
 		answers: IAnswer[],
-		hasMore: boolean
+		hasMoreAnswers: boolean
 	};
 
 	[ActionTypes.ADD_ANSWER]: {
@@ -282,9 +484,12 @@ export type GroupsPayload = {
 		answer: IAnswer
 	};
 
+	[ActionTypes.SET_ANSWER_ANSWERS]: {
+		answers: IAssignedAnswer[];
+	};
+
 	[ActionTypes.DELETE_ANSWER]: {
-		id: number;
-		parentGroup: string
+		answer: IAnswer
 	};
 
 	[ActionTypes.CLOSE_ANSWER_FORM]: {
@@ -300,67 +505,3 @@ export type GroupsPayload = {
 export type GroupsActions =
 	ActionMap<GroupsPayload>[keyof ActionMap<GroupsPayload>];
 
-/////////////////////////////////////////////////////////////////////////
-// DropDown Select Group
-export enum CatsActionTypes {
-	SET_LOADING = 'SET_LOADING',
-	SET_SUB_CATS = 'SET_SUB_CATS',
-	SET_ERROR = 'SET_ERROR',
-	SET_EXPANDED = 'SET_EXPANDED',
-	SET_PARENT_GROUP = 'SET_PARENT_GROUP'
-}
-
-export type CatsPayload = {
-	[CatsActionTypes.SET_LOADING]: undefined;
-
-	[CatsActionTypes.SET_SUB_CATS]: {
-		subCats: IGroup[];
-	};
-
-	[CatsActionTypes.SET_EXPANDED]: {
-		id: string;
-		expanding: boolean;
-	}
-
-	[CatsActionTypes.SET_ERROR]: {
-		error: Error;
-	};
-
-	[CatsActionTypes.SET_PARENT_GROUP]: {
-		group: IGroup;
-	};
-
-};
-
-export type CatsActions =
-	ActionMap<CatsPayload>[keyof ActionMap<CatsPayload>];
-
-
-	export const initialAnswer: IAnswer = {
-		// temp _id for inAdding, to server as list key
-		// it will be removed on submitForm
-		// real _id will be given by the MongoDB 
-		id: 0, // real id will be given by DB
-		parentGroup: '',
-		groupTitle: '',
-		title: '',
-		level: 0,
-		source: 0,
-		status: 0
-	 }
-	 
-	 export const initialGroup: IGroup = {
-		// temp _id for inAdding, to server as list key
-		// it will be removed on submitForm
-		// real _id will be given by the MongoDB 
-		id: '',
-		title: '',
-		level: 0,
-		parentGroup: 'null',
-		hasSubGroups: false,
-		answers: [],
-		numOfAnswers: 0,
-		hasMore: false,
-		isExpanded: false
-	 }
-	 

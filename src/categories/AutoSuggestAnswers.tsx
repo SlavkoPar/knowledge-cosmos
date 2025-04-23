@@ -5,85 +5,69 @@ import AutosuggestHighlightParse from "autosuggest-highlight/parse";
 import { isMobile } from 'react-device-detect'
 
 import { debounce, escapeRegexCharacters } from 'common/utilities'
-
 import './AutoSuggestAnswers.css'
-import { IDBPCursorWithValue, IDBPCursorWithValueIteratorValue, IDBPDatabase } from 'idb';
-import { IAnswer } from 'groups/types';
+import { IAns, IAnswerKey } from 'groups/types';
+import { IShortGroup } from 'global/types';
 
-interface IAnswerShort {
-	id: number;
-	parentGroup: string;
-	title: string;
-}
 
-interface IGroupShort {
+interface IGrpMy {
 	id: string,
 	parentGroupUp: string,
 	groupParentTitle: string,
 	groupTitle: string,
-	answers: IAnswerShort[]
+	anss: IAns[]
 }
 
-interface IAnswerRow {
-	groupId: string,
+interface IGroupSection	 {
+	id: string,
 	groupTitle: string,
 	parentGroupUp: string,
 	groupParentTitle: string, // TODO ???
-	id: number,
-	parentGroup: string,
-	title: string
+	anss: IAns[]
 }
-
-interface IAnswerRowShort {
-	groupId: string,
-	groupTitle: string,
-	parentGroupUp: string,
-	groupParentTitle: string, // TODO ???
-	answers: IAnswerShort[]
-}
-
 
 // https://developer.mozilla.org/en/docs/Web/JavaScript/Guide/Regular_Expression
 // s#Using_Special_Characters
-// export function escapeRegexCharacters(str: string): string {
+// function escapeRegexCharacters(str: string): string {
 // 	return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 // }
 
 // autoFocus does the job
 //let inputAutosuggest = createRef<HTMLInputElement>();
+interface IShortGroupIdTitle {
+	id: string;
+	title: string;
+}
 
-const AnswerAutosuggestMulti = Autosuggest as { new(): Autosuggest<IAnswerShort, IGroupShort> };
-
+const AnswerAutosuggestMulti = Autosuggest as { new(): Autosuggest<IAns, IGrpMy> };
 
 export class AutoSuggestAnswers extends React.Component<{
-	dbp: IDBPDatabase,
 	tekst: string | undefined,
-	alreadyAssigned: number[],
-	onSelectQuestionAnswer: (groupId: string, answerId: number) => void
-}, any
-> {
+	onSelectAnswer: (answerKey: IAnswerKey) => void,
+	allGroups: Map<string, IShortGroup>,
+	searchAnswers: (filter: string, count: number) => Promise<IAns[]>
+}, any> {
 	// region Fields
 	state: any;
 	isMob: boolean;
-	dbp: IDBPDatabase;
-	alreadyAssigned: number[];
+	allGroups: Map<string, IShortGroup>;
+	searchAnswers: (filter: string, count: number) => Promise<IAns[]>;
 	debouncedLoadSuggestions: (value: string) => void;
 	//inputAutosuggest: React.RefObject<HTMLInputElement>;
 	// endregion region Constructor
 	constructor(props: any) {
+		console.log("CONSTRUCTOR")
 		super(props);
 		this.state = {
 			value: props.tekst || '',
-			suggestions: this.getSuggestions(''),
+			suggestions: [], //this.getSuggestions(''),
 			noSuggestions: false,
-			highlighted: '',
-			isLoading: false
+			highlighted: ''
 		};
 		//this.inputAutosuggest = createRef<HTMLInputElement>();
-		this.dbp = props.dbp;
-		this.alreadyAssigned = props.alreadyAssigned;
+		this.allGroups = props.allGroups;
+		this.searchAnswers = props.searchAnswers;
 		this.isMob = isMobile;
-
 		this.loadSuggestions = this.loadSuggestions.bind(this);
 		this.debouncedLoadSuggestions = debounce(this.loadSuggestions, 300);
 	}
@@ -93,7 +77,9 @@ export class AutoSuggestAnswers extends React.Component<{
 			isLoading: true
 		});
 
+		console.time();
 		const suggestions = await this.getSuggestions(value);
+		console.timeEnd();
 
 		if (value === this.state.value) {
 			this.setState({
@@ -109,23 +95,18 @@ export class AutoSuggestAnswers extends React.Component<{
 		}
 	}
 
-	// componentDidMount() {
-	// 	setTimeout(() => {
-	// 		window.focus()
-	// 		// inputAutosuggest!.current!.focus();
-	// 	}, 500)
-	// }
-
+	componentDidMount() {
+		setTimeout(() => {
+			window.focus()
+			// inputAutosuggest!.current!.focus();
+		}, 300)
+	}
 
 	// endregion region Rendering methods
 	render(): JSX.Element {
-		const { value, suggestions, noSuggestions, isLoading } = this.state;
-		const status = (isLoading ? 'Loading...' : 'Type to load suggestions');
+		const { value, suggestions, noSuggestions } = this.state;
 
 		return <div>
-			<div className="status">
-				<strong>Status:</strong> {status}
-			</div>
 			<AnswerAutosuggestMulti
 				onSuggestionsClearRequested={this.onSuggestionsClearRequested}  // (sl) added
 				multiSection={true}
@@ -140,10 +121,10 @@ export class AutoSuggestAnswers extends React.Component<{
 				onSuggestionHighlighted={this.onSuggestionHighlighted.bind(this)}
 				highlightFirstSuggestion={false}
 				renderInputComponent={this.renderInputComponent}
-				renderSuggestionsContainer={this.renderSuggestionsContainer}
+				// renderSuggestionsContainer={this.renderSuggestionsContainer}
 				focusInputOnSuggestionClick={!this.isMob}
 				inputProps={{
-					placeholder: `Type 'work' or 'bater'`,
+					placeholder: `Type 'daljinski'`,
 					value,
 					onChange: (e, changeEvent) => this.onChange(e, changeEvent),
 					autoFocus: true
@@ -157,6 +138,172 @@ export class AutoSuggestAnswers extends React.Component<{
 		</div>
 	}
 
+
+	private satisfyingGroups = (searchWords: string[]): IShortGroupIdTitle[] => {
+		const arr: IShortGroupIdTitle[] = [];
+		searchWords.filter(w => w.length >= 3).forEach(w => {
+			this.allGroups.forEach(async group => {
+				const parentGroup = group.groupKey.id;
+				let j = 0;
+				// grp.words.forEach(grpw => {
+				// 	if (grpw.includes(w)) {
+				// 		console.log("Add all answers of group")
+				// 		arr.push({ id: grp.id, title: grp.title })
+				// 	}
+				// })
+			})
+		})
+		return arr;
+	}
+
+	protected async getSuggestions(search: string): Promise<IGroupSection[]> {
+		const escapedValue = escapeRegexCharacters(search.trim());
+		if (escapedValue === '') {
+			return [];
+		}
+		if (search.length < 2)
+			return [];
+
+		const grouppAnswers = new Map<string, IAns[]>();
+
+		const answerKeys: IAnswerKey[] = [];
+		try {
+			console.log('--------->>>>> getSuggestions')
+			var ansDtoList: IAns[] = await this.searchAnswers(escapedValue, 20);
+
+			ansDtoList.forEach((ans: IAns) => {
+				const { id, partitionKey, parentGroup, title } = ans;
+				const answerKey = { partitionKey, id }
+				if (!answerKeys.includes(answerKey)) {
+					answerKeys.push(answerKey);
+
+					// 2) Group answers by parentGroup
+					const ans: IAns = {
+						partitionKey,
+						id,
+						parentGroup,
+						title,
+						groupTitle: ''
+					}
+					if (!grouppAnswers.has(parentGroup)) {
+						grouppAnswers.set(parentGroup, [ans]);
+					}
+					else {
+						grouppAnswers.get(parentGroup)!.push(ans);
+					}
+				}
+			})
+		}
+		catch (error: any) {
+			console.debug(error)
+		};
+
+		////////////////////////////////////////////////////////////////////////////////
+		// Search for Groups title words, and add all the answers of the Group
+		/*
+		if (answerKeys.length === 0) {
+			try {
+				const tx = this.dbp!.transaction('Answers')
+				const index = tx.store.index('parentGroup_idx');
+				const grpIdTitles = this.satisfyingGroups(searchWords)
+				let i = 0;
+				while (i < grpIdTitles.length) {
+					const grpIdTitle = grpIdTitles[i];
+					const parentGroup = grpIdTitle.id;
+					for await (const cursor of index.iterate(parentGroup)) {
+						const q: IAnswer = cursor.value;
+						const { id, title } = q;
+						//if (!answerRows.includes(id!))
+						//	answerRows.push(id!);
+
+						const answerKey = { parentGroup, id }
+						if (!answerKeys.includes(answerKey)) {
+							answerKeys.push(answerKey);
+
+							//console.log(q);
+							// 2) Group answers by parentGroup
+							const ans: IAns = {
+								id,
+								parentGroup,
+								title,
+								groupTitle: grpIdTitle.title
+							}
+							if (!grpAnss.has(parentGroup)) {
+								grpAnss.set(parentGroup, [ans]);
+							}
+							else {
+								grpAnss.get(parentGroup)!.push(ans);
+							}
+						}
+					}
+					await tx.done;
+				}
+			}
+			catch (error: any) {
+				console.debug(error)
+			};
+		}
+		await tx.done;
+		*/
+
+		if (answerKeys.length === 0)
+			return [];
+
+		try {
+			////////////////////////////////////////////////////////////
+			// map
+			// 0 = {'DALJINSKI' => IAnswerRow[2]}
+			// 1 = {'EDGE2' => IAnswerRow[3]}
+			// 2 = {'EDGE3' => IAnswerRow[4]}4
+
+			////////////////////////////////////////////////////////////
+			// 
+			let groupSections: IGroupSection[] = [];
+			grouppAnswers.forEach((anss, id) => {
+				const group = this.allGroups.get(id);
+				const { title, titlesUpTheTree, variations } = group!;
+				const groupSection: IGroupSection = {
+					id: id,
+					groupTitle: title,
+					groupParentTitle: 'kuro',
+					parentGroupUp: titlesUpTheTree!,
+					anss: []
+				};
+				anss.forEach(ans => {
+					// console.log(ans);
+					if (variations.length > 0) {
+						let wordsIncludesTag = false;
+						// searchWords.forEach(w => {
+						// 	variations.forEach(variation => {
+						// 		if (variation === w.toUpperCase()) {
+						// 			wordsIncludesTag = true;
+						// 			grpSection.anss.push({ ...ans, title: ans.title + ' ' + variation });
+						// 		}
+						// 	})
+						// })
+						if (!wordsIncludesTag) {
+							variations.forEach(variation => {
+								// console.log(ans);
+								groupSection.anss.push({ ...ans, title: ans.title + ' ' + variation });
+							});
+						}
+					}
+					else {
+						groupSection.anss.push(ans);
+					}
+				});
+				groupSections.push(groupSection);
+				//console.log(grpSections)
+			});
+			return groupSections;
+		}
+		catch (error: any) {
+			console.log(error)
+		};
+		return [];
+	}
+
+
 	protected onSuggestionsClearRequested = () => {
 		this.setState({
 			suggestions: [],
@@ -164,10 +311,10 @@ export class AutoSuggestAnswers extends React.Component<{
 		});
 	};
 
-	protected onSuggestionSelected(event: React.FormEvent<any>, data: Autosuggest.SuggestionSelectedEventData<IAnswerShort>): void {
-		const answer: IAnswerShort = data.suggestion;
+	protected onSuggestionSelected(event: React.FormEvent<any>, data: Autosuggest.SuggestionSelectedEventData<IAns>): void {
+		const answer: IAns = data.suggestion;
 		// alert(`Selected answer is ${answer.answerId} (${answer.text}).`);
-		this.props.onSelectQuestionAnswer(answer.parentGroup, answer.id);
+		this.props.onSelectAnswer({ partitionKey: answer.partitionKey, id: answer.id });
 	}
 
 	/*
@@ -177,7 +324,8 @@ export class AutoSuggestAnswers extends React.Component<{
 	}
 	*/
 
-	protected renderSuggestion(suggestion: IAnswerShort, params: Autosuggest.RenderSuggestionParams): JSX.Element {
+	// TODO bac ovo u external css   style={{ textAlign: 'left'}}
+	protected renderSuggestion(suggestion: IAns, params: Autosuggest.RenderSuggestionParams): JSX.Element {
 		// const className = params.isHighlighted ? "highlighted" : undefined;
 		//return <span className={className}>{suggestion.name}</span>;
 		const matches = AutosuggestHighlightMatch(suggestion.title, params.query);
@@ -196,13 +344,13 @@ export class AutoSuggestAnswers extends React.Component<{
 		);
 	}
 
-	protected renderSectionTitle(section: IGroupShort): JSX.Element {
+	protected renderSectionTitle(section: IGrpMy): JSX.Element {
 		const { parentGroupUp, groupParentTitle, groupTitle } = section;
-		let str = (groupParentTitle ? (groupParentTitle + " / ") : "") + groupTitle;
-		if (parentGroupUp)
-			str = " ... / " + str;
+		// let str = (groupParentTitle ? (groupParentTitle + " / ") : "") + groupTitle;
+		// if (parentGroupUp)
+		// 	str = " ... / " + str;
 		return <strong>
-			{str}
+			{parentGroupUp}
 		</strong>;
 	}
 
@@ -234,28 +382,26 @@ export class AutoSuggestAnswers extends React.Component<{
 	// 	)
 	//   );
 
-
-	protected renderSuggestionsContainer({ containerProps, children, query }:
-		Autosuggest.RenderSuggestionsContainerParams): JSX.Element {
-		return (
-			<div {...containerProps}>
-				<span>{children}</span>
-			</div>
-		);
-	}
+	// protected renderSuggestionsContainer({ containerProps, children, query }:
+	// 	Autosuggest.RenderSuggestionsContainerParams): JSX.Element {
+	// 	return (
+	// 		<div {...containerProps}>
+	// 			<span>{children}</span>
+	// 		</div>
+	// 	);
+	// }
 	// endregion region Event handlers
 
 	protected onChange(event: /*React.ChangeEvent<HTMLInputElement>*/ React.FormEvent<any>, { newValue, method }: Autosuggest.ChangeEvent): void {
 		this.setState({ value: newValue });
 	}
 
-
 	// getParentTitle = async (id: string): Promise<any> => {
 	// 	let group = await this.dbp.get('Groups', id);
 	// 	return { parentGroupTitle: group.title, parentGroupUp: '' };
 	// }
 
-	protected /*async*/ onSuggestionsFetchRequested({ value }: any): void { //Promise<void> {
+	protected async onSuggestionsFetchRequested({ value }: any): Promise<void> {
 		return /*await*/ this.debouncedLoadSuggestions(value);
 	}
 
@@ -267,140 +413,15 @@ export class AutoSuggestAnswers extends React.Component<{
 		return false;
 	}
 
+	////////////////////////////////////
 	// endregion region Helper methods
-	protected async getSuggestions(value: string): Promise<IAnswerRowShort[]> {
-		const escapedValue = escapeRegexCharacters(value.trim());
-		if (escapedValue === '') {
-			return [];
-		}
-		//return [];
-		if (!this.dbp || value.length < 2)
-			return [];
-		const tx = this.dbp!.transaction(['Groups', 'Answers'], 'readonly');
-		const index = tx.objectStore('Answers').index('words_idx');
-		const answerRows: IAnswerRow[] = [];
-		//const mapParentGroupTitle = new Map<string, string>();
-		try {
-			//const search = encodeURIComponent(value.trim().replaceAll('?', ''));
-			const searchWords = value.toLowerCase().replaceAll('?', '').split(' ').map((s: string) => s.trim());
-			let i = 0;
-			while (i < searchWords.length) {
-				// let cursor: IDBPCursorWithValue<unknown, string[], "Answers", "words_idx", "readwrite">|null = 
-				// 		await index.openCursor(word);
-				// while (cursor) {
-				// 	console.log(cursor.key, cursor.value);
-				// for await (const cursor of index.iterate(searchWords[i])) {
-				const w = searchWords[i];
-				for await (const cursor of index.iterate(IDBKeyRange.bound(w, `${w}zzzzz`, false, true))) {
-					const q: IAnswer = { ...cursor!.value, id: parseInt(cursor!.primaryKey.toString()) }
-					if (this.props.alreadyAssigned.includes(q.id!)) {
-						continue;
-					}
-					const row: IAnswerRow = {
-						id: q.id!,
-						groupId: q.parentGroup,
-						groupTitle: '',
-						groupParentTitle: '',
-						parentGroupUp: '',
-						title: q.title,
-						parentGroup: q.parentGroup
-					}
-					if (!answerRows.find(({ id }) => id === q.id))
-						answerRows.push(row);
-					//cursor = await cursor.continue();
-				}
-				i++;
-			}
-		}
-		catch (error: any) {
-			console.debug(error)
-		};
 
-		if (answerRows.length === 0)
-			return [];
-
-		try {
-			const groupsStore = tx.objectStore('Groups')
-			const mapParentGroupTitle = new Map<string, string>();
-			let i = 0;
-			while (i < answerRows.length) {
-				const row = answerRows[i];
-				if (!mapParentGroupTitle.has(row.parentGroup)) {
-					const group = await groupsStore.get(row.parentGroup);
-					mapParentGroupTitle.set(group.id, group.title)
-				}
-				i++;
-			}
-
-			const map = new Map<string, IAnswerRow[]>();
-			i = 0;
-			while (i < answerRows.length) {
-				const row = answerRows[i];
-				row.groupTitle = mapParentGroupTitle.get(row.groupId)!;
-				if (!map.has(row.groupId)) {
-					map.set(row.groupId, [row]);
-				}
-				else {
-					map.get(row.groupId)!.push(row);
-				}
-				i++;
-			};
-			//console.log('map', map)
-
-			let values = map.values();
-			let data: IAnswerRowShort[] = [];
-			while (true) {
-				let result = values.next();
-				if (result.done) break;
-				const rows = result.value as unknown as IAnswerRow[];
-				const answerRowShort: IAnswerRowShort = {
-					groupId: '',
-					groupTitle: '',
-					groupParentTitle: '',
-					parentGroupUp: '',
-					answers: []
-				};
-				i = 0;
-				while (i < rows.length) {
-					const row = rows[i];
-					// console.log(row);
-					const { id, title, groupId, groupTitle, parentGroup, parentGroupUp } = row;
-					let groupParentTitle = '';
-
-					let group = await groupsStore.get(groupId);
-					while (group.parentGroup !== 'null') {
-						group = await groupsStore.get(group.parentGroup);
-						groupParentTitle += ' / ' + group.title;
-					}
-
-					if (answerRowShort.groupId === '') {
-						answerRowShort.groupId = groupId;
-						answerRowShort.groupTitle = groupTitle;
-						answerRowShort.groupParentTitle = groupParentTitle;
-						answerRowShort.parentGroupUp = parentGroupUp;
-					}
-					answerRowShort.answers.push({ id, title, parentGroup } as IAnswerShort)
-					i++;
-				};
-				data.push(answerRowShort);
-			}
-			await tx.done;
-			console.log(data)
-			return data;
-			//this.setState({ suggestions: data, noSuggestions: data.length === 0 })
-		}
-		catch (error: any) {
-			console.log(error)
-		};
-		return [];
-	}
-
-	protected getSuggestionValue(suggestion: IAnswerShort) {
+	protected getSuggestionValue(suggestion: IAns) {
 		return suggestion.title;
 	}
 
-	protected getSectionSuggestions(section: IGroupShort) {
-		return section.answers;
+	protected getSectionSuggestions(section: IGrpMy) {
+		return section.anss;
 	}
 
 	protected onSuggestionHighlighted(params: Autosuggest.SuggestionHighlightedParams): void {

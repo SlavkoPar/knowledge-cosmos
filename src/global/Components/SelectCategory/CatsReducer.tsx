@@ -67,7 +67,7 @@ export const CatsReducer: Reducer<ICatsState, CatsActions> = (state, action) => 
   }
 };
 
-function markForClean(categories: ICategory[], parentCategory: IDBValidKey) {
+function markForClean(categories: ICategory[], parentCategory: string) {
   let deca = categories
     .filter(c => c.parentCategory === parentCategory)
     .map(c => ({ id: c.id, parentCategory: c.parentCategory }))

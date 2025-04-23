@@ -5,9 +5,9 @@ import { useGlobalContext } from "global/GlobalProvider";
 import AssignedAnswerChatBot from "global/ChatBotPage/AssignedAnswerChatBot";
 import { AutoSuggestAnswers } from 'categories/AutoSuggestAnswers'
 import { IWhoWhen } from "global/types";
-import { IAnswer } from "groups/types";
+import { IAnswer, IAnswerKey } from "groups/types";
 import AddAnswer from "categories/components/questions/AddAnswer"
-import { initialAnswer } from "groups/types"; //GroupsReducer"; // PRE
+import { initialAnswer } from "groups/GroupsReducer";
 
 interface IProps {
     questionId: number,
@@ -33,7 +33,7 @@ const AssignedAnswersChatBot = ({ questionId, questionTitle, assignedAnswers, is
 
     const [showAssign, setShowAssign] = useState(false);
 
-    const onSelectQuestionAnswer = async (parentGroup: string, answerId: number) => {
+    const onSelectQuestionAnswer = async (answerKey: IAnswerKey) => {
         const assigned: IWhoWhen = {
             time: new Date(),
             nickName: globalState.authUser.nickName
@@ -44,13 +44,13 @@ const AssignedAnswersChatBot = ({ questionId, questionTitle, assignedAnswers, is
         setShowAssign(false);
     }
 
-    const onAnswerCreated = async (answer: IAnswer | null) => {
-        if (answer)
-            await onSelectQuestionAnswer(answer.parentGroup, answer.id!)
+    const onAnswerCreated = async (answerKey: IAnswerKey | null) => {
+        if (answerKey)
+            await onSelectQuestionAnswer(answerKey)
         handleClose()
     }
 
-    const unAssignAnswer = async (answerId: number) => {
+    const unAssignAnswer = async (answerKey: IAnswerKey) => {
         //await unAssignQuestionAnswer(questionId, answerId);
     }
 
@@ -75,9 +75,9 @@ const AssignedAnswersChatBot = ({ questionId, questionTitle, assignedAnswers, is
                             groupInAdding={false}
                             isDisabled={isDisabled}
                             unAssignAnswer={unAssignAnswer}
-                        />)
-                        // key={assignedAnswer.answer.id.toString()}
-                    }
+                        />
+                        // POPRAVI key={assignedAnswer.answer.id.toString()}
+                    )}
                 </ListGroup>
                 {error && <div>error</div>}
                 {/* {state.loading && <div>...loading</div>} */}
@@ -152,16 +152,16 @@ const AssignedAnswersChatBot = ({ questionId, questionTitle, assignedAnswers, is
                 </Modal.Header>
                 <Modal.Body style={{ height: '40vh', width: '50vw' }} className="question-answers">
 
-                    <AutoSuggestAnswers
+                    {/* <AutoSuggestAnswers
                         dbp={dbp!}
                         tekst={''}
                         alreadyAssigned={
                             assignedAnswers.length === 0
                                 ? []
-                                : assignedAnswers.map((a: IAssignedAnswer) => a.answer.id)
+                                : assignedAnswers.map((a: IAssignedAnswer) => a.answerKey.id)
                         }
                         onSelectQuestionAnswer={onSelectQuestionAnswer}
-                    />
+                    /> */}
                 </Modal.Body>
             </Modal>
         </div>

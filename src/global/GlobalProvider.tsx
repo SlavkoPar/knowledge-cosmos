@@ -7,7 +7,7 @@ import {
   IGroupData, IAnswerData,
   IRoleData, IUserData,
   IRegisterUser,
-  ICat,
+  ICat, IShortGroup,
   IParentInfo,
   IWhoWhen,
   ICatExport,
@@ -18,7 +18,7 @@ import {
 import { globalReducer, initialGlobalState } from "global/globalReducer";
 
 import { Category, IAssignedAnswer, ICategory, ICategoryDto, ICategoryKey, IQuest, IQuestDto, IQuestion, IQuestionDto, IQuestionKey, Question } from "categories/types";
-import { IGroup, IAnswer } from "groups/types";
+import { Group, IGroup, IGroupDto, IGroupKey, IAnswer, IAnswerDto, IAnswerKey, IAns, IAnsDto, Answer } from "groups/types";
 import { IUser } from 'global/types';
 
 import { IDBPDatabase, IDBPIndex, openDB } from 'idb' // IDBPTransaction
@@ -109,172 +109,8 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
     }
   }
 
-  const addGroup = async (
-    dbp: IDBPDatabase,
-    //tx: IDBPTransaction<unknown, string[], "readwrite">, 
-    groupData: IGroupData,
-    parentGroup: string,
-    level: number)
-    : Promise<void> => {
-    const { id, title, groups, answers } = groupData;
-    const g: IGroup = {
-      id,
-      parentGroup,
-      hasSubGroups: groups ? groups.length > 0 : false,
-      title,
-      level,
-      answers: [],
-      numOfAnswers: answers?.length || 0,
-      created: {
-        time: new Date(),
-        nickName: 'Boss'
-      }
-    }
-    await dbp.add('Groups', g);
-    console.log('--->group added', g);
-
-    if (answers) {
-      let i = 0;
-      while (i < answers.length) {
-        const a: IAnswerData = answers[i];
-        const { title, source, status } = a;
-        // TODO remove spec chars 
-        // const escapedValue = escapeRegexCharacters(a.title.trim());
-        // if (escapedValue === '') {
-        // }
-        //const words: string[] = a.title.toLowerCase().replaceAll('?', '').split(' ').map((s: string) => s.trim());
-        const answer: IAnswer = {
-          parentGroup: g.id,
-          title,
-          //words: words.filter(w => w.length > 1),
-          source: source ?? 0,
-          status: status ?? 0,
-          level: 2
-        }
-        console.log('========>>>>>>', { answer })
-        await dbp.add('Answers', answer);
-        i++;
-      }
-    }
-
-    if (groups) {
-      const parentGroup = g.id;
-      let j = 0;
-      const parentGroups = groups;
-      while (j < parentGroups.length) {
-        addGroup(dbp, parentGroups[j], parentGroup, level + 1);
-        j++;
-      }
-    }
-    Promise.resolve();
-  }
-
-  const addCategory = async (
-    dbp: IDBPDatabase,
-    //tx: IDBPTransaction<unknown, string[], "readwrite">, 
-    categoryData: ICategoryData,
-    parentCategory: string,
-    level: number)
-    : Promise<void> => {
-    try {
-      const { id, title, kind, variations, categories, questions } = categoryData;
-
-      if (id === 'SAFARI') {
-        const q = {
-          title: '',
-          source: 0,
-          status: 0,
-        }
-        for (var i = 999; i > 100; i--) {
-          questions!.push({ ...q, title: 'This is demo question related to test of infinite scroll, when Group has a few hundreds of questions ' + i });
-        }
-      }
-
-      const cat: ICategory = {
-        partitionKey: '',
-        id,
-        kind: kind ?? 0,
-        parentCategory,
-        hasSubCategories: categories ? categories.length > 0 : false,
-        title,
-        // words: title.toLowerCase().replaceAll('?', '').split(' ').map((s: string) => s.trim()).filter(w => w.length > 1),
-        level,
-        variations: variations ?? [],
-        questions: [],
-        numOfQuestions: questions?.length || 0,
-        created: {
-          time: new Date(),
-          nickName: 'Boss'
-        }
-      }
-      await dbp.add('Categories', cat);
-      console.log('category added', cat);
-
-      try {
-        if (questions) {
-          let assAnswers: IAssignedAnswer[] = [];
-          let i = 0;
-          while (i < questions.length) {
-            const q: IQuestionData = questions[i];
-            const { title, source, status, assignedAnswers } = q;
-            if (assignedAnswers) {
-              // assAnswers = assignedAnswers.map(id => ({
-              //   answer: {
-              //     id
-              //   },
-              //   user: {
-              //     nickName: 'OWNER',
-              //     createdBy: 'OWNER'
-              //   },
-              //   assigned: {
-              //     date: new Date(),
-              //     nickName: globalState.authUser.nickName
-              //   }
-              // }))
-            }
-            // TODO
-            //const words = q.title.toLowerCase().replaceAll('?', '').split(' ').map((s: string) => s.trim());
-            const question: IQuestion = {
-              partitionKey: cat.partitionKey,
-              parentCategory: cat.id,
-              id: uuidv4(),
-              title,
-              source: source ?? 0,
-              status: status ?? 0,
-              assignedAnswers: assAnswers,
-              numOfAssignedAnswers: 0
-              //level: 2,
-              //variations: q.variations ?? [],
-            }
-            console.log('-->>>', { question })
-            await dbp.add('Questions', question);
-            i++;
-          }
-        }
-      } catch (err) {
-        console.error(err)
-      }
-
-      if (categories) {
-        const parentCategory = cat.id;
-        // const categoryDatas = categories;
-        let j = 0;
-        while (j < categories.length) {
-          const categoryData = categories[j];
-          console.error({ categoryData })
-          addCategory(dbp, categoryData, parentCategory, level + 1);
-          j++;
-        }
-      }
-    }
-    catch (error) {
-      console.error(error);
-    }
-    Promise.resolve();
-  }
-
   const addInitialData = async (dbp: IDBPDatabase): Promise<void> => {
-   
+
   }
 
   // ---------------------------
@@ -337,7 +173,6 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
     });
   }, [dispatch]);
 
-
   //const searchQuestions = useCallback(async (execute: (method: string, endpoint: string) => Promise<any>, filter: string, count: number): Promise<any> => {
   const searchQuestions = async (filter: string, count: number): Promise<any> => {
     return new Promise(async (resolve) => {
@@ -345,11 +180,11 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
         console.time();
         const filterEncoded = encodeURIComponent(filter);
         const url = `${protectedResources.KnowledgeAPI.endpointQuestion}/${filterEncoded}/${count}/null`;
-        await Execute("GET", url).then((response: IQuestDto[] | undefined) => {
-          console.log({ response }, protectedResources.KnowledgeAPI.endpointCategory);
+        await Execute("GET", url).then((questDtos: IQuestDto[] | undefined) => {
+          console.log({ questDtos }, protectedResources.KnowledgeAPI.endpointCategory);
           console.timeEnd();
-          if (response) {
-            const listQuest: IQuest[] = response.map((q: IQuestDto) => ({
+          if (questDtos) {
+            const listQuest: IQuest[] = questDtos.map((q: IQuestDto) => ({
               partitionKey: q.PartitionKey,
               id: q.Id,
               parentCategory: q.ParentCategory,
@@ -371,6 +206,123 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
   }
   //}, []);
 
+  const loadGroups = useCallback(async (): Promise<any> => {
+    const { shortGroupsLoaded } = globalState;
+    if (shortGroupsLoaded) {
+      var diffMs = (Date.now() - shortGroupsLoaded!); // milliseconds between
+      var diffMins = Math.round(((diffMs % 86400000) % 3600000) / 60000); // minutes
+      console.log({ diffMins })
+      if (diffMins < 30)
+        return;
+    }
+    return new Promise(async (resolve) => {
+      try {
+        const url = `${process.env.REACT_APP_API_URL}/Group`;
+        console.time();
+        await Execute("GET", protectedResources.KnowledgeAPI.endpointGroup, null).then((response: IGroupDto[] | Response) => {
+          console.log({ response }, protectedResources.KnowledgeAPI.endpointGroup)
+          const groups = new Map<string, IGroup>();
+          const shortGroups = new Map<string, IShortGroup>();
+          console.timeEnd();
+          if (response instanceof Response) {
+            throw (response);
+          }
+          const data: IGroupDto[] = response;
+          data.forEach((groupDto: IGroupDto) => groups.set(groupDto.Id, new Group(groupDto).group));
+          //
+          groups.forEach(group => {
+            const { partitionKey, id, parentGroup, title, variations, hasSubGroups, kind } = group;
+            let titlesUpTheTree = id;
+            let parentGrp = parentGroup;
+            while (parentGrp) {
+              const cat2 = groups.get(parentGrp)!;
+              titlesUpTheTree = cat2!.id + ' / ' + titlesUpTheTree;
+              parentGrp = cat2.parentGroup;
+            }
+            group.titlesUpTheTree = titlesUpTheTree;
+            const shortGroup: IShortGroup = {
+              groupKey : {partitionKey, id},
+              parentGroup: parentGrp,
+              title: title,
+              // words: title.toLowerCase().replaceAll('?', '').split(' ').map((s: string) => s.trim()).filter(w => w.length > 1),
+              titlesUpTheTree: '',
+              variations: variations,
+              hasSubGroups,
+              kind: kind
+            }
+            shortGroups.set(id, shortGroup);
+          })
+          dispatch({ type: GlobalActionTypes.SET_ALL_GROUPS, payload: { shortGroups } });
+        });
+      }
+      catch (error: any) {
+        console.log(error)
+        dispatch({ type: GlobalActionTypes.SET_ERROR, payload: { error } });
+      }
+    });
+  }, [dispatch]);
+
+  const getSubGroups = useCallback(async (groupKey: IGroupKey) => {
+    return new Promise(async (resolve) => {
+      const { partitionKey, id } = groupKey;
+      try {
+        //dispatch({ type: GlobalActionTypes.SET_LOADING, payload: {} });
+        const url = `${protectedResources.KnowledgeAPI.endpointGroup}/${partitionKey}/${id}`;
+        console.log('calling getSubCategories:', url)
+        console.time();
+        await Execute("GET", url).then((groupDtos: IGroupDto[]) => {
+          console.timeEnd();
+          const subCategories = groupDtos!.map((groupDto: IGroupDto) => new Group(groupDto).group);
+          const subGroups = subCategories.map((c: IGroup) => ({
+            ...c,
+            answers: [],
+            isExpanded: false
+          }))
+          resolve(subGroups);
+        });
+      }
+      catch (error: any) {
+        console.log(error)
+        resolve([]);
+        //dispatch({ type: GlobalActionTypes.SET_ERROR, payload: { error } });
+      }
+    })
+  }, []);
+
+  //const searchAnswers = useCallback(async (execute: (method: string, endpoint: string) => Promise<any>, filter: string, count: number): Promise<any> => {
+  const searchAnswers = async (filter: string, count: number): Promise<any> => {
+    return new Promise(async (resolve) => {
+      try {
+        console.time();
+        const filterEncoded = encodeURIComponent(filter);
+        const url = `${protectedResources.KnowledgeAPI.endpointAnswer}/${filterEncoded}/${count}/null`;
+        await Execute("GET", url).then((ansDtos: IAnsDto[] | undefined) => {
+          console.log({ questDtos: ansDtos }, protectedResources.KnowledgeAPI.endpointGroup);
+          console.timeEnd();
+          if (ansDtos) {
+            const listGrp: IAns[] = ansDtos.map((q: IAnsDto) => ({
+              partitionKey: q.PartitionKey,
+              id: q.Id,
+              parentGroup: q.ParentGroup,
+              title: q.Title
+            }))
+            resolve(listGrp);
+          }
+          else {
+            // reject()
+            console.log('no rows in search')
+          }
+        })
+      }
+      catch (error: any) {
+        console.log(error)
+        //dispatch({ type: GlobalActionTypes.SET_ERROR, payload: { error } });
+      }
+    });
+  }
+
+
+
   const OpenDB = useCallback(async (): Promise<any> => {
     try {
       await loadCats();
@@ -391,16 +343,16 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
   const joinAssignedAnswers = async (assignedAnswers: IAssignedAnswer[]): Promise<IAssignedAnswer[]> => {
     const arr: IAssignedAnswer[] = [];
     try {
-      const { dbp } = globalState;
-      // join answer.title
-      let i = 0;
-      while (i < assignedAnswers.length) {
-        const assignedAnswer = assignedAnswers[i];
-        const answer: IAnswer = await dbp!.get("Answers", assignedAnswer.answer.id);
-        const title = answer ? answer.title : "Answer doesn't exist any more";
-        arr.push({ ...assignedAnswer, answer: { ...assignedAnswer.answer, title } });
-        i++;
-      }
+      // const { dbp } = globalState;
+      // // join answer.title
+      // let i = 0;
+      // while (i < assignedAnswers.length) {
+      //   const assignedAnswer = assignedAnswers[i];
+      //   const answer: IAnswer = await dbp!.get("Answers", assignedAnswer.answer.id);
+      //   const title = answer ? answer.title : "Answer doesn't exist any more";
+      //   arr.push({ ...assignedAnswer, answer: { ...assignedAnswer.answer, title } });
+      //   i++;
+      // }
     }
     catch (error: any) {
       console.log(error);
@@ -410,7 +362,7 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
   }
 
   // differs from CategoryProvider, here we don't dispatch
-  const getQuestion = async (questionKey: IQuestionKey) : Promise<any> => {
+  const getQuestion = async (questionKey: IQuestionKey): Promise<any> => {
     return new Promise(async (resolve) => {
       try {
         const { partitionKey, id } = questionKey;
@@ -532,7 +484,7 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
   }
 
 
-const getSubCats = useCallback(async (categoryKey: ICategoryKey) => {
+  const getSubCats = useCallback(async (categoryKey: ICategoryKey) => {
     return new Promise(async (resolve) => {
       const { partitionKey, id } = categoryKey;
       try {
@@ -607,21 +559,79 @@ const getSubCats = useCallback(async (categoryKey: ICategoryKey) => {
     //   });
   };
 
-  const getAnswer = async (id: number): Promise<IAnswer | undefined> => {
+  const getAnswer = async (answerKey: IAnswerKey): Promise<any> => {
+    return new Promise(async (resolve) => {
+      try {
+        const { partitionKey, id } = answerKey;
+        //const url = `${process.env.REACT_APP_API_URL}/Answer/${parentGroup}/${id}`;
+        //console.log(`FETCHING --->>> ${url}`)
+        //dispatch({ type: GlobalActionTypes.SET_LOADING, payload: {} })
+        console.time()
+        /*
+        axios
+          .get(url, {
+            withCredentials: false,
+            headers: {
+              'Content-Type': 'application/json',
+              'Access-Control-Allow-Origin': "*"
+            }
+          })
+          .then(({ data: answerDto }) => {
+            const categories: IGroup[] = [];
+            console.timeEnd();
+            const answer: IAnswer = new Answer(answerDto, parentGroup).answer;
+            answer.groupTitle = 'nadji me';
+            resolve(answer);
+          })
+          .catch((error) => {
+            console.log('FETCHING --->>>', error);
+          });
+        */
+        const url = `${protectedResources.KnowledgeAPI.endpointAnswer}/${partitionKey}/${id}`;
+        await Execute("GET", url).then((answerDto: IAnswerDto) => {
+          console.timeEnd();
+          console.log({ response: answerDto });
+          const answer: IAnswer = new Answer(answerDto).answer;
+          resolve(answer);
+        });
+
+
+      }
+      catch (error: any) {
+        console.log(error);
+        dispatch({ type: GlobalActionTypes.SET_ERROR, payload: error });
+      }
+    });
+  }
+
+  const getGroupsByKind = async (kind: number): Promise<IShortGroup[]> => {
     try {
-      const { dbp } = globalState;
-      const answer: IAnswer = await dbp!.get("Answers", id);
-      const { parentGroup } = answer;
-      const group: IGroup = await dbp!.get("Groups", parentGroup)
-      answer.id = id;
-      answer.groupTitle = group.title;
-      return answer;
+      const { shortGroups } = globalState;
+      const groups: IShortGroup[] = [];
+      shortGroups.forEach((g, id) => {
+        if (g.kind === kind) {
+          const { groupKey, title } = g;
+          const { partitionKey, id } = groupKey;
+          const shortGroup: IShortGroup = {
+            groupKey: { partitionKey , id},
+            title,
+            parentGroup: "",
+            titlesUpTheTree: "",
+            variations: [],
+            hasSubGroups: false,
+            kind: kind
+          }
+          groups.push(shortGroup);
+        }
+      })
+      return groups;
     }
     catch (error: any) {
-      console.log(error);
+      console.log(error)
+      dispatch({ type: GlobalActionTypes.SET_ERROR, payload: { error } });
     }
-    return undefined;
-  };
+    return [];
+  }
 
 
   const getMaxConversation = async (dbp: IDBPDatabase): Promise<number> => {
@@ -724,9 +734,11 @@ const getSubCats = useCallback(async (categoryKey: ICategoryKey) => {
 
   return (
     <GlobalContext.Provider value={{
-      globalState, OpenDB, loadCats, getUser, exportToJSON, health,
-      getSubCats, getCatsByKind,
-      searchQuestions, getQuestion, joinAssignedAnswers, getAnswer,
+      globalState, OpenDB,
+      getUser, exportToJSON, health,
+      joinAssignedAnswers,
+      loadCats, getSubCats, getCatsByKind, searchQuestions, getQuestion,
+      loadGroups, getSubGroups, getGroupsByKind, searchAnswers, getAnswer,
       getMaxConversation, addHistory, getAnswersRated
     }}>
       <GlobalDispatchContext.Provider value={dispatch}>

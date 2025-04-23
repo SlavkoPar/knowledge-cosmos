@@ -8,21 +8,22 @@ import { useHover } from 'hooks/useHover';
 import { IAssignedAnswer } from "categories/types";
 import { formatDate } from 'common/utilities'
 import React, { useState } from "react";
+import { IAnswerKey } from 'groups/types';
 
 interface IProps {
     questionTitle: string,
     questionAnswer: IAssignedAnswer,
     groupInAdding: boolean | undefined,
     isDisabled: boolean,
-    unAssignAnswer: (answerId: number) => void
+    unAssignAnswer: (answerKey: IAnswerKey) => void
 }
 const AssignedAnswerChatBot = ({ questionTitle, questionAnswer, isDisabled, unAssignAnswer }: IProps) => {
 
-    const { answer, assigned, user } = questionAnswer;
-    const { title, id } = answer;
+    const { answerKey, assigned, title } = questionAnswer;
+    const { partitionKey, id } = answerKey;
     const emailFromClient = localStorage.getItem('emailFromClient');
 
-    const rowTitle = `Created by: ${user.createdBy}, ${formatDate(new Date(assigned.time))}`
+    const rowTitle = `Created by: Pera, ${formatDate(new Date(assigned.time))}`
 
     const { authUser, canEdit, isDarkMode, variant, bg, error } = useGlobalState();
 
@@ -31,7 +32,7 @@ const AssignedAnswerChatBot = ({ questionTitle, questionAnswer, isDisabled, unAs
     const alreadyAdding = false;
 
     const del = () => {
-        unAssignAnswer(answer.id)
+        unAssignAnswer(answerKey)
     };
 
     const edit = (id: number) => {
@@ -39,7 +40,7 @@ const AssignedAnswerChatBot = ({ questionTitle, questionAnswer, isDisabled, unAs
         //editAnswer(id);
     }
 
-    const onSelectAnswer = (id: number) => {
+    const onSelectAnswer = (id: string) => {
         // Load data from server and reinitialize answer
         //viewAnswer(id);
     }
@@ -106,7 +107,7 @@ const AssignedAnswerChatBot = ({ questionTitle, questionAnswer, isDisabled, unAs
                 size="sm"
                 className="py-0 mx-1 text-decoration-none text-info text-wrap"
                 title={rowTitle}
-                onClick={() => onSelectAnswer(answer.id)}
+                onClick={() => onSelectAnswer(id)}
                 disabled={alreadyAdding}
             >
                 {title}

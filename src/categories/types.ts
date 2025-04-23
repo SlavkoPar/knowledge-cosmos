@@ -1,5 +1,5 @@
 import { ActionMap, IWhoWhen, IRecord, IRecordDto, Dto2WhoWhen, WhoWhen2Dto } from 'global/types';
-import { IAnswer } from 'groups/types';
+import { IAnswer, IAnswerKey } from 'groups/types';
 
 export const Mode = {
 	UNDEFINED: undefined,
@@ -44,14 +44,8 @@ export enum FormMode {
 // }
 
 export interface IAssignedAnswer {
-	answer: {
-		id: number,
-		title?: string
-	}
-	user: {
-		nickName: string,
-		createdBy: string
-	}
+	answerKey: IAnswerKey;
+	title?: string;
 	assigned: IWhoWhen
 }
 
@@ -147,7 +141,7 @@ export class Category {
 			parentCategory: dto.ParentCategory!,
 			title: dto.Title,
 			level: dto.Level!,
-			variations: dto.Variations,
+			variations: dto.Variations ?? [],
 			numOfQuestions: dto.NumOfQuestions!,
 			hasSubCategories: dto.HasSubCategories!,
 			created: new Dto2WhoWhen(dto.Created!).whoWhen,
@@ -326,8 +320,8 @@ export interface ICategoriesContext {
 	viewQuestion: (questionKey: IQuestionKey) => void;
 	editQuestion: (questionKey: IQuestionKey) => void;
 	updateQuestion: (question: IQuestion) => Promise<any>;
-	assignQuestionAnswer: (questionId: string, answerId: number, assigned: IWhoWhen) => Promise<any>;
-	unAssignQuestionAnswer: (questionId: string, answerId: number) => Promise<any>;
+	assignQuestionAnswer: (questionId: string, answerKey: IAnswerKey, assigned: IWhoWhen) => Promise<any>;
+	unAssignQuestionAnswer: (questionId: string, answerKey: IAnswerKey) => Promise<any>;
 	createAnswer: (answer: IAnswer) => Promise<any>;
 	deleteQuestion: (question: IQuestion) => void;
 }

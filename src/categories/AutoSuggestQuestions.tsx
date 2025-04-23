@@ -169,7 +169,7 @@ export class AutoSuggestQuestions extends React.Component<{
 		const questionKeys: IQuestionKey[] = [];
 		try {
 			console.log('--------->>>>> getSuggestions')
-			var questDtoList: IQuest[] = await this.searchQuestions(escapedValue, 18);
+			var questDtoList: IQuest[] = await this.searchQuestions(escapedValue, 20);
 
 			questDtoList.forEach((quest: IQuest) => {
 				const { id, partitionKey, parentCategory, title } = quest;

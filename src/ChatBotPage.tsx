@@ -135,6 +135,7 @@ const ChatBotPage: React.FC = () => {
 
 		// salji kasnije kad klikne na Fixed
 		if (answer) {
+			/* uncomment
 			addHistory(dbp, {
 				conversation,
 				client: authUser.nickName,
@@ -143,6 +144,7 @@ const ChatBotPage: React.FC = () => {
 				fixed: undefined,
 				created: new Date()
 			})
+				*/
 		}
 
 		let conv = conversation;
@@ -179,7 +181,9 @@ const ChatBotPage: React.FC = () => {
 		setShowAnswer(true);
 		setHasMoreAnswers(hasMoreAnswers);
 		setAnswerId((answerId) => answerId + 1);
+		/* uncomment
 		setAnswer(firstAnswer);
+		*/
 		// // salji kasnije kad klikne na Fixed
 		// if (firstAnswer) {
 		// 	addHistory(dbp, {
@@ -203,6 +207,7 @@ const ChatBotPage: React.FC = () => {
 		}
 		setPastEvents((prevHistory) => [...prevHistory, props]);
 
+		/* uncomment
 		addHistory(dbp, {
 			conversation,
 			client: authUser.nickName,
@@ -211,6 +216,7 @@ const ChatBotPage: React.FC = () => {
 			fixed: true,
 			created: new Date()
 		})
+			*/
 		//
 		// TODO logic 
 		//
@@ -236,6 +242,7 @@ const ChatBotPage: React.FC = () => {
 		const { nextAnswer, hasMoreAnswers } = next;
 
 		if (answer) {
+			/* uncomment
 			addHistory(dbp, {
 				conversation,
 				client: authUser.nickName,
@@ -244,6 +251,7 @@ const ChatBotPage: React.FC = () => {
 				fixed: nextAnswer ? false : undefined,
 				created: new Date()
 			})
+				*/
 		}
 
 		// salji gore
@@ -259,7 +267,7 @@ const ChatBotPage: React.FC = () => {
 		// }
 		setHasMoreAnswers(hasMoreAnswers);
 		setAnswerId((answerId) => answerId + 1);
-		setAnswer(nextAnswer);
+		/* uncomment setAnswer(nextAnswer); */
 	}
 
 	const QuestionComponent = (props: IChild) => {

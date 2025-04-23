@@ -2,16 +2,16 @@ import React, { useEffect, useState } from "react";
 
 import { ICategory, IQuestion, IQuestionKey } from 'categories/types';
 import { useGlobalContext } from "global/GlobalProvider";
-import { IAnswer } from "groups/types";
+import { IAnswer, IAnswerKey } from "groups/types";
 
 export interface INewQuestion {
   question: IQuestion | null;
-  firstAnswer: IAnswer | undefined;
+  firstAnswer: IAnswer | null;
   hasMoreAnswers: boolean;
 }
 
 export interface INextAnswer {
-  nextAnswer: IAnswer | undefined;
+  nextAnswer: IAnswer | null; //undefined;
   hasMoreAnswers: boolean;
 }
 
@@ -32,18 +32,19 @@ export const useAI = async (categories: ICategory[]) => {
   //   })()
   // }, [])
 
-  const setNewQuestion = async (questionKey: IQuestionKey) : Promise<INewQuestion> => {
+  const setNewQuestion = async (questionKey: IQuestionKey): Promise<INewQuestion> => {
     const question = await getQuestion(questionKey);
     setQuestion(question);
     let hasMoreAnswers = false;
-    let firstAnswer: IAnswer | undefined = undefined;
+    let firstAnswer: IAnswer | null = null;
     if (question) {
       const { assignedAnswers } = question;
       const assignedAnswer = (assignedAnswers.length > 0)
         ? question.assignedAnswers[0]
         : undefined;
       if (assignedAnswer) {
-        firstAnswer = await getAnswer(assignedAnswer.answer.id);
+        const answerKey: IAnswerKey = { partitionKey: '', id: assignedAnswer.answerKey.id }
+        firstAnswer = await getAnswer(answerKey);
         hasMoreAnswers = assignedAnswers.length > 1;
       }
     }
@@ -55,11 +56,12 @@ export const useAI = async (categories: ICategory[]) => {
     const len = assignedAnswers.length;
     const i = index + 1;
     if (index + 1 < len) {
-      const nextAnswer = await getAnswer(assignedAnswers[i].answer.id);
+      const answerKey: IAnswerKey = { partitionKey: '', id: assignedAnswers[i].answerKey.id }
+      const nextAnswer = await getAnswer(answerKey);
       setIndex(i);
       return { nextAnswer: nextAnswer, hasMoreAnswers: i + 1 < len }
     }
-    return { nextAnswer: undefined, hasMoreAnswers: false }
+    return { nextAnswer: null, hasMoreAnswers: false }
   }
 
   return { setNewQuestion, getNextAnswer };

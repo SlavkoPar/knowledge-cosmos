@@ -1,7 +1,7 @@
 // Define the Global State
 import { IAssignedAnswer, ICategory, ICategoryKey, IQuest, IQuestion, IQuestionKey } from 'categories/types';
+import { IGroup, IGroupKey, IAns, IAnswer, IAnswerKey } from 'groups/types';
 //import { IOption } from 'common/types';
-import { IAnswer } from 'groups/types';
 import { IDBPDatabase } from 'idb';
 
 export interface IWhoWhen {
@@ -92,6 +92,16 @@ export interface ICat {
 	kind: number
 }
 
+export interface IShortGroup {
+	groupKey: IGroupKey,
+	parentGroup: string | null,
+	title: string;
+	titlesUpTheTree: string; // traverse up the tree, until root
+	variations: string[];
+	hasSubGroups: boolean;
+	kind: number
+}
+
 export interface ICatExport {
 	id: string;
 	parentCategory: string;
@@ -116,6 +126,8 @@ export interface IGlobalState {
 	error?: Error;
 	cats: Map<string, ICat>;
 	catsLoaded?: number;
+	shortGroups: Map<string, IShortGroup>;
+	shortGroupsLoaded?: number;
 }
 
 export interface IGlobalStateFromLocalStorage {
@@ -137,15 +149,19 @@ export interface IGlobalContext {
 	globalState: IGlobalState;
 	getUser: (nickName: string) => Promise<any>;
 	OpenDB: () => Promise<any>;
-	loadCats: () => void;
 	exportToJSON: (category: ICategory, parentCategory: string) => void;
 	health: () => void;
+	loadCats: () => void;
 	getSubCats: (categoryKey: ICategoryKey) => Promise<any>;
 	getCatsByKind: (kind: number) => Promise<ICat[]>;
 	searchQuestions: (filter: string, count: number) => Promise<IQuest[]>;
 	getQuestion: (questionKey: IQuestionKey) => Promise<IQuestion | null>;
 	joinAssignedAnswers: (assignedAnswers: IAssignedAnswer[]) => Promise<IAssignedAnswer[]>;
-	getAnswer: (id: number) => Promise<IAnswer | undefined>;
+	loadGroups: () => void;
+	getSubGroups: (categoryKey: ICategoryKey) => Promise<any>;
+	getGroupsByKind: (kind: number) => Promise<IShortGroup[]>;
+	searchAnswers: (filter: string, count: number) => Promise<IAns[]>;
+	getAnswer: (answerKey: IAnswerKey) => Promise<IAnswer | null>;
 	getMaxConversation: (dbp: IDBPDatabase) => Promise<number>;
 	addHistory: (dbp: IDBPDatabase | null, history: IHistory) => Promise<void>;
 	getAnswersRated: (dbp: IDBPDatabase | null, questionId: string) => Promise<IAnswerRating[]>;
@@ -160,6 +176,7 @@ export enum GlobalActionTypes {
 	DARK_MODE = "DARK_MODE",
 	LIGHT_MODE = "LIGHT_MODE",
 	SET_ALL_CATEGORIES = 'SET_ALL_CATEGORIES',
+	SET_ALL_GROUPS = 'SET_ALL_GROUPS',
 	SET_QUESTION_AFTER_ASSIGN_ANSWER = 'SET_QUESTION_AFTER_ASSIGN_ANSWER',
 }
 
@@ -225,6 +242,11 @@ export type GlobalPayload = {
 		cats: Map<string, ICat>
 	};
 
+	[GlobalActionTypes.SET_ALL_GROUPS]: {
+		shortGroups: Map<string, IShortGroup>
+	};
+
+
 	[GlobalActionTypes.SET_QUESTION_AFTER_ASSIGN_ANSWER]: {
 		question: IQuestion
 	};
@@ -248,6 +270,22 @@ export interface ICatInfo {
 	setParentCategory: (category: ICategory) => void;
 }
 
+
+export interface IShortGroupsState {
+	loading: boolean,
+	parentGroup: string | null,
+	title: string,
+	shortGroups: IGroup[], // drop down groups
+	error?: Error;
+}
+
+export interface IShortGroupInfo {
+	groupKey: IGroupKey,
+	level: number,
+	setParentGroup: (group: IGroup) => void;
+}
+
+
 export enum CatsActionTypes {
 	SET_LOADING = 'SET_LOADING',
 	SET_SUB_CATS = 'SET_SUB_CATS',
@@ -256,8 +294,16 @@ export enum CatsActionTypes {
 	SET_PARENT_CAT = 'SET_PARENT_CAT'
 }
 
+export enum ShortGroupsActionTypes {
+	SET_LOADING = 'SET_LOADING',
+	SET_SUB_SHORTGROUPS = 'SET_SUB_SHORTGROUPS',
+	SET_ERROR = 'SET_ERROR',
+	SET_EXPANDED = 'SET_EXPANDED',
+	SET_PARENT_SHORTGROUP = 'SET_PARENT_SHORTGROUP'
+}
+
 export type CatsPayload = {
-	[CatsActionTypes.SET_LOADING]: undefined;
+	[CatsActionTypes.SET_LOADING]: false;
 
 	[CatsActionTypes.SET_SUB_CATS]: {
 		subCats: ICategory[];
@@ -280,6 +326,32 @@ export type CatsPayload = {
 
 export type CatsActions =
 	ActionMap<CatsPayload>[keyof ActionMap<CatsPayload>];
+
+
+export type ShortGroupsPayload = {
+	[ShortGroupsActionTypes.SET_LOADING]: undefined;
+
+	[ShortGroupsActionTypes.SET_SUB_SHORTGROUPS]: {
+		groups: IGroup[];
+	};
+
+	[ShortGroupsActionTypes.SET_EXPANDED]: {
+		id: string;
+		expanding: boolean;
+	}
+
+	[ShortGroupsActionTypes.SET_ERROR]: {
+		error: Error;
+	};
+
+	[ShortGroupsActionTypes.SET_PARENT_SHORTGROUP]: {
+		group: IGroup;
+	};
+
+};
+
+export type ShortGroupsActions =
+	ActionMap<ShortGroupsPayload>[keyof ActionMap<ShortGroupsPayload>];
 
 
 ////////////////////////

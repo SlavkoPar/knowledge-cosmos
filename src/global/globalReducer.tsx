@@ -1,6 +1,6 @@
 
 import { Reducer } from 'react'
-import { IGlobalState, GlobalActionTypes, GlobalActions, ROLES, IAuthUser, IGlobalStateFromLocalStorage, ICat } from "./types";
+import { IGlobalState, GlobalActionTypes, GlobalActions, ROLES, IAuthUser, IGlobalStateFromLocalStorage, ICat, IShortGroup } from "./types";
 
 const initialAuthUser: IAuthUser = {
     nickName: '',
@@ -22,7 +22,10 @@ const initGlobalState: IGlobalState = {
     bg: 'dark',
     loading: false,
     cats: new Map<string, ICat>(),
-    catsLoaded: undefined
+    catsLoaded: undefined,
+    shortGroups: new Map<string, IShortGroup>(),
+    shortGroupsLoaded: undefined
+
 }
 
 let globalStateFromLocalStorage: IGlobalStateFromLocalStorage | undefined;
@@ -172,6 +175,16 @@ const reducer: Reducer<IGlobalState, GlobalActions> = (state, action) => {
                 ...state,
                 cats,
                 catsLoaded: Date.now()
+            };
+        }
+
+        case GlobalActionTypes.SET_ALL_GROUPS: {
+            const { shortGroups } = action.payload;
+            console.log("loadShortGroups SET_ALL_GROUPS", shortGroups)
+            return {
+                ...state,
+                shortGroups,
+                shortGroupsLoaded: Date.now()
             };
         }
 
