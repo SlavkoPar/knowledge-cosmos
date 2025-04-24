@@ -127,7 +127,6 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
     }
     return new Promise(async (resolve) => {
       try {
-        const url = `${process.env.REACT_APP_API_URL}/Category`;
         console.time();
         await Execute("GET", protectedResources.KnowledgeAPI.endpointCategory, null).then((response: ICategoryDto[] | Response) => {
           console.log({ response }, protectedResources.KnowledgeAPI.endpointCategory)
@@ -170,6 +169,7 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
         console.log(error)
         dispatch({ type: GlobalActionTypes.SET_ERROR, payload: { error } });
       }
+      resolve(true);
     });
   }, [dispatch]);
 
@@ -206,7 +206,7 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
   }
   //}, []);
 
-  const loadGroups = useCallback(async (): Promise<any> => {
+  const loadShortGroups = useCallback(async (): Promise<any> => {
     const { shortGroupsLoaded } = globalState;
     if (shortGroupsLoaded) {
       var diffMs = (Date.now() - shortGroupsLoaded!); // milliseconds between
@@ -217,10 +217,9 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
     }
     return new Promise(async (resolve) => {
       try {
-        const url = `${process.env.REACT_APP_API_URL}/Group`;
         console.time();
         await Execute("GET", protectedResources.KnowledgeAPI.endpointGroup, null).then((response: IGroupDto[] | Response) => {
-          console.log({ response }, protectedResources.KnowledgeAPI.endpointGroup)
+          console.log({ response }, protectedResources.KnowledgeAPI.endpointShortGroup)
           const groups = new Map<string, IGroup>();
           const shortGroups = new Map<string, IShortGroup>();
           console.timeEnd();
@@ -233,18 +232,17 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
           groups.forEach(group => {
             const { partitionKey, id, parentGroup, title, variations, hasSubGroups, kind } = group;
             let titlesUpTheTree = id;
-            let parentGrp = parentGroup;
-            while (parentGrp) {
-              const cat2 = groups.get(parentGrp)!;
-              titlesUpTheTree = cat2!.id + ' / ' + titlesUpTheTree;
-              parentGrp = cat2.parentGroup;
+            let parentShortGroup = parentGroup;
+            while (parentShortGroup) {
+              const shortGroup2 = groups.get(parentShortGroup)!;
+              titlesUpTheTree = shortGroup2!.id + ' / ' + titlesUpTheTree;
+              parentShortGroup = shortGroup2.parentGroup;
             }
             group.titlesUpTheTree = titlesUpTheTree;
             const shortGroup: IShortGroup = {
-              groupKey : {partitionKey, id},
-              parentGroup: parentGrp,
+              groupKey: { partitionKey, id },
+              parentGroup: parentShortGroup,
               title: title,
-              // words: title.toLowerCase().replaceAll('?', '').split(' ').map((s: string) => s.trim()).filter(w => w.length > 1),
               titlesUpTheTree: '',
               variations: variations,
               hasSubGroups,
@@ -259,6 +257,7 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
         console.log(error)
         dispatch({ type: GlobalActionTypes.SET_ERROR, payload: { error } });
       }
+      resolve(true);
     });
   }, [dispatch]);
 
@@ -326,6 +325,9 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
   const OpenDB = useCallback(async (): Promise<any> => {
     try {
       await loadCats();
+      console.log(111111111111)
+      await loadShortGroups();
+      console.log(22222)
       return true;
     }
     catch (err: any) {
@@ -613,7 +615,7 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
           const { groupKey, title } = g;
           const { partitionKey, id } = groupKey;
           const shortGroup: IShortGroup = {
-            groupKey: { partitionKey , id},
+            groupKey: { partitionKey, id },
             title,
             parentGroup: "",
             titlesUpTheTree: "",
@@ -738,7 +740,7 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
       getUser, exportToJSON, health,
       joinAssignedAnswers,
       loadCats, getSubCats, getCatsByKind, searchQuestions, getQuestion,
-      loadGroups, getSubGroups, getGroupsByKind, searchAnswers, getAnswer,
+      loadShortGroups: loadShortGroups, getSubGroups, getGroupsByKind, searchAnswers, getAnswer,
       getMaxConversation, addHistory, getAnswersRated
     }}>
       <GlobalDispatchContext.Provider value={dispatch}>

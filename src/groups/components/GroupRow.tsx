@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit, faRemove, faCaretRight, faCaretDown, faPlus, faThumbsUp } from '@fortawesome/free-solid-svg-icons'
-import QPlus from 'assets/QPlus.png';
+import APlus from 'assets/APlus.png';
 
 import { ListGroup, Button, Badge } from "react-bootstrap";
 
@@ -91,7 +91,7 @@ const GroupRow = ({ group }: { group: IGroup }) => {
             </Button>
 
             <Badge pill bg="secondary" className={numOfAnswers === 0 ? 'd-none' : 'd-inline'}>
-                {numOfAnswers}Q
+                {numOfAnswers}A
                 {/* <FontAwesomeIcon icon={faThumbsUp} size='sm' /> */}
                 {/* <img width="22" height="18" src={Q} alt="Answer" /> */}
             </Badge>
@@ -142,7 +142,7 @@ const GroupRow = ({ group }: { group: IGroup }) => {
                             await dispatch({ type: ActionTypes.ADD_ANSWER, payload: { groupInfo } });
                         }}
                     >
-                        <img width="22" height="18" src={QPlus} alt="Add Answer" />
+                        <img width="22" height="18" src={APlus} alt="Add Answer" />
                     </Button>
 
                     <Button variant='link' size="sm" className="py-0 mx-1 float-end"

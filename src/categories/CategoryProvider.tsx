@@ -503,29 +503,24 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
         const url = `${protectedResources.KnowledgeAPI.endpointQuestion}`;
         console.time()
         console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> createQuestion', questionDto)
+        let questionRet = null;
         await Execute("PUT", url, questionDto)
-          .then(async (response: IQuestionDtoEx | Response) => {
+          .then(async (questionDtoEx: IQuestionDtoEx) => {
             console.timeEnd();
-            if (response instanceof Response) {
-              console.error(response);
-              dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error('Server Error'), whichRowId: id } });
+            const { questionDto, msg } = questionDtoEx;
+            if (questionDto) {
+              questionRet = new Question(questionDto).question;
+              console.log('Question successfully updated')
+              dispatch({ type: ActionTypes.SET_QUESTION, payload: { question } });
+              //dispatch({ type: ActionTypes.CLOSE_QUESTION_FORM })
+              // await loadCats(); // reload
             }
             else {
-              const questionDtoEx: IQuestionDtoEx = response;
-              const { questionDto, msg } = questionDtoEx;
-              if (questionDto) {
-                const question = new Question(questionDto).question;
-                console.log('Question successfully updated')
-                dispatch({ type: ActionTypes.SET_QUESTION, payload: { question } });
-                //dispatch({ type: ActionTypes.CLOSE_QUESTION_FORM })
-                await loadCats(); // reload
-              }
-              else {
-                dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error(msg) } });
-              }
+              dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error(msg) } });
             }
           });
-      }
+          return questionRet;
+        }
       catch (error: any) {
         console.log(error)
         dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error('Server Error'), whichRowId: id } });
@@ -619,43 +614,43 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
   }, []);
 
 
-    const assignQuestionAnswer = useCallback(async (questionId: string, answerKey: IAnswerKey, assigned: IWhoWhen): Promise<any> => {
-      return [];
-      /*
-    try {
-      const { parentGroup: partitionKey, id } = answerKey;
-      const question: IQuestion = await dbp!.get('Questions', questionId);
-      const answer: IAnswer = await dbp!.get('Answers', id);
-      const newAssignedAnwser: IAssignedAnswer = {
-        answerKey: {
-          parentGroup: '',
-          id: 'xxx', //answerId
-        },
-        title: answer.title,
-        assigned: {
-          time: new Date(),
-          nickName: globalState.authUser.nickName
-        }
+  const assignQuestionAnswer = useCallback(async (questionId: string, answerKey: IAnswerKey, assigned: IWhoWhen): Promise<any> => {
+    return [];
+    /*
+  try {
+    const { parentGroup: partitionKey, id } = answerKey;
+    const question: IQuestion = await dbp!.get('Questions', questionId);
+    const answer: IAnswer = await dbp!.get('Answers', id);
+    const newAssignedAnwser: IAssignedAnswer = {
+      answerKey: {
+        parentGroup: '',
+        id: 'xxx', //answerId
+      },
+      title: answer.title,
+      assigned: {
+        time: new Date(),
+        nickName: globalState.authUser.nickName
       }
-      const assignedAnswers = [...question.assignedAnswers, newAssignedAnwser];
-      const obj: IQuestion = {
-        ...question,
-        assignedAnswers,
-        numOfAssignedAnswers: assignedAnswers.length
-      }
-      await dbp!.put('Questions', obj, questionId);
-      console.log("Question Answer successfully assigned", obj);
-      ///////////////////
-      // newAssignedAnwser.answer.title = answer.title;
-      // obj.assignedAnswers = [...question.assignedAnswers, newAssignedAnwser];;
-      // dispatch({ type: ActionTypes.SET_QUESTION, payload: { question: obj } });
-      dispatch({ type: ActionTypes.SET_QUESTION_AFTER_ASSIGN_ANSWER, payload: { question: { ...obj } } });
     }
-    catch (error: any) {
-      console.log('error', error);
-      dispatch({ type: ActionTypes.SET_ERROR, payload: { error } });
+    const assignedAnswers = [...question.assignedAnswers, newAssignedAnwser];
+    const obj: IQuestion = {
+      ...question,
+      assignedAnswers,
+      numOfAssignedAnswers: assignedAnswers.length
     }
-    */
+    await dbp!.put('Questions', obj, questionId);
+    console.log("Question Answer successfully assigned", obj);
+    ///////////////////
+    // newAssignedAnwser.answer.title = answer.title;
+    // obj.assignedAnswers = [...question.assignedAnswers, newAssignedAnwser];;
+    // dispatch({ type: ActionTypes.SET_QUESTION, payload: { question: obj } });
+    dispatch({ type: ActionTypes.SET_QUESTION_AFTER_ASSIGN_ANSWER, payload: { question: { ...obj } } });
+  }
+  catch (error: any) {
+    console.log('error', error);
+    dispatch({ type: ActionTypes.SET_ERROR, payload: { error } });
+  }
+  */
   }, []);
 
 

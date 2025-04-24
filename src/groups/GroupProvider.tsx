@@ -2,7 +2,7 @@ import { useGlobalState, useGlobalContext } from 'global/GlobalProvider'
 import React, { createContext, useContext, useReducer, useCallback, Dispatch } from 'react';
 
 import {
-  ActionTypes, IGroup, IAnswer, IGroupsContext, IParentInfo, IFromUserAssignedAnswer,
+  ActionTypes, IGroup, IAnswer, IGroupsContext, IParentInfo,
   IAssignedAnswer,
   IGroupDto, IGroupDtoEx, IGroupDtoListEx,
   IAnswerDto, IAnswerDtoEx,
@@ -18,8 +18,6 @@ import {
 import { initialGroupsState, GroupsReducer } from 'groups/GroupsReducer';
 import { IWhoWhen, IShortGroup, Dto2WhoWhen, WhoWhen2Dto } from 'global/types';
 import { protectedResources } from 'authConfig';
-import { useMsal, useMsalAuthentication } from '@azure/msal-react';
-import { InteractionType } from '@azure/msal-browser';
 
 const GroupsContext = createContext<IGroupsContext>({} as any);
 const GroupDispatchContext = createContext<Dispatch<any>>(() => null);
@@ -30,7 +28,7 @@ type Props = {
 
 export const GroupProvider: React.FC<Props> = ({ children }) => {
 
-  const { loadGroups } = useGlobalContext()
+  const { loadShortGroups } = useGlobalContext()
   const globalState = useGlobalState();
   const { dbp, shortGroups } = globalState;
 
@@ -72,7 +70,7 @@ export const GroupProvider: React.FC<Props> = ({ children }) => {
         const bearer = `Bearer ${accessToken}`;
         headers.append("Authorization", bearer);
 
-        if (data) headers.append('Content-Type', 'appligrpion/json');
+        if (data) headers.append('Content-Type', 'application/json');
 
         let options = {
           method: method,
@@ -200,7 +198,7 @@ export const GroupProvider: React.FC<Props> = ({ children }) => {
                 console.log('Group successfully created')
                 dispatch({ type: ActionTypes.SET_ADDED_GROUP, payload: { group: { ...group, answers: [] } } });
                 dispatch({ type: ActionTypes.CLOSE_GROUP_FORM })
-                await loadGroups(); // reload
+                await loadShortGroups(); // reload
               }
             }
           });
@@ -366,7 +364,7 @@ export const GroupProvider: React.FC<Props> = ({ children }) => {
             const resp: { msg: string } = response;
             if (response.msg == "OK") {
               dispatch({ type: ActionTypes.DELETE, payload: { id: groupKey.id } });
-              await loadGroups(); // reload
+              await loadShortGroups(); // reload
             }
             else if (resp.msg === "HasSubGroups") {
               dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error("First remove sub groups"), whichRowId: groupKey.id } });
@@ -482,7 +480,7 @@ export const GroupProvider: React.FC<Props> = ({ children }) => {
                 console.log('Answer successfully created')
                 dispatch({ type: ActionTypes.SET_ANSWER, payload: { answer } });
                 //dispatch({ type: ActionTypes.CLOSE_ANSWER_FORM })
-                await loadGroups(); // reload
+                await loadShortGroups(); // reload
               }
             }
           });
@@ -493,37 +491,35 @@ export const GroupProvider: React.FC<Props> = ({ children }) => {
       }
     }, [dispatch]);
 
+
   const updateAnswer = useCallback(
-    async (answer: IAnswer) => {
+    async (answer: IAnswer): Promise<any> => {
       const { partitionKey, id, title, modified, parentGroup } = answer;
       dispatch({ type: ActionTypes.SET_GROUP_LOADING, payload: { id: parentGroup, loading: false } });
       try {
         const answerDto = new AnswerDto(answer).answerDto;
         const url = `${protectedResources.KnowledgeAPI.endpointAnswer}`;
         console.time()
-        console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> createAnswer', answerDto)
+        console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> updateAnswer', answerDto)
+        let answerRet = null;
         await Execute("PUT", url, answerDto)
-          .then(async (response: IAnswerDtoEx | Response) => {
+          .then(async (answerDtoEx: IAnswerDtoEx) => {
             console.timeEnd();
-            if (response instanceof Response) {
-              console.error(response);
-              dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error('Server Error'), whichRowId: id } });
+            const { answerDto, msg } = answerDtoEx;
+            if (answerDto) {
+              answerRet = new Answer(answerDto).answer;
+              console.log('Answer successfully updated')
+              dispatch({ type: ActionTypes.SET_ANSWER, payload: { answer } });
+              //dispatch({ type: ActionTypes.CLOSE_ANSWER_FORM })
+              //await loadShortGroups(); // reload, group could have been changed
+              console.log('ZWWWWWWWWWWWWWWWWWeeeeeeeeeeeeeWWWWWW', answer)
             }
             else {
-              const answerDtoEx: IAnswerDtoEx = response;
-              const { answerDto, msg } = answerDtoEx;
-              if (answerDto) {
-                const answer = new Answer(answerDto).answer;
-                console.log('Answer successfully updated')
-                dispatch({ type: ActionTypes.SET_ANSWER, payload: { answer } });
-                //dispatch({ type: ActionTypes.CLOSE_ANSWER_FORM })
-                await loadGroups(); // reload
-              }
-              else {
-                dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error(msg) } });
-              }
+              dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error(msg) } });
             }
           });
+        console.log('RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR')
+        return answerRet;
       }
       catch (error: any) {
         console.log(error)
@@ -556,7 +552,7 @@ export const GroupProvider: React.FC<Props> = ({ children }) => {
                 console.log('Answer successfully deleted')
                 dispatch({ type: ActionTypes.DELETE_ANSWER, payload: { answer } });
                 //dispatch({ type: ActionTypes.CLOSE_ANSWER_FORM })
-                await loadGroups(); // reload
+                await loadShortGroups(); // reload
               }
               else {
                 dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error(msg) } });

@@ -7,8 +7,6 @@ export const initialAnswer: IAnswer = {
   parentGroup: '',
   groupTitle: '',
   title: '',
-  assignedAnswers: [],
-  numOfAssignedAnswers: 0,
   source: 0,
   status: 0
 }
@@ -427,17 +425,20 @@ const reducer = (state: IGroupsState, action: GroupsActions) => {
 
       // for inAdding, id is IDBValidKey('000000000000000000000000')
       // thats why we look for q.inAdding instead of q.id === id
-      const groups = state.groups.map(c => c.id === parentGroup
+
+      console.log('ActionTypes.SET_ANSWER', answer)
+      console.log('ActionTypes.SET_ANSWER', state.groups)
+      const groups = state.groups.map(g => g.id === parentGroup
         ? {
-          ...c,
+          ...g,
           answers: inAdding
-            ? c.answers.map(q => q.inAdding ? { ...answer, inAdding: false } : q)
-            : c.answers.map(q => q.id === id ? { ...answer, inEditing: false, inViewing: false } : q),
+            ? g.answers.map(a => a.inAdding ? { ...answer, inAdding: false } : a)
+            : g.answers.map(a => a.id === id ? { ...answer, inEditing: a.inEditing, inViewing: a.inViewing } : a),
           inViewing: false,
           inEditing: false,
           inAdding: false
         }
-        : c
+        : g
       );
       return {
         ...state,
@@ -508,10 +509,10 @@ const reducer = (state: IGroupsState, action: GroupsActions) => {
       const { answer } = action.payload;
       const obj = {
         ...state,
-        groups: state.groups.map(c => c.id === answer.parentGroup
+        groups: state.groups.map(g => g.id === answer.parentGroup
           ? {
-            ...c,
-            answers: c.answers.map((q: IAnswer) => q.id === answer.id
+            ...g,
+            answers: g.answers.map((q: IAnswer) => q.id === answer.id
               ? {
                 ...answer,
                 inEditing: true
@@ -523,7 +524,7 @@ const reducer = (state: IGroupsState, action: GroupsActions) => {
             inEditing: true
           }
           : {
-            ...c,
+            ...g,
             inEditing: false
           }
         ),
@@ -553,6 +554,7 @@ const reducer = (state: IGroupsState, action: GroupsActions) => {
 
     case ActionTypes.CANCEL_ANSWER_FORM:
     case ActionTypes.CLOSE_ANSWER_FORM: {
+      console.log('PAYYYYYYYYYYYYYYYY', action.payload)
       const { answer } = action.payload;
       const group = state.groups.find(c => c.id === answer.parentGroup)
       let answers: IAnswer[] = [];

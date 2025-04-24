@@ -13,15 +13,15 @@ import { IAnswer } from 'groups/types'
 import AddAnswer from "groups/components/answers/AddAnswer";
 import EditAnswer from "groups/components/answers/EditAnswer";
 import ViewAnswer from "groups/components/answers/ViewAnswer";
-import Q from 'assets/Q.png';
-import QPlus from 'assets/QPlus.png';
+import A from 'assets/A.png';
+import APlus from 'assets/APlus.png';
 
 import { IWhoWhen } from 'global/types';
 
 
 //const AnswerRow = ({ answer, groupInAdding }: { ref: React.ForwardedRef<HTMLLIElement>, answer: IAnswer, groupInAdding: boolean | undefined }) => {
 const AnswerRow = ({ answer, groupInAdding }: { answer: IAnswer, groupInAdding: boolean | undefined }) => {
-    const { id, partitionKey, parentGroup, title, inViewing, inEditing, inAdding, numOfAssignedAnswers } = answer;
+    const { id, partitionKey, parentGroup, title, inViewing, inEditing, inAdding } = answer;
 
     const { canEdit, isDarkMode, variant, bg, authUser } = useGlobalState();
     const { state, viewAnswer, editAnswer, deleteAnswer } = useGroupContext();
@@ -60,7 +60,7 @@ const AnswerRow = ({ answer, groupInAdding }: { answer: IAnswer, groupInAdding: 
                 size="sm"
                 className="p-0 px-0 text-secondary"
             >
-                <img width="22" height="18" src={Q} alt="Answer" />
+                <img width="22" height="18" src={A} alt="Answer" />
             </Button>
 
             <Button
@@ -74,11 +74,11 @@ const AnswerRow = ({ answer, groupInAdding }: { answer: IAnswer, groupInAdding: 
                 {title}
             </Button>
 
-            <Badge pill bg="secondary" className={`text-info ${numOfAssignedAnswers === 0 ? 'd-none' : 'd-inline'}`}>
-                {numOfAssignedAnswers}a
+            {/* <Badge pill bg="secondary" className={`text-info ${numOfAssignedAnswers === 0 ? 'd-none' : 'd-inline'}`}>
+                {numOfAssignedAnswers}a */}
                 {/* <FontAwesomeIcon icon={faReply} size='sm' /> */}
                 {/* <img width="22" height="18" src={A} alt="Answer"></img> */}
-            </Badge>
+            {/* </Badge> */}
 
             {/* {canEdit && !alreadyAdding && hoverProps.isHovered &&
                 <Button variant='link' size="sm" className="ms-1 py-0 px-1 text-secondary"
@@ -106,7 +106,7 @@ const AnswerRow = ({ answer, groupInAdding }: { answer: IAnswer, groupInAdding: 
                             dispatch({ type: ActionTypes.ADD_ANSWER, payload: { groupInfo } })
                         }}
                     >
-                        <img width="22" height="18" src={QPlus} alt="Add Answer" />
+                        <img width="22" height="18" src={APlus} alt="Add Answer" />
                     </Button>
                 </div>
             }

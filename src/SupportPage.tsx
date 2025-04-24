@@ -47,9 +47,7 @@ const SupportPage: React.FC = () => {
 	// 	})()
 	// }, []) // , isAuthenticated
 
-	const { execute } = useFetchWithMsal("", {
-		scopes: protectedResources.KnowledgeAPI.scopes.read,
-	});
+
 
 	if (!catsLoaded)
 		return null;

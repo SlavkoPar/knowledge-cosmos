@@ -4,8 +4,6 @@ import { useGlobalState } from 'global/GlobalProvider'
 
 import AnswerForm from "groups/components/answers/AnswerForm";
 import { ActionTypes, FormMode, IAnswer } from "groups/types";
-import useFetchWithMsal from "hooks/useFetchWithMsal";
-import { protectedResources } from "authConfig";
 
 interface IProps {
     answer: IAnswer;
@@ -22,9 +20,7 @@ const AddAnswer = ({ answer, inLine, closeModal, showCloseButton, source, setErr
     const { nickName } = authUser;
 
     // { error, execute }
-    const { execute } = useFetchWithMsal("", {
-        scopes: protectedResources.KnowledgeAPI.scopes.write,
-    });
+    
 
     const dispatch = useGroupDispatch();
     const { state, createAnswer, reloadGroupNode } = useGroupContext();

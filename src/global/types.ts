@@ -157,7 +157,7 @@ export interface IGlobalContext {
 	searchQuestions: (filter: string, count: number) => Promise<IQuest[]>;
 	getQuestion: (questionKey: IQuestionKey) => Promise<IQuestion | null>;
 	joinAssignedAnswers: (assignedAnswers: IAssignedAnswer[]) => Promise<IAssignedAnswer[]>;
-	loadGroups: () => void;
+	loadShortGroups: () => void;
 	getSubGroups: (categoryKey: ICategoryKey) => Promise<any>;
 	getGroupsByKind: (kind: number) => Promise<IShortGroup[]>;
 	searchAnswers: (filter: string, count: number) => Promise<IAns[]>;

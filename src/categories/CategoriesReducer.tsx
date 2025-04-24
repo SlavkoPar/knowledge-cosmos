@@ -432,7 +432,7 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
           ...c,
           questions: inAdding
             ? c.questions.map(q => q.inAdding ? { ...question, inAdding: false } : q)
-            : c.questions.map(q => q.id === id ? { ...question, inEditing: false, inViewing: false } : q),
+            : c.questions.map(q => q.id === id ? { ...question, inEditing: c.inEditing, inViewing: c.inViewing } : q),
           inViewing: false,
           inEditing: false,
           inAdding: false

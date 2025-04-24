@@ -3,16 +3,13 @@ import { ListGroup } from "react-bootstrap";
 import CategoryRow from "categories/components/CategoryRow";
 import { IParentInfo } from "categories/types";
 import { useCategoryContext } from "categories/CategoryProvider";
-import useFetchWithMsal from "hooks/useFetchWithMsal";
-import { protectedResources } from "authConfig";
+
 
 const CategoryList = ({ title, categoryKey, level }: IParentInfo) => {
     const { state, getSubCategories } = useCategoryContext();
     const { categories } = state;
     // { error, }
-    const { execute } = useFetchWithMsal("", {
-        scopes: protectedResources.KnowledgeAPI.scopes.read
-    });
+
 
     useEffect(() => {
         //getSubCategories(execute, categoryKey);

@@ -1,20 +1,15 @@
 import React from 'react';
 import { useGroupContext, useGroupDispatch } from 'groups/GroupProvider'
-import { useGlobalState } from 'global/GlobalProvider'
+import { useGlobalContext, useGlobalState } from 'global/GlobalProvider'
 
 import AnswerForm from "groups/components/answers/AnswerForm";
 import { ActionTypes, FormMode, IAnswer } from "groups/types";
-import useFetchWithMsal from 'hooks/useFetchWithMsal';
-import { protectedResources } from 'authConfig';
 
 const EditAnswer = ({ inLine }: { inLine: boolean }) => {
 
-    const { execute } = useFetchWithMsal("", {
-        scopes: protectedResources.KnowledgeAPI.scopes.write,
-    });
-
     const globalState = useGlobalState();
     const { nickName } = globalState.authUser;
+    const { loadShortGroups } = useGlobalContext();
 
     const dispatch = useGroupDispatch();
     const { state, updateAnswer, reloadGroupNode } = useGroupContext();
@@ -35,11 +30,16 @@ const EditAnswer = ({ inLine }: { inLine: boolean }) => {
                 nickName: nickName
             }
         }
-        const q = await updateAnswer(object);
-        if (answer!.parentGroup !== q.parentGroup) {
-            dispatch({ type: ActionTypes.CLEAN_TREE, payload: { id: q.parentGroup } })
-            await reloadGroupNode({ partitionKey: '', id: q.parentGroup }, q.id);
+        console.log('\\\\\\\\\\\\\\\\ 1')
+        const a = await updateAnswer(object);
+        console.log('\\\\\\\\\\\\\\\\ 2 a', a)
+        console.log('\\\\\\\\\\\\\\\\ 2 answer', answer)
+        if (answer!.parentGroup !== a.parentGroup) {
+            await loadShortGroups(); // reload, group could have been changed
+            dispatch({ type: ActionTypes.CLEAN_TREE, payload: { id: a.parentGroup } })
+            await reloadGroupNode({ partitionKey: '', id: a.parentGroup }, a.id);
         }
+        setTimeout(() => dispatch({ type: ActionTypes.CLOSE_ANSWER_FORM, payload: { answer: a } }), 1000);
     };
 
     if (!answer)

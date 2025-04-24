@@ -54,10 +54,6 @@ export interface IAssignedAnswer {
 	assigned: IWhoWhen
 }
 
-export interface IFromUserAssignedAnswer {
-	id: string,
-	createdBy: string
-}
 
 export interface IAnswer extends IRecord {
 	partitionKey: string;
@@ -65,11 +61,8 @@ export interface IAnswer extends IRecord {
 	title: string;
 	parentGroup: string;
 	groupTitle?: string;
-	assignedAnswers: IAssignedAnswer[];
-	numOfAssignedAnswers: number;
 	source: number;
 	status: number;
-	fromUserAssignedAnswer?: IFromUserAssignedAnswer[];
 	GroupTitle?: string;
 	included?: boolean;
 }
@@ -122,8 +115,6 @@ export class Answer {
 			id: dto.Id,
 			title: dto.Title,
 			groupTitle: dto.GroupTitle,
-			assignedAnswers: [], //dto.AssignedAnswers, // TODO
-			numOfAssignedAnswers: 0,
 			source: dto.Source,
 			status: dto.Status,
 			created: new Dto2WhoWhen(dto.Created!).whoWhen,
@@ -194,8 +185,6 @@ export class AnswerDto {
 			ParentGroup: answer.parentGroup,
 			Title: answer.title,
 			GroupTitle: "",
-			AssignedAnswers: [...answer.assignedAnswers],
-			NumOfAssignedAnswers: answer.numOfAssignedAnswers,
 			Source: answer.source,
 			Status: answer.status,
 			Created: new WhoWhen2Dto(answer.created).whoWhenDto!,
@@ -212,8 +201,6 @@ export interface IAnswerDto extends IRecordDto {
 	// but it is not a valid key
 	Title: string;
 	GroupTitle: string;
-	AssignedAnswers: IAssignedAnswer[];
-	NumOfAssignedAnswers: number,
 	Source: number;
 	Status: number;
 }

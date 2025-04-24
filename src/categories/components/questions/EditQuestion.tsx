@@ -1,20 +1,14 @@
 import React from 'react';
 import { useCategoryContext, useCategoryDispatch } from 'categories/CategoryProvider'
-import { useGlobalState } from 'global/GlobalProvider'
+import { useGlobalContext, useGlobalState } from 'global/GlobalProvider'
 
 import QuestionForm from "categories/components/questions/QuestionForm";
 import { ActionTypes, FormMode, IQuestion } from "categories/types";
-import useFetchWithMsal from 'hooks/useFetchWithMsal';
-import { protectedResources } from 'authConfig';
 
 const EditQuestion = ({ inLine }: { inLine: boolean }) => {
-
-    const { execute } = useFetchWithMsal("", {
-        scopes: protectedResources.KnowledgeAPI.scopes.write,
-    });
-
     const globalState = useGlobalState();
     const { nickName } = globalState.authUser;
+    const { loadCats } = useGlobalContext();
 
     const dispatch = useCategoryDispatch();
     const { state, updateQuestion, reloadCategoryNode } = useCategoryContext();
@@ -37,9 +31,11 @@ const EditQuestion = ({ inLine }: { inLine: boolean }) => {
         }
         const q = await updateQuestion(object);
         if (question!.parentCategory !== q.parentCategory) {
+            await loadCats(); // reload, group could have been changed
             dispatch({ type: ActionTypes.CLEAN_TREE, payload: { id: q.parentCategory } })
             await reloadCategoryNode({ partitionKey: '', id: q.parentCategory }, q.id);
         }
+        setTimeout(() => dispatch({ type: ActionTypes.CLOSE_QUESTION_FORM, payload: { question: q } }), 1000);
     };
 
     if (!question)

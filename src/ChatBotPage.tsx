@@ -88,9 +88,7 @@ const ChatBotPage: React.FC = () => {
 	// }, [])
 
 	// { error,
-	const { execute } = useFetchWithMsal("", {
-		scopes: protectedResources.KnowledgeAPI.scopes.read,
-	});
+
 
 
 	useEffect(() => {

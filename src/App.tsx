@@ -22,7 +22,7 @@ function App() {
   console.log('-----------> App')
 
   const { getUser, OpenDB } = useGlobalContext();
-  const { dbp, authUser, isAuthenticated, everLoggedIn, catsLoaded } = useGlobalState()
+  const { dbp, authUser, isAuthenticated, everLoggedIn, catsLoaded, shortGroupsLoaded } = useGlobalState()
   const { nickName, role } = authUser;
 
   const formInitialValues = {
@@ -146,7 +146,7 @@ function App() {
 
   }, [dbp, isAuthenticated, nickName, everLoggedIn, locationPathname, navigate])
 
-  if (!isAuthenticated || !catsLoaded)
+  if (!isAuthenticated || !catsLoaded || !shortGroupsLoaded)
     return <div>App loading</div>
 
   return (
@@ -158,8 +158,8 @@ function App() {
         <Col md={12}>
           <div className="wrapper">
             <Routes>
-              <Route path="/" element={(!isAuthenticated && !everLoggedIn) ? <About /> : <Categories />} />
-              <Route path="/knowledge-cosmos" element={(!isAuthenticated && !everLoggedIn) ? <About /> : <Categories />} />
+              <Route path="/" element={(!isAuthenticated && !everLoggedIn) ? <About /> : <Groups />} />
+              <Route path="/knowledge-cosmos" element={(!isAuthenticated && !everLoggedIn) ? <About /> : <Groups />} />
               {/* <Route path="" element={(!isAuthenticated && !everLoggedIn) ? <About /> : <Categories />} /> */}
               {/* <Route path="/register/:returnUrl" element={<RegisterForm />} />
               <Route path="/sign-in" element={<LoginForm initialValues={formInitialValues} invitationId='' />} /> */}
