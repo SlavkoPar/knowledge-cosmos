@@ -10,7 +10,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus, faQuestion } from '@fortawesome/free-solid-svg-icons'
 import CatList from 'global/Components/SelectCategory/CatList';
 import { ICategory, IQuestion, IQuestionKey } from 'categories/types';
-import { ICat } from 'global/types';
+import { IWhoWhen, ICat, IHistory } from 'global/types';
 import AssignedAnswersChatBot from 'global/ChatBotPage/AssignedAnswersChatBot';
 import { INewQuestion, INextAnswer, useAI } from './hooks/useAI'
 import { IAnswer } from 'groups/types';
@@ -18,8 +18,7 @@ import { IAnswer } from 'groups/types';
 
 import Q from 'assets/Q.png';
 import A from 'assets/A.png';
-import useFetchWithMsal from 'hooks/useFetchWithMsal';
-import { protectedResources } from 'authConfig';
+
 
 type ChatBotParams = {
 	source: string;
@@ -49,7 +48,7 @@ const ChatBotPage: React.FC = () => {
 	const [hasMoreAnswers, setHasMoreAnswers] = useState<boolean>(false);
 	const [conversation, setConversation] = useState<number | undefined>(undefined);
 
-	const { getCatsByKind, getMaxConversation, addHistory, getAnswersRated, searchQuestions } = useGlobalContext();
+	const { getCatsByKind, addHistory, getAnswersRated, searchQuestions } = useGlobalContext();
 	const { dbp, canEdit, authUser, isDarkMode, variant, bg, cats, catsLoaded } = useGlobalState();
 
 	const setParentCategory = (cat: ICategory) => {
@@ -133,21 +132,22 @@ const ChatBotPage: React.FC = () => {
 
 		// salji kasnije kad klikne na Fixed
 		if (answer) {
-			/* uncomment
-			addHistory(dbp, {
-				conversation,
-				client: authUser.nickName,
-				questionId: selectedQuestion!.id!,
-				answerId: answer.id!,
+			const history: IHistory = {
+				questionId: selectedQuestion!.id,
+				answerId: answer.id,
 				fixed: undefined,
-				created: new Date()
-			})
-				*/
+				created: { 
+					nickName: authUser.nickName, 
+					time: new Date() 
+				}
+			}
+			addHistory(history);
 		}
 
 		let conv = conversation;
 		if (!conversation) {
-			const last = await getMaxConversation(dbp!);
+			//const last = await getMaxConversation(dbp!);
+			const last = new Date().getTime();
 			conv = last + 1
 			setConversation(conv);
 		}
@@ -162,7 +162,7 @@ const ChatBotPage: React.FC = () => {
 		}
 		const res: INewQuestion = await (await hook).setNewQuestion(questionKey);
 		const { question, firstAnswer, hasMoreAnswers } = res; // as unknown as INewQuestion;
-		const answersRated = await getAnswersRated(dbp, question!.id!);
+		const answersRated = await getAnswersRated(question!.id!);
 		console.log({ answersRated });
 		if (question) {
 			const props: IChild = {
@@ -205,16 +205,17 @@ const ChatBotPage: React.FC = () => {
 		}
 		setPastEvents((prevHistory) => [...prevHistory, props]);
 
-		/* uncomment
-		addHistory(dbp, {
-			conversation,
-			client: authUser.nickName,
-			questionId: selectedQuestion!.id!,
-			answerId: answer!.id!,
-			fixed: true,
-			created: new Date()
-		})
-			*/
+		const history: IHistory = {
+			questionId: selectedQuestion!.id,
+			answerId: answer!.id,
+			fixed: undefined,
+			created: { 
+				nickName: authUser.nickName, 
+				time: new Date() 
+			}
+		}
+		addHistory(history);
+			
 		//
 		// TODO logic 
 		//
@@ -240,241 +241,241 @@ const ChatBotPage: React.FC = () => {
 		const { nextAnswer, hasMoreAnswers } = next;
 
 		if (answer) {
-			/* uncomment
-			addHistory(dbp, {
-				conversation,
-				client: authUser.nickName,
-				questionId: selectedQuestion!.id!,
-				answerId: answer.id!,
+			const history: IHistory = {
+				questionId: selectedQuestion!.id,
+				answerId: answer.id,
 				fixed: nextAnswer ? false : undefined,
-				created: new Date()
-			})
-				*/
-		}
-
-		// salji gore
-		// if (nextAnswer) {
-		// 	addHistory(dbp, {
-		// 		conversation,
-		// 		client: authUser.nickName,
-		// 		questionId: selectedQuestion!.id!,
-		// 		answerId: nextAnswer.id!,
-		// 		fixed: hasMoreAnswers ? undefined : false,
-		// 		created: new Date()
-		// 	})
-		// }
-		setHasMoreAnswers(hasMoreAnswers);
-		setAnswerId((answerId) => answerId + 1);
-		/* uncomment setAnswer(nextAnswer); */
+				created: { 
+					nickName: authUser.nickName, 
+					time: new Date() 
+				}
+			}
+			addHistory(history);
 	}
 
-	const QuestionComponent = (props: IChild) => {
-		const { isDisabled, txt } = props;
-		return (
-			<Row
-				className={`my-1 bg-warning text-dark mx-1 border border-1 rounded-1`}
-				id={autoSuggestId.toString()}
-			>
-				<Col xs={0} md={3} className='mb-1'>
-				</Col>
-				<Col xs={12} md={9}>
-					<div className="d-flex justify-content-start align-items-center">
-						{/* <div className="w-75"> */}
-						<img width="22" height="18" src={Q} alt="Question" className='me-1' />
+	// salji gore
+	// if (nextAnswer) {
+	// 	addHistory(dbp, {
+	// 		conversation,
+	// 		client: authUser.nickName,
+	// 		questionId: selectedQuestion!.id!,
+	// 		answerId: nextAnswer.id!,
+	// 		fixed: hasMoreAnswers ? undefined : false,
+	// 		created: new Date()
+	// 	})
+	// }
+	setHasMoreAnswers(hasMoreAnswers);
+	setAnswerId((answerId) => answerId + 1);
+	/* uncomment setAnswer(nextAnswer); */
+}
+
+const QuestionComponent = (props: IChild) => {
+	const { isDisabled, txt } = props;
+	return (
+		<Row
+			className={`my-1 bg-warning text-dark mx-1 border border-1 rounded-1`}
+			id={autoSuggestId.toString()}
+		>
+			<Col xs={0} md={3} className='mb-1'>
+			</Col>
+			<Col xs={12} md={9}>
+				<div className="d-flex justify-content-start align-items-center">
+					{/* <div className="w-75"> */}
+					<img width="22" height="18" src={Q} alt="Question" className='me-1' />
+					{txt}
+					{/* </div> */}
+				</div>
+			</Col>
+		</Row>
+	)
+}
+
+const AnswerComponent = (props: IChild) => {
+	const { isDisabled, txt } = props;
+	return (
+		<div
+			id={answerId.toString()}
+			className={`${isDarkMode ? "dark" : "light"} mx-6 border border-1 rounded-1`}
+		>
+			<Row>
+				<Col xs={12} md={12} className={`${isDisabled ? 'secondary' : 'primary'} d-flex justify-content-start align-items-center`}>
+					<img width="22" height="18" src={A} alt="Answer" className='m-2' />
+					{/* contentEditable="true" aria-multiline="true" */}
+					<div>
 						{txt}
-						{/* </div> */}
 					</div>
+					{!isDisabled && answer &&
+						<div>
+							<Button
+								size="sm"
+								type="button"
+								onClick={answerFixed}
+								disabled={!hasMoreAnswers}
+								className='align-middle ms-3 border border-1 rounded-1 py-0'
+								variant="success"
+							>
+								Fixed
+							</Button>
+							<Button
+								size="sm"
+								type="button"
+								onClick={getNextAnswer}
+								disabled={!hasMoreAnswers}
+								className='align-middle ms-2 border border-1 rounded-1 py-0'
+								variant="primary"
+							>
+								Haven't fixed
+							</Button>
+						</div>
+					}
 				</Col>
 			</Row>
-		)
-	}
+		</div>
+	);
+};
 
-	const AnswerComponent = (props: IChild) => {
-		const { isDisabled, txt } = props;
-		return (
-			<div
-				id={answerId.toString()}
-				className={`${isDarkMode ? "dark" : "light"} mx-6 border border-1 rounded-1`}
-			>
-				<Row>
-					<Col xs={12} md={12} className={`${isDisabled ? 'secondary' : 'primary'} d-flex justify-content-start align-items-center`}>
-						<img width="22" height="18" src={A} alt="Answer" className='m-2' />
-						{/* contentEditable="true" aria-multiline="true" */}
-						<div>
-							{txt}
-						</div>
-						{!isDisabled && answer &&
-							<div>
-								<Button
-									size="sm"
-									type="button"
-									onClick={answerFixed}
-									disabled={!hasMoreAnswers}
-									className='align-middle ms-3 border border-1 rounded-1 py-0'
-									variant="success"
-								>
-									Fixed
-								</Button>
-								<Button
-									size="sm"
-									type="button"
-									onClick={getNextAnswer}
-									disabled={!hasMoreAnswers}
-									className='align-middle ms-2 border border-1 rounded-1 py-0'
-									variant="primary"
-								>
-									Haven't fixed
-								</Button>
-							</div>
-						}
-					</Col>
-				</Row>
-			</div>
-		);
-	};
-
-	const AutoSuggestComponent = (props: IChild) => {
-		const { isDisabled, txt } = props;
-		return (
-			<Row className={`my-1 ${isDarkMode ? "dark" : ""}`} key={autoSuggestId}>
-				<Col xs={12} md={3} className='mb-1'>
-					<label className="text-info">Please enter the Question</label>
-					{/* <CatList
+const AutoSuggestComponent = (props: IChild) => {
+	const { isDisabled, txt } = props;
+	return (
+		<Row className={`my-1 ${isDarkMode ? "dark" : ""}`} key={autoSuggestId}>
+			<Col xs={12} md={3} className='mb-1'>
+				<label className="text-info">Please enter the Question</label>
+				{/* <CatList
 				parentCategory={'null'}
 				level={1}
 				setParentCategory={setParentCategory}
 			/> */}
-				</Col>
-				<Col xs={0} md={12}>
-					{isDisabled &&
-						<label className="text-info">Please enter the Question</label>
-					}
-					<div className="d-flex justify-content-start align-items-center">
-						<div className="w-75">
-							{isDisabled &&
-								<div>
-									{txt}
-								</div>
-							}
-							{!isDisabled &&
-								<>
-									{/* <div>{Date.now().toString()}</div> */}
-									<AutoSuggestQuestions
-										tekst={tekst}
-										onSelectQuestion={onSelectQuestion}
-										allCategories={cats}
-										searchQuestions={searchQuestions}
-									/>
-								</>
-							}
-						</div>
+			</Col>
+			<Col xs={0} md={12}>
+				{isDisabled &&
+					<label className="text-info">Please enter the Question</label>
+				}
+				<div className="d-flex justify-content-start align-items-center">
+					<div className="w-75">
+						{isDisabled &&
+							<div>
+								{txt}
+							</div>
+						}
+						{!isDisabled &&
+							<>
+								{/* <div>{Date.now().toString()}</div> */}
+								<AutoSuggestQuestions
+									tekst={tekst}
+									onSelectQuestion={onSelectQuestion}
+									allCategories={cats}
+									searchQuestions={searchQuestions}
+								/>
+							</>
+						}
 					</div>
-				</Col>
-			</Row>
-		)
-	}
+				</div>
+			</Col>
+		</Row>
+	)
+}
 
-	return (
-		<Container id='container' fluid className='text-info'> {/* align-items-center" */}
-			<div key='Welcome'>
-				<p><b>Welcome</b>, I am Buddy and I am here to help You</p>
+return (
+	<Container id='container' fluid className='text-info'> {/* align-items-center" */}
+		<div key='Welcome'>
+			<p><b>Welcome</b>, I am Buddy and I am here to help You</p>
+		</div>
+
+		<Form key='options' className='text-center border border-1 m-1 rounded-1'>
+			<div className='text-center'>
+				Select Options
 			</div>
+			<div className='text-center'>
+				{/* <ListGroup horizontal> */}
+				{catsOptions.map(({ id: id, title: title }: ICat) => (
+					// <ListGroup.Item>
+					<Form.Check // prettier-ignore
+						id={id}
+						key={id}
+						label={title}
+						name="opcije"
+						type='checkbox'
+						inline
+						className=''
+						onChange={onOptionChange}
+					/>
+					// </ListGroup.Item>
+				))}
+				{/* </ListGroup> */}
+			</div>
+		</Form>
 
-			<Form key='options' className='text-center border border-1 m-1 rounded-1'>
+		{showUsage &&
+			<Form key="usage" className='text-center border border-1 m-1 rounded-1'>
 				<div className='text-center'>
-					Select Options
+					Select services for which you need support
 				</div>
 				<div className='text-center'>
-					{/* <ListGroup horizontal> */}
-					{catsOptions.map(({ id: id, title: title }: ICat) => (
-						// <ListGroup.Item>
+					{catsUsage.map(({ id: id, title: title }: ICat) => (
 						<Form.Check // prettier-ignore
 							id={id}
-							key={id}
 							label={title}
-							name="opcije"
+							name="usluge"
 							type='checkbox'
 							inline
 							className=''
-							onChange={onOptionChange}
+							onChange={onUsageChange}
 						/>
-						// </ListGroup.Item>
 					))}
-					{/* </ListGroup> */}
 				</div>
 			</Form>
+		}
 
-			{showUsage &&
-				<Form key="usage" className='text-center border border-1 m-1 rounded-1'>
-					<div className='text-center'>
-						Select services for which you need support
-					</div>
-					<div className='text-center'>
-						{catsUsage.map(({ id: id, title: title }: ICat) => (
-							<Form.Check // prettier-ignore
-								id={id}
-								label={title}
-								name="usluge"
-								type='checkbox'
-								inline
-								className=''
-								onChange={onUsageChange}
-							/>
-						))}
-					</div>
-				</Form>
+		<div key='history' className='history'>
+			{
+				pastEvents.map(childProps => {
+					switch (childProps.type) {
+						case ChildType.AUTO_SUGGEST:
+							return <AutoSuggestComponent {...childProps} />;
+						case ChildType.QUESTION:
+							return <QuestionComponent {...childProps} />;
+						case ChildType.ANSWER:
+							return <AnswerComponent {...childProps} />;
+						default:
+							return <div>unknown</div>
+					}
+				})
 			}
+		</div>
 
-			<div key='history' className='history'>
-				{
-					pastEvents.map(childProps => {
-						switch (childProps.type) {
-							case ChildType.AUTO_SUGGEST:
-								return <AutoSuggestComponent {...childProps} />;
-							case ChildType.QUESTION:
-								return <QuestionComponent {...childProps} />;
-							case ChildType.ANSWER:
-								return <AnswerComponent {...childProps} />;
-							default:
-								return <div>unknown</div>
-						}
-					})
-				}
-			</div>
-
-			{/* {selectedQuestion &&
+		{/* {selectedQuestion &&
 				<div>
 					<QuestionComponent type={ChildType.QUESTION} isDisabled={true} txt={selectedQuestion.title} hasMoreAnswers={hasMoreAnswers} />
 				</div>
 			} */}
 
-			{showAnswer &&
-				<div key="answer">
-					<AnswerComponent type={ChildType.ANSWER} isDisabled={false} txt={answer ? answer.title : 'no answers'} hasMoreAnswers={hasMoreAnswers} />
-				</div>
-			}
+		{showAnswer &&
+			<div key="answer">
+				<AnswerComponent type={ChildType.ANSWER} isDisabled={false} txt={answer ? answer.title : 'no answers'} hasMoreAnswers={hasMoreAnswers} />
+			</div>
+		}
 
-			{catsSelected && !showAutoSuggest &&
-				<Button
-					key="newQuestion"
-					variant="secondary"
-					size="sm"
-					type="button"
-					onClick={() => {
-						setAutoSuggestId(autoSuggestId + 1);
-						setShowAutoSuggest(true);
-					}}
-					className='m-1 border border-1 rounded-1 py-0'
-				>
-					New Question
-				</Button>
-			}
+		{catsSelected && !showAutoSuggest &&
+			<Button
+				key="newQuestion"
+				variant="secondary"
+				size="sm"
+				type="button"
+				onClick={() => {
+					setAutoSuggestId(autoSuggestId + 1);
+					setShowAutoSuggest(true);
+				}}
+				className='m-1 border border-1 rounded-1 py-0'
+			>
+				New Question
+			</Button>
+		}
 
-			{showAutoSuggest &&
-				<AutoSuggestComponent type={ChildType.AUTO_SUGGEST} isDisabled={false} txt={tekst!} />
-			}
-		</Container>
-	);
+		{showAutoSuggest &&
+			<AutoSuggestComponent type={ChildType.AUTO_SUGGEST} isDisabled={false} txt={tekst!} />
+		}
+	</Container>
+);
 }
 
 export default ChatBotPage

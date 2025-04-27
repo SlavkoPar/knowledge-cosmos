@@ -215,14 +215,14 @@ export interface IAnswersMore {
 	hasMoreAnswers: boolean;
 }
 
-export interface IAnsDto {
+export interface IShortAnswerDto {
 	PartitionKey: string;
 	ParentGroup: string;
 	Title: string;
 	Id: string;
 }
 
-export interface IAns {
+export interface IShortAnswer {
 	partitionKey: string;
 	id: string;
 	parentGroup: string;

@@ -12,18 +12,18 @@ import { IAnswerKey } from 'groups/types';
 
 interface IProps {
     questionTitle: string,
-    questionAnswer: IAssignedAnswer,
+    assignedAnswer: IAssignedAnswer,
     groupInAdding: boolean | undefined,
     isDisabled: boolean,
     unAssignAnswer: (answerKey: IAnswerKey) => void
 }
-const AssignedAnswerChatBot = ({ questionTitle, questionAnswer, isDisabled, unAssignAnswer }: IProps) => {
+const AssignedAnswerChatBot = ({ questionTitle, assignedAnswer, isDisabled, unAssignAnswer }: IProps) => {
 
-    const { answerKey, assigned, title } = questionAnswer;
+    const { questionKey, answerKey, title, created } = assignedAnswer;
     const { partitionKey, id } = answerKey;
     const emailFromClient = localStorage.getItem('emailFromClient');
 
-    const rowTitle = `Created by: Pera, ${formatDate(new Date(assigned.time))}`
+    const rowTitle = `Created by: Pera, ${formatDate(new Date(created.time))}`
 
     const { authUser, canEdit, isDarkMode, variant, bg, error } = useGlobalState();
 

@@ -158,8 +158,8 @@ function App() {
         <Col md={12}>
           <div className="wrapper">
             <Routes>
-              <Route path="/" element={(!isAuthenticated && !everLoggedIn) ? <About /> : <Groups />} />
-              <Route path="/knowledge-cosmos" element={(!isAuthenticated && !everLoggedIn) ? <About /> : <Groups />} />
+              <Route path="/" element={(!isAuthenticated && !everLoggedIn) ? <About /> : <Categories />} />
+              <Route path="/knowledge-cosmos" element={(!isAuthenticated && !everLoggedIn) ? <About /> : <Categories />} />
               {/* <Route path="" element={(!isAuthenticated && !everLoggedIn) ? <About /> : <Categories />} /> */}
               {/* <Route path="/register/:returnUrl" element={<RegisterForm />} />
               <Route path="/sign-in" element={<LoginForm initialValues={formInitialValues} invitationId='' />} /> */}

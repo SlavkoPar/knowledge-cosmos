@@ -1,4 +1,4 @@
-import { ActionMap, IWhoWhen, IRecord, IRecordDto, Dto2WhoWhen, WhoWhen2Dto } from 'global/types';
+import { ActionMap, IWhoWhen, IRecord, IRecordDto, Dto2WhoWhen, WhoWhen2Dto, IWhoWhenDto } from 'global/types';
 import { IAnswer, IAnswerKey } from 'groups/types';
 
 export const Mode = {
@@ -44,10 +44,48 @@ export enum FormMode {
 // }
 
 export interface IAssignedAnswer {
+	questionKey: IQuestionKey;
 	answerKey: IAnswerKey;
+	created: IWhoWhen,
 	title?: string;
-	assigned: IWhoWhen
 }
+
+export interface IAssignedAnswerDto {
+	QuestionKey: IQuestionKey;
+	AnswerKey: IAnswerKey;
+	Created: IWhoWhenDto;
+	AnswerTitle: string;
+}
+
+export interface IAssignedAnswerDtoEx {
+	assignedAnswerDto: IAssignedAnswerDto | null;
+	msg: string;
+}
+
+export class AssignedAnswerDto {
+	constructor(assignedAnswer: IAssignedAnswer) {
+		this.assignedAnswerDto = {
+			QuestionKey: assignedAnswer.questionKey,
+			AnswerKey: assignedAnswer.answerKey,
+			Created: new WhoWhen2Dto(assignedAnswer.created).whoWhenDto!,
+			AnswerTitle: ''
+		}
+	}
+	assignedAnswerDto: IAssignedAnswerDto;
+}
+
+export class AssignedAnswer {
+	constructor(dto: IAssignedAnswerDto) {
+		this.assignedAnswer = {
+			questionKey: dto.QuestionKey,
+			answerKey: dto.AnswerKey,
+			created: new Dto2WhoWhen(dto.Created).whoWhen!,
+			title: dto.AnswerTitle
+		}
+	}
+	assignedAnswer: IAssignedAnswer;
+}
+
 
 export interface IFromUserAssignedAnswer {
 	id: string,
@@ -80,6 +118,7 @@ export interface ICategoryKeyExtended extends ICategoryKey {
 
 
 export interface IQuestionKey {
+	parentCategory?: string;
 	partitionKey: string;
 	id: string;
 }
@@ -111,14 +150,15 @@ export interface ICategory extends IRecord {
 
 export class Question {
 	constructor(dto: IQuestionDto) { //, parentCategory: string) {
+		const assignedAnswers = dto.AssignedAnswerDtos.map((aDto: IAssignedAnswerDto) => new AssignedAnswer(aDto).assignedAnswer);
 		this.question = {
 			parentCategory: dto.ParentCategory,
 			partitionKey: dto.PartitionKey,
 			id: dto.Id,
 			title: dto.Title,
 			categoryTitle: dto.CategoryTitle,
-			assignedAnswers: [], //dto.AssignedAnswers, // TODO
-			numOfAssignedAnswers: 0,
+			assignedAnswers,
+			numOfAssignedAnswers: dto.NumOfAssignedAnswers,
 			source: dto.Source,
 			status: dto.Status,
 			created: new Dto2WhoWhen(dto.Created!).whoWhen,
@@ -189,7 +229,7 @@ export class QuestionDto {
 			ParentCategory: question.parentCategory,
 			Title: question.title,
 			CategoryTitle: "",
-			AssignedAnswers: [...question.assignedAnswers],
+			AssignedAnswerDtos: question.assignedAnswers.map((a: IAssignedAnswer) => new AssignedAnswerDto(a).assignedAnswerDto),
 			NumOfAssignedAnswers: question.numOfAssignedAnswers,
 			Source: question.source,
 			Status: question.status,
@@ -207,7 +247,7 @@ export interface IQuestionDto extends IRecordDto {
 	// but it is not a valid key
 	Title: string;
 	CategoryTitle: string;
-	AssignedAnswers: IAssignedAnswer[];
+	AssignedAnswerDtos: IAssignedAnswerDto[];
 	NumOfAssignedAnswers: number,
 	Source: number;
 	Status: number;
@@ -320,8 +360,8 @@ export interface ICategoriesContext {
 	viewQuestion: (questionKey: IQuestionKey) => void;
 	editQuestion: (questionKey: IQuestionKey) => void;
 	updateQuestion: (question: IQuestion) => Promise<any>;
-	assignQuestionAnswer: (questionId: string, answerKey: IAnswerKey, assigned: IWhoWhen) => Promise<any>;
-	unAssignQuestionAnswer: (questionId: string, answerKey: IAnswerKey) => Promise<any>;
+	assignQuestionAnswer: (questionKey: IQuestionKey, answerKey: IAnswerKey, assigned: IWhoWhen) => Promise<any>;
+	unAssignQuestionAnswer: (questionKey: IQuestionKey, answerKey: IAnswerKey, unAssigned: IWhoWhen) => Promise<any>;
 	createAnswer: (answer: IAnswer) => Promise<any>;
 	deleteQuestion: (question: IQuestion) => void;
 }

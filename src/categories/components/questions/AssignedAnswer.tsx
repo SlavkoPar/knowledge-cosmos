@@ -20,10 +20,10 @@ interface IProps {
 }
 const AssignedAnswer = ({ questionTitle, assignedAnswer, isDisabled, unAssignAnswer }: IProps) => {
 
-    const { answerKey, title, assigned } = assignedAnswer;
+    const { questionKey, answerKey, title, created } = assignedAnswer;
     const { partitionKey, id } = answerKey;
 
-    const { time, nickName } = assigned;
+    const { time, nickName } = created;
     const emailFromClient = localStorage.getItem('emailFromClient');
 
     const rowTitle = `Created by: ${nickName}, ${formatDate(new Date(time))}`

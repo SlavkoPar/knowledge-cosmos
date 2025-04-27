@@ -13,6 +13,10 @@ import {
   ICategoryKeyExtended,
   CategoryDto,
   QuestionDto,
+  IAssignedAnswerDto,
+  AssignedAnswerDto,
+  IAssignedAnswerDtoEx,
+  AssignedAnswer,
 } from 'categories/types';
 
 import { initialCategoriesState, CategoriesReducer } from 'categories/CategoriesReducer';
@@ -519,8 +523,8 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
               dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error(msg) } });
             }
           });
-          return questionRet;
-        }
+        return questionRet;
+      }
       catch (error: any) {
         console.log(error)
         dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error('Server Error'), whichRowId: id } });
@@ -575,12 +579,10 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
         await Execute("GET", url)
           .then((questionDtoEx: IQuestionDtoEx) => {
             console.timeEnd();
-            // if (questionDtoEx === null) {
-            //   resolve(null);
-            // }
-            // else {
             const { questionDto, msg } = questionDtoEx;
+            console.log(111.111, {questionDtoEx})
             const question: IQuestion = new Question(questionDto!).question;
+            console.log(111.222, {question})
             if (questionDto) {
               resolve(question);
             }
@@ -614,48 +616,62 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
   }, []);
 
 
-  const assignQuestionAnswer = useCallback(async (questionId: string, answerKey: IAnswerKey, assigned: IWhoWhen): Promise<any> => {
-    return [];
-    /*
-  try {
-    const { parentGroup: partitionKey, id } = answerKey;
-    const question: IQuestion = await dbp!.get('Questions', questionId);
-    const answer: IAnswer = await dbp!.get('Answers', id);
-    const newAssignedAnwser: IAssignedAnswer = {
-      answerKey: {
-        parentGroup: '',
-        id: 'xxx', //answerId
-      },
-      title: answer.title,
-      assigned: {
-        time: new Date(),
-        nickName: globalState.authUser.nickName
+  const assignQuestionAnswer = useCallback(async (questionKey: IQuestionKey, answerKey: IAnswerKey, assigned: IWhoWhen): Promise<any> => {
+    try {
+      const assignedAnwser: IAssignedAnswer = {
+        questionKey,
+        answerKey,
+        created: {
+          time: new Date(),
+          nickName: assigned.nickName
+        },
+        title: ''
       }
+      let question: IQuestion|null = null;
+      const dto = new AssignedAnswerDto(assignedAnwser).assignedAnswerDto;
+      const url = `${protectedResources.KnowledgeAPI.endpointQuestionAnswer}`;
+      console.time()
+      console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> AssignAnswer', dto)
+      await Execute("POST", url, dto)
+        .then(async (questionDtoEx: IQuestionDtoEx) => {
+          console.timeEnd();
+          const { questionDto, msg } = questionDtoEx;
+          console.log("::::::::::::::::::::", { questionDtoEx });
+          if (questionDto) {
+            question = new Question(questionDto).question;
+            console.log('Question successfully modified')
+            //dispatch({ type: ActionTypes.SET_QUESTION, payload: { question: assignedAnswer } });
+            //dispatch({ type: ActionTypes.CLOSE_QUESTION_FORM })
+          }
+        });
+      dispatch({ type: ActionTypes.SET_QUESTION_AFTER_ASSIGN_ANSWER, payload: { question: question! } });
+
+      /*
+      const assignedAnswers = [...question.assignedAnswers, newAssignedAnwser];
+      const obj: IQuestion = {
+        ...question,
+        assignedAnswers,
+        numOfAssignedAnswers: assignedAnswers.length
+      }
+      await dbp!.put('Questions', obj, questionId);
+      console.log("Question Answer successfully assigned", obj);
+      */
+      ///////////////////
+      // newAssignedAnwser.answer.title = answer.title;
+      // obj.assignedAnswers = [...question.assignedAnswers, newAssignedAnwser];;
+      // dispatch({ type: ActionTypes.SET_QUESTION, payload: { question: obj } });
+      //dispatch({ type: ActionTypes.SET_QUESTION_AFTER_ASSIGN_ANSWER, payload: { question: { ...obj } } });
     }
-    const assignedAnswers = [...question.assignedAnswers, newAssignedAnwser];
-    const obj: IQuestion = {
-      ...question,
-      assignedAnswers,
-      numOfAssignedAnswers: assignedAnswers.length
+    catch (error: any) {
+      console.log('error', error);
+      dispatch({ type: ActionTypes.SET_ERROR, payload: { error } });
     }
-    await dbp!.put('Questions', obj, questionId);
-    console.log("Question Answer successfully assigned", obj);
-    ///////////////////
-    // newAssignedAnwser.answer.title = answer.title;
-    // obj.assignedAnswers = [...question.assignedAnswers, newAssignedAnwser];;
-    // dispatch({ type: ActionTypes.SET_QUESTION, payload: { question: obj } });
-    dispatch({ type: ActionTypes.SET_QUESTION_AFTER_ASSIGN_ANSWER, payload: { question: { ...obj } } });
-  }
-  catch (error: any) {
-    console.log('error', error);
-    dispatch({ type: ActionTypes.SET_ERROR, payload: { error } });
-  }
-  */
   }, []);
 
 
-  const unAssignQuestionAnswer = useCallback(async (questionId: string, answerKey: IAnswerKey): Promise<any> => {
+  const unAssignQuestionAnswer = useCallback(async (questionKey: IQuestionKey, answerKey: IAnswerKey, unAssigned: IWhoWhen): Promise<any> => {
     try {
+      /*
       const { partitionKey, id } = answerKey;
       const question = await dbp!.get('Questions', questionId);
       // const answer: IAnswer = await dbp!.get('Answers', answerId);
@@ -670,6 +686,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
       console.log("Question Answer successfully assigned");
       dispatch({ type: ActionTypes.SET_QUESTION_AFTER_ASSIGN_ANSWER, payload: { question: { ...obj } } });
       return obj;
+      */
     }
     catch (error: any) {
       console.log('error', error);

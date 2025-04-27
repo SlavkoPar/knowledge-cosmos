@@ -6,7 +6,7 @@ import { isMobile } from 'react-device-detect'
 
 import { debounce, escapeRegexCharacters } from 'common/utilities'
 import './AutoSuggestAnswers.css'
-import { IAns, IAnswerKey } from 'groups/types';
+import { IShortAnswer, IAnswerKey, IShortAnswerDto } from 'groups/types';
 import { IShortGroup } from 'global/types';
 
 
@@ -15,15 +15,15 @@ interface IGrpMy {
 	parentGroupUp: string,
 	groupParentTitle: string,
 	groupTitle: string,
-	anss: IAns[]
+	shortAnswers: IShortAnswer[]
 }
 
-interface IGroupSection	 {
+interface IGroupSection {
 	id: string,
 	groupTitle: string,
 	parentGroupUp: string,
 	groupParentTitle: string, // TODO ???
-	anss: IAns[]
+	shortAnswers: IShortAnswer[]
 }
 
 // https://developer.mozilla.org/en/docs/Web/JavaScript/Guide/Regular_Expression
@@ -39,19 +39,22 @@ interface IShortGroupIdTitle {
 	title: string;
 }
 
-const AnswerAutosuggestMulti = Autosuggest as { new(): Autosuggest<IAns, IGrpMy> };
+const AnswerAutosuggestMulti = Autosuggest as { new(): Autosuggest<IShortAnswer, IGrpMy> };
 
 export class AutoSuggestAnswers extends React.Component<{
 	tekst: string | undefined,
-	onSelectAnswer: (answerKey: IAnswerKey) => void,
-	allGroups: Map<string, IShortGroup>,
-	searchAnswers: (filter: string, count: number) => Promise<IAns[]>
+	onSelectQuestionAnswer: (answerKey: IAnswerKey) => void,
+	alreadyAssigned: string[],
+	shortGroups: Map<string, IShortGroup>,
+	searchAnswers: (filter: string, count: number) => Promise<IShortAnswer[]>
+
 }, any> {
 	// region Fields
+	alreadyAssigned: string[];
 	state: any;
 	isMob: boolean;
-	allGroups: Map<string, IShortGroup>;
-	searchAnswers: (filter: string, count: number) => Promise<IAns[]>;
+	shortGroups: Map<string, IShortGroup>;
+	searchAnswers: (filter: string, count: number) => Promise<IShortAnswer[]>;
 	debouncedLoadSuggestions: (value: string) => void;
 	//inputAutosuggest: React.RefObject<HTMLInputElement>;
 	// endregion region Constructor
@@ -65,7 +68,8 @@ export class AutoSuggestAnswers extends React.Component<{
 			highlighted: ''
 		};
 		//this.inputAutosuggest = createRef<HTMLInputElement>();
-		this.allGroups = props.allGroups;
+		this.alreadyAssigned = props.alreadyAssigned;
+		this.shortGroups = props.shortGroups;
 		this.searchAnswers = props.searchAnswers;
 		this.isMob = isMobile;
 		this.loadSuggestions = this.loadSuggestions.bind(this);
@@ -79,6 +83,8 @@ export class AutoSuggestAnswers extends React.Component<{
 
 		console.time();
 		const suggestions = await this.getSuggestions(value);
+		console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>', value, this.state.value,
+			suggestions.length, {suggestions})
 		console.timeEnd();
 
 		if (value === this.state.value) {
@@ -142,7 +148,7 @@ export class AutoSuggestAnswers extends React.Component<{
 	private satisfyingGroups = (searchWords: string[]): IShortGroupIdTitle[] => {
 		const arr: IShortGroupIdTitle[] = [];
 		searchWords.filter(w => w.length >= 3).forEach(w => {
-			this.allGroups.forEach(async group => {
+			this.shortGroups.forEach(async group => {
 				const parentGroup = group.groupKey.id;
 				let j = 0;
 				// grp.words.forEach(grpw => {
@@ -164,33 +170,34 @@ export class AutoSuggestAnswers extends React.Component<{
 		if (search.length < 2)
 			return [];
 
-		const grouppAnswers = new Map<string, IAns[]>();
-
+		const groupAnswers = new Map<string, IShortAnswer[]>();
 		const answerKeys: IAnswerKey[] = [];
 		try {
 			console.log('--------->>>>> getSuggestions')
-			var ansDtoList: IAns[] = await this.searchAnswers(escapedValue, 20);
-
-			ansDtoList.forEach((ans: IAns) => {
-				const { id, partitionKey, parentGroup, title } = ans;
-				const answerKey = { partitionKey, id }
-				if (!answerKeys.includes(answerKey)) {
-					answerKeys.push(answerKey);
-
-					// 2) Group answers by parentGroup
-					const ans: IAns = {
-						partitionKey,
-						id,
-						parentGroup,
-						title,
-						groupTitle: ''
+			var shortAnswerList: IShortAnswer[] = await this.searchAnswers(escapedValue, 20);
+			shortAnswerList.forEach((shortAnswer: IShortAnswer) => {
+				const { partitionKey, id, parentGroup, title } = shortAnswer;
+				if (!this.alreadyAssigned.includes(id)) {
+					const answerKey = { partitionKey, id }
+					if (!answerKeys.includes(answerKey)) {
+						answerKeys.push(answerKey);
 					}
-					if (!grouppAnswers.has(parentGroup)) {
-						grouppAnswers.set(parentGroup, [ans]);
+
+					//2) Group answers by parentGroup
+					// const ans2: IShortAnswer = {
+					// 	partitionKey,
+					// 	id,
+					// 	parentGroup,
+					// 	title,
+					// 	groupTitle: ''
+					// }
+					if (!groupAnswers.has(parentGroup)) {
+						groupAnswers.set(parentGroup, [shortAnswer]);
 					}
 					else {
-						grouppAnswers.get(parentGroup)!.push(ans);
+						groupAnswers.get(parentGroup)!.push(shortAnswer);
 					}
+					//}
 				}
 			})
 		}
@@ -198,56 +205,13 @@ export class AutoSuggestAnswers extends React.Component<{
 			console.debug(error)
 		};
 
-		////////////////////////////////////////////////////////////////////////////////
-		// Search for Groups title words, and add all the answers of the Group
-		/*
-		if (answerKeys.length === 0) {
-			try {
-				const tx = this.dbp!.transaction('Answers')
-				const index = tx.store.index('parentGroup_idx');
-				const grpIdTitles = this.satisfyingGroups(searchWords)
-				let i = 0;
-				while (i < grpIdTitles.length) {
-					const grpIdTitle = grpIdTitles[i];
-					const parentGroup = grpIdTitle.id;
-					for await (const cursor of index.iterate(parentGroup)) {
-						const q: IAnswer = cursor.value;
-						const { id, title } = q;
-						//if (!answerRows.includes(id!))
-						//	answerRows.push(id!);
-
-						const answerKey = { parentGroup, id }
-						if (!answerKeys.includes(answerKey)) {
-							answerKeys.push(answerKey);
-
-							//console.log(q);
-							// 2) Group answers by parentGroup
-							const ans: IAns = {
-								id,
-								parentGroup,
-								title,
-								groupTitle: grpIdTitle.title
-							}
-							if (!grpAnss.has(parentGroup)) {
-								grpAnss.set(parentGroup, [ans]);
-							}
-							else {
-								grpAnss.get(parentGroup)!.push(ans);
-							}
-						}
-					}
-					await tx.done;
-				}
-			}
-			catch (error: any) {
-				console.debug(error)
-			};
-		}
-		await tx.done;
-		*/
-
 		if (answerKeys.length === 0)
 			return [];
+
+		console.log('kitaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa =>', groupAnswers.size, {groupAnswers})
+
+		// if (groupAnswers.size === 0)
+		// 	return [];
 
 		try {
 			////////////////////////////////////////////////////////////
@@ -259,17 +223,18 @@ export class AutoSuggestAnswers extends React.Component<{
 			////////////////////////////////////////////////////////////
 			// 
 			let groupSections: IGroupSection[] = [];
-			grouppAnswers.forEach((anss, id) => {
-				const group = this.allGroups.get(id);
+			groupAnswers.forEach((shortAnswers, id) => {
+				const group = this.shortGroups.get(id);
+				console.log('GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG', group)
 				const { title, titlesUpTheTree, variations } = group!;
 				const groupSection: IGroupSection = {
-					id: id,
+					id,
 					groupTitle: title,
 					groupParentTitle: 'kuro',
 					parentGroupUp: titlesUpTheTree!,
-					anss: []
+					shortAnswers: []
 				};
-				anss.forEach(ans => {
+				shortAnswers.forEach(shortAnswer => {
 					// console.log(ans);
 					if (variations.length > 0) {
 						let wordsIncludesTag = false;
@@ -284,17 +249,18 @@ export class AutoSuggestAnswers extends React.Component<{
 						if (!wordsIncludesTag) {
 							variations.forEach(variation => {
 								// console.log(ans);
-								groupSection.anss.push({ ...ans, title: ans.title + ' ' + variation });
+								groupSection.shortAnswers.push({ ...shortAnswer, title: shortAnswer.title + ' ' + variation });
 							});
 						}
 					}
 					else {
-						groupSection.anss.push(ans);
+						groupSection.shortAnswers.push(shortAnswer);
 					}
 				});
 				groupSections.push(groupSection);
-				//console.log(grpSections)
+				console.log('77777777777777777777777777777777777', {groupSection});
 			});
+			console.log({groupSections})
 			return groupSections;
 		}
 		catch (error: any) {
@@ -311,10 +277,10 @@ export class AutoSuggestAnswers extends React.Component<{
 		});
 	};
 
-	protected onSuggestionSelected(event: React.FormEvent<any>, data: Autosuggest.SuggestionSelectedEventData<IAns>): void {
-		const answer: IAns = data.suggestion;
-		// alert(`Selected answer is ${answer.answerId} (${answer.text}).`);
-		this.props.onSelectAnswer({ partitionKey: answer.partitionKey, id: answer.id });
+	protected onSuggestionSelected(event: React.FormEvent<any>, data: Autosuggest.SuggestionSelectedEventData<IShortAnswer>): void {
+		const answer: IShortAnswer = data.suggestion;
+		alert(`Selected answer is ${answer.partitionKey} / ${answer.id}.`);
+		this.props.onSelectQuestionAnswer({ partitionKey: answer.partitionKey, id: answer.id });
 	}
 
 	/*
@@ -325,7 +291,7 @@ export class AutoSuggestAnswers extends React.Component<{
 	*/
 
 	// TODO bac ovo u external css   style={{ textAlign: 'left'}}
-	protected renderSuggestion(suggestion: IAns, params: Autosuggest.RenderSuggestionParams): JSX.Element {
+	protected renderSuggestion(suggestion: IShortAnswer, params: Autosuggest.RenderSuggestionParams): JSX.Element {
 		// const className = params.isHighlighted ? "highlighted" : undefined;
 		//return <span className={className}>{suggestion.name}</span>;
 		const matches = AutosuggestHighlightMatch(suggestion.title, params.query);
@@ -416,12 +382,13 @@ export class AutoSuggestAnswers extends React.Component<{
 	////////////////////////////////////
 	// endregion region Helper methods
 
-	protected getSuggestionValue(suggestion: IAns) {
+	protected getSuggestionValue(suggestion: IShortAnswer) {
 		return suggestion.title;
 	}
 
 	protected getSectionSuggestions(section: IGrpMy) {
-		return section.anss;
+		console.log('****************************** getSectionSuggestions', section)
+		return section.shortAnswers;
 	}
 
 	protected onSuggestionHighlighted(params: Autosuggest.SuggestionHighlightedParams): void {

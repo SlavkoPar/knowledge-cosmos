@@ -71,7 +71,7 @@ const AssignedAnswersChatBot = ({ questionId, questionTitle, assignedAnswers, is
                     {assignedAnswers2.map((assignedAnswer: IAssignedAnswer) =>
                         <AssignedAnswerChatBot
                             questionTitle={questionTitle}
-                            questionAnswer={assignedAnswer}
+                            assignedAnswer={assignedAnswer}
                             groupInAdding={false}
                             isDisabled={isDisabled}
                             unAssignAnswer={unAssignAnswer}

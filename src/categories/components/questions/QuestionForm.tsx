@@ -30,8 +30,8 @@ const QuestionForm = ({ mode, question, submitForm, children, showCloseButton, s
   const adding = mode === FormMode.adding;
 
   const { partitionKey, parentCategory, title, id, assignedAnswers } = question;
-  // const categoryKey = {partitionKey, id: parentCategory};
-  const categoryKey: ICategoryKey = {partitionKey: 'null', id: 'null'};
+  const questionKey = {parentCategory, partitionKey, id };
+  const categoryKey: ICategoryKey = {partitionKey, id: parentCategory};
 
   const dispatch = useCategoryDispatch();
 
@@ -214,12 +214,12 @@ const QuestionForm = ({ mode, question, submitForm, children, showCloseButton, s
 
         {(viewing || editing) &&
           <>
-            {/* <AssignedAnswers
-              questionId={id!}
+            <AssignedAnswers
+              questionKey={questionKey}
               questionTitle={title}
               assignedAnswers={assignedAnswers}
               isDisabled={isDisabled}
-            /> */}
+            />
 
             <CreatedModifiedForm
               created={question.created}

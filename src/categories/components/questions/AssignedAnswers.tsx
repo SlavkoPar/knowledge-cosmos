@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Button, ListGroup, Modal } from "react-bootstrap";
-import { IAssignedAnswer } from "categories/types";
+import { IAssignedAnswer, IQuestionKey } from "categories/types";
 import { useCategoryContext } from "categories/CategoryProvider";
 import { useGlobalContext } from "global/GlobalProvider";
 import AssignedAnswer from "./AssignedAnswer";
@@ -11,18 +11,18 @@ import AddAnswer from "categories/components/questions/AddAnswer"
 import { initialAnswer } from "groups/GroupsReducer"; // PRE
 
 interface IProps {
-    questionId: string,
+    questionKey: IQuestionKey,
     questionTitle: string,
     assignedAnswers: IAssignedAnswer[],
     isDisabled: boolean
 }
 
-const AssignedAnswers = ({ questionId, questionTitle, assignedAnswers, isDisabled }: IProps) => {
+const AssignedAnswers = ({ questionKey, questionTitle, assignedAnswers, isDisabled }: IProps) => {
 
-    const { globalState, joinAssignedAnswers } = useGlobalContext();
-    const { authUser, isDarkMode, variant, dbp } = globalState;
+    const { globalState, joinAssignedAnswers, searchAnswers } = useGlobalContext();
+    const { authUser, isDarkMode, variant, shortGroups } = globalState;
 
-    const [assignedAnswers2, setAssignAnswers2] = useState<IAssignedAnswer[]>([]);
+    //const [assignedAnswers2, setAssignAnswers2] = useState<IAssignedAnswer[]>([]);
 
     const [showAdd, setShowAdd] = useState(false);
     const handleClose = () => setShowAdd(false);
@@ -31,14 +31,14 @@ const AssignedAnswers = ({ questionId, questionTitle, assignedAnswers, isDisable
         handleClose();
     }
 
-    useEffect(() => {
-        (async () => {
-            if (assignedAnswers.length > 0) {
-                const arr = await joinAssignedAnswers(assignedAnswers);
-                setAssignAnswers2(arr);
-            }
-        })()
-    }, [assignedAnswers])
+    // useEffect(() => {
+    //     (async () => {
+    //         if (assignedAnswers.length > 0) {
+    //             //const arr = await joinAssignedAnswers(assignedAnswers);
+    //             setAssignAnswers2(assignedAnswers);
+    //         }
+    //     })()
+    // }, [assignedAnswers])
 
     const { state, assignQuestionAnswer, unAssignQuestionAnswer } = useCategoryContext();
     const [showAssign, setShowAssign] = useState(false);
@@ -50,7 +50,7 @@ const AssignedAnswers = ({ questionId, questionTitle, assignedAnswers, isDisable
         }
         // TODO in next version do not update MongoDB immediately, wait until users presses Save
         // User could have canceled question update
-        await assignQuestionAnswer(questionId, answerKey, assigned);
+        await assignQuestionAnswer(questionKey, answerKey, assigned);
         setShowAssign(false);
     }
 
@@ -64,7 +64,11 @@ const AssignedAnswers = ({ questionId, questionTitle, assignedAnswers, isDisable
     }
 
     const unAssignAnswer = async (answerKey: IAnswerKey) => {
-        await unAssignQuestionAnswer(questionId, answerKey);
+        const unAssigned: IWhoWhen = {
+            time: new Date(),
+            nickName: globalState.authUser.nickName
+        }
+        await unAssignQuestionAnswer(questionKey, answerKey, unAssigned);
     }
 
     return (
@@ -72,7 +76,7 @@ const AssignedAnswers = ({ questionId, questionTitle, assignedAnswers, isDisable
             <div>
                 <label className="text-info">Answers</label>
                 <ListGroup as="ul" variant={variant} className='my-1'>
-                    {assignedAnswers2.map((assignedAnswer: IAssignedAnswer) =>
+                    {assignedAnswers.map((assignedAnswer: IAssignedAnswer) =>
                         <AssignedAnswer
                             questionTitle={questionTitle}
                             assignedAnswer={assignedAnswer}
@@ -156,16 +160,17 @@ const AssignedAnswers = ({ questionId, questionTitle, assignedAnswers, isDisable
                 </Modal.Header>
                 <Modal.Body style={{ height: '40vh', width: '50vw' }} className="question-answers">
 
-                    {/* <AutoSuggestAnswers
-                        dbp={dbp!}
+                    <AutoSuggestAnswers
                         tekst={''}
                         alreadyAssigned={
                             assignedAnswers.length === 0
                                 ? []
-                                : assignedAnswers.map((a: IAssignedAnswer) => a.answer.id)
+                                : assignedAnswers.map((a: IAssignedAnswer) => a.answerKey.id)
                         }
+                        shortGroups={shortGroups}
                         onSelectQuestionAnswer={onSelectQuestionAnswer}
-                    /> */}
+                        searchAnswers={searchAnswers}
+                    />
                 </Modal.Body>
             </Modal>
         </div>

@@ -11,14 +11,17 @@ import {
   IParentInfo,
   IWhoWhen,
   ICatExport,
-  IHistory, IHistoryData,
-  IAnswerRating
+  IHistory, IHistoryDtoEx, IHistoryData, HistoryDto, History,
+  IAnswerRating,
+  IHistoryDtoListEx,
+  IHistoryListEx,
+  IAnswerRatings
 } from 'global/types'
 
 import { globalReducer, initialGlobalState } from "global/globalReducer";
 
-import { Category, IAssignedAnswer, ICategory, ICategoryDto, ICategoryKey, IQuest, IQuestDto, IQuestion, IQuestionDto, IQuestionKey, Question } from "categories/types";
-import { Group, IGroup, IGroupDto, IGroupKey, IAnswer, IAnswerDto, IAnswerKey, IAns, IAnsDto, Answer } from "groups/types";
+import { Category, IAssignedAnswer, ICategory, ICategoryDto, ICategoryKey, IQuest, IQuestDto, IQuestion, IQuestionDto, IQuestionDtoEx, IQuestionKey, Question } from "categories/types";
+import { Group, IGroup, IGroupDto, IGroupKey, IAnswer, IAnswerDto, IAnswerKey, IShortAnswer, IShortAnswerDto, Answer } from "groups/types";
 import { IUser } from 'global/types';
 
 import { IDBPDatabase, IDBPIndex, openDB } from 'idb' // IDBPTransaction
@@ -290,22 +293,29 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
 
   //const searchAnswers = useCallback(async (execute: (method: string, endpoint: string) => Promise<any>, filter: string, count: number): Promise<any> => {
   const searchAnswers = async (filter: string, count: number): Promise<any> => {
+    const { shortGroups } = globalState;
+
     return new Promise(async (resolve) => {
       try {
         console.time();
         const filterEncoded = encodeURIComponent(filter);
         const url = `${protectedResources.KnowledgeAPI.endpointAnswer}/${filterEncoded}/${count}/null`;
-        await Execute("GET", url).then((ansDtos: IAnsDto[] | undefined) => {
-          console.log({ questDtos: ansDtos }, protectedResources.KnowledgeAPI.endpointGroup);
+        await Execute("GET", url).then((shortAnswerDtoList: IShortAnswerDto[]) => {
+          console.log({ questDtos: shortAnswerDtoList }, protectedResources.KnowledgeAPI.endpointGroup);
           console.timeEnd();
-          if (ansDtos) {
-            const listGrp: IAns[] = ansDtos.map((q: IAnsDto) => ({
-              partitionKey: q.PartitionKey,
-              id: q.Id,
-              parentGroup: q.ParentGroup,
-              title: q.Title
-            }))
-            resolve(listGrp);
+          if (shortAnswerDtoList) {
+            const shortAnswers: IShortAnswer[] = shortAnswerDtoList.map((shortAnswerDto: IShortAnswerDto) => {
+              const { PartitionKey, Id, ParentGroup, Title } = shortAnswerDto;
+              //const group = shortGroups.get(ParentGroup);
+              return {
+                partitionKey: PartitionKey,
+                id: Id,
+                parentGroup: ParentGroup,
+                title: Title
+                //groupTitle: group ? group.title : 'Not found'
+              }
+            })
+            resolve(shortAnswers);
           }
           else {
             // reject()
@@ -345,7 +355,6 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
   const joinAssignedAnswers = async (assignedAnswers: IAssignedAnswer[]): Promise<IAssignedAnswer[]> => {
     const arr: IAssignedAnswer[] = [];
     try {
-      // const { dbp } = globalState;
       // // join answer.title
       // let i = 0;
       // while (i < assignedAnswers.length) {
@@ -372,33 +381,20 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
         //console.log(`FETCHING --->>> ${url}`)
         //dispatch({ type: GlobalActionTypes.SET_LOADING, payload: {} })
         console.time()
-        /*
-        axios
-          .get(url, {
-            withCredentials: false,
-            headers: {
-              'Content-Type': 'application/json',
-              'Access-Control-Allow-Origin': "*"
-            }
-          })
-          .then(({ data: questionDto }) => {
-            const categories: ICategory[] = [];
-            console.timeEnd();
-            const question: IQuestion = new Question(questionDto, parentCategory).question;
-            question.categoryTitle = 'nadji me';
-            resolve(question);
-          })
-          .catch((error) => {
-            console.log('FETCHING --->>>', error);
-          });
-        */
         const url = `${protectedResources.KnowledgeAPI.endpointQuestion}/${partitionKey}/${id}`;
-        await Execute("GET", url).then((questionDto: IQuestionDto) => {
-          console.timeEnd();
-          console.log({ response: questionDto });
-          const question: IQuestion = new Question(questionDto).question;
-          resolve(question);
-        });
+        await Execute("GET", url)
+          .then((questionDtoEx: IQuestionDtoEx) => {
+            console.timeEnd();
+            console.log({ questionDtoEx });
+            const { questionDto, msg } = questionDtoEx;
+            const question: IQuestion = new Question(questionDto!).question;
+            // if (questionDto) {
+            // }
+            // else {
+            // }
+            console.log('QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ', { question })
+            resolve(question);
+          });
 
 
       }
@@ -635,72 +631,35 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
     return [];
   }
 
-
-  const getMaxConversation = async (dbp: IDBPDatabase): Promise<number> => {
-    // const tx = dbp!.transaction('History', 'readonly');
-    // var index = tx.store.index('conversation_idx');
-    // var req = await index.openCursor(null, 'prev');
-    // return (req === null)
-    //   ? 1000
-    //   : parseInt(req.key.toString())
-    return 1000;
-  }
-
-  const addHistory = async (dbp: IDBPDatabase | null, history: IHistory): Promise<void> => {
-    if (!dbp) {
-      dbp = globalState.dbp;
-    }
-    const { conversation, client, questionId, answerId, fixed, created } = history;
-    await dbp!.add('History', {
-      conversation,
-      client,
-      questionId,
-      answerId,
-      fixed,
-      created
-    });
-    Promise.resolve();
-  }
-
-  const getAnswersRated = async (dbp: IDBPDatabase | null, questionId: string): Promise<IAnswerRating[]> => {
-    // if (!dbp) {
-    //   dbp = globalState.dbp;
-    // }
-    // const tx = dbp!.transaction(['History', 'Answers'], 'readonly');
-    // const index = tx.objectStore('History').index('question_conversation_answer_idx');
-    // const map = new Map<number, IAnswerRating>();
-    // for await (const cursor of index.iterate(IDBKeyRange.bound([questionId, 1000, 0], [questionId, 999999, 999999], false, true))) {
-    //   const history: IHistory = cursor!.value;
-    //   const { answerId, fixed } = history;
-    //   if (!map.has(answerId)) {
-    //     map.set(answerId, { fixed: fixed === true ? 1 : 0, notFixed: fixed === false ? 1 : 0, Undefined: fixed === undefined ? 1 : 0 });
-    //   }
-    //   else {
-    //     const answerRating = map.get(answerId);
-    //     switch (fixed) {
-    //       case true:
-    //         answerRating!.fixed++;
-    //         break;
-    //       case false:
-    //         answerRating!.notFixed++;
-    //         break;
-    //       case undefined:
-    //         answerRating!.Undefined++;
-    //         break;
-    //       default:
-    //         alert('unk rate')
-    //         break;
-    //     }
-    //     map.set(answerId, answerRating!);
-    //   }
-    // }
-    const arr: IAnswerRating[] = [];
-    // map.forEach((value, key) => {
-    //   arr.push({ answerId: key, ...value })
-    // })
-    arr.sort(compareFn);
-    return arr;
-  }
+  const addHistory = useCallback(
+    async (history: IHistory) => {
+      //const { partitionKey, id, variations, title, kind, modified } = history;
+      //dispatch({ type: ActionTypes.SET_CATEGORY_LOADING, payload: { id, loading: false } });
+      try {
+        const historyDto = new HistoryDto(history).historyDto;
+        console.log("historyDto", { historyDto })
+        const url = `${protectedResources.KnowledgeAPI.endpointHistory}`;
+        console.time()
+        await Execute("POST", url, historyDto)
+          .then(async (historyDtoEx: IHistoryDtoEx | null) => {
+            console.timeEnd();
+            if (historyDtoEx) {
+              const { historyDto } = historyDtoEx;
+              if (historyDto) {
+                const history = new History(historyDto).history;
+                console.log('History successfully created')
+                // dispatch({ type: ActionTypes.SET_ADDED_CATEGORY, payload: { category: { ...category, questions: [] } } });
+                // dispatch({ type: ActionTypes.CLOSE_CATEGORY_FORM })
+                await loadCats(); // reload
+              }
+            }
+          });
+      }
+      catch (error: any) {
+        console.log(error)
+        //dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error('Server Error') } });
+      }
+    }, []);
 
   const compareFn = (a: IAnswerRating, b: IAnswerRating): number => {
     if (a.fixed > b.fixed) {
@@ -728,6 +687,62 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
     return 0;
   }
 
+  const getAnswersRated = async (questionId: string): Promise<IAnswerRatings> => { // IAnswerRating[]
+    const mapAnswerRating = new Map<string, IAnswerRating>();
+    try {
+      console.log("getAnswersRated", { questionId })
+      const url = `${protectedResources.KnowledgeAPI.endpointHistory}`;
+      console.time()
+      //const historyListEx: IHistoryListEx = { historyList: [], msg: "" };
+      const answerRatings: IAnswerRatings = { ratings: [], msg: "" }
+      await Execute("GET", url)
+        .then(async (historyDtoListEx: IHistoryDtoListEx) => {
+          console.timeEnd();
+          const { historyDtoList, msg } = historyDtoListEx;
+          if (historyDtoList) {
+            const historyList = historyDtoList.map(historyDto => new History(historyDto).history);
+            historyList.forEach(history => {
+              const { answerId, fixed } = history;
+              if (!mapAnswerRating.has(answerId)) {
+                mapAnswerRating.set(answerId, { fixed: fixed === true ? 1 : 0, notFixed: fixed === false ? 1 : 0, Undefined: fixed === undefined ? 1 : 0 });
+              }
+              else {
+                const answerRating = mapAnswerRating.get(answerId);
+                switch (fixed) {
+                  case true:
+                    answerRating!.fixed++;
+                    break;
+                  case false:
+                    answerRating!.notFixed++;
+                    break;
+                  case undefined:
+                    answerRating!.Undefined++;
+                    break;
+                  default:
+                    alert('unk rate')
+                    break;
+                }
+                mapAnswerRating.set(answerId, answerRating!);
+              }
+              const arr: IAnswerRating[] = [];
+              mapAnswerRating.forEach((value, key) => {
+                arr.push({ answerId: key, ...value })
+              })
+              answerRatings.ratings = arr.sort(compareFn);
+            })
+          }
+          else {
+            answerRatings.msg = msg;
+          }
+        });
+      return answerRatings;
+    }
+    catch (error: any) {
+      console.log(error);
+      return { ratings: [], msg: "Server problemos" }
+    }
+  }
+
   useEffect(() => {
     (async () => {
       await OpenDB();
@@ -740,8 +755,8 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
       getUser, exportToJSON, health,
       joinAssignedAnswers,
       loadCats, getSubCats, getCatsByKind, searchQuestions, getQuestion,
-      loadShortGroups: loadShortGroups, getSubGroups, getGroupsByKind, searchAnswers, getAnswer,
-      getMaxConversation, addHistory, getAnswersRated
+      loadShortGroups, getSubGroups, getGroupsByKind, searchAnswers, getAnswer,
+      addHistory, getAnswersRated
     }}>
       <GlobalDispatchContext.Provider value={dispatch}>
         {children}

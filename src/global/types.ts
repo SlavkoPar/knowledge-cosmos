@@ -1,6 +1,6 @@
 // Define the Global State
 import { IAssignedAnswer, ICategory, ICategoryKey, IQuest, IQuestion, IQuestionKey } from 'categories/types';
-import { IGroup, IGroupKey, IAns, IAnswer, IAnswerKey } from 'groups/types';
+import { IGroup, IGroupKey, IShortAnswer, IAnswer, IAnswerKey } from 'groups/types';
 //import { IOption } from 'common/types';
 import { IDBPDatabase } from 'idb';
 
@@ -57,6 +57,40 @@ export class WhoWhen2Dto {
 	}
 	whoWhenDto: IWhoWhenDto | null = null;
 }
+
+
+export class HistoryDto {
+	constructor(history: IHistory) {
+		this.historyDto = {
+			QuestionId: history.questionId,
+			AnswerId: history.answerId,
+			Fixed: history.fixed == undefined
+				? 2
+				: history.fixed
+					? 1
+					: 0,
+			Created: new WhoWhen2Dto(history.created).whoWhenDto!,
+		}
+	}
+	historyDto: IHistoryDto;
+}
+
+export class History {
+	constructor(dto: IHistoryDto) {
+		this.history = {
+			questionId: dto.QuestionId,
+			answerId: dto.AnswerId,
+			fixed: dto.Fixed == 2
+				? undefined
+				: dto.Fixed == 1
+					? true
+					: false,
+			created: new Dto2WhoWhen(dto.Created!).whoWhen,
+		}
+	}
+	history: IHistory;
+}
+
 
 export interface IAuthUser {
 	color?: string,
@@ -160,11 +194,10 @@ export interface IGlobalContext {
 	loadShortGroups: () => void;
 	getSubGroups: (categoryKey: ICategoryKey) => Promise<any>;
 	getGroupsByKind: (kind: number) => Promise<IShortGroup[]>;
-	searchAnswers: (filter: string, count: number) => Promise<IAns[]>;
+	searchAnswers: (filter: string, count: number) => Promise<IShortAnswer[]>;
 	getAnswer: (answerKey: IAnswerKey) => Promise<IAnswer | null>;
-	getMaxConversation: (dbp: IDBPDatabase) => Promise<number>;
-	addHistory: (dbp: IDBPDatabase | null, history: IHistory) => Promise<void>;
-	getAnswersRated: (dbp: IDBPDatabase | null, questionId: string) => Promise<IAnswerRating[]>;
+	addHistory: (history: IHistory) => Promise<void>;
+	getAnswersRated: (questionId: string) => Promise<IAnswerRatings>;
 }
 
 export enum GlobalActionTypes {
@@ -407,13 +440,36 @@ export interface IRoleData {
 
 
 export interface IHistory {
-	conversation?: number;
-	client: string;
+	id?: number;
 	questionId: string;
-	answerId: number;
+	answerId: string;
 	fixed: boolean | undefined; // when client didn't click on 'Fixed' or 'Not fixed' buttons
-	created: Date
+	created?: IWhoWhen
 }
+
+export interface IHistoryDto {
+	Id?: number;
+	QuestionId: string;
+	AnswerId: string;
+	Fixed: number; // when client didn't click on 'Fixed' or 'Not fixed' buttons
+	Created: IWhoWhenDto
+}
+
+export interface IHistoryDtoEx {
+	historyDto: IHistoryDto | null;
+	msg: string;
+}
+
+export interface IHistoryDtoListEx {
+	historyDtoList: IHistoryDto[];
+	msg: string;
+}
+
+export interface IHistoryListEx {
+	historyList: IHistory[];
+	msg: string;
+}
+
 
 export interface IHistoryData {
 	client: string;
@@ -423,10 +479,15 @@ export interface IHistoryData {
 }
 
 export interface IAnswerRating {
-	answerId?: number;
+	answerId?: string;
 	fixed: number;
 	notFixed: number; // client clicked on 'Not fixed' button
 	Undefined: number; // not clicked
+}
+
+export interface IAnswerRatings {
+	ratings: IAnswerRating[];
+	msg: string;
 }
 
 
