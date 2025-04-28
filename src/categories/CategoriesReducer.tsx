@@ -455,12 +455,15 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
 
       // for inAdding, _id is IDBValidKey('000000000000000000000000')
       // thats why we look for q.inAdding instead of q._id === _id
+      // const x = state.categories.filter(c => c.id === parentCategory).filter(q=>q.id === id);
+      // console.error('SET_QUESTION_AFTER_ASSIGN_ANSWER', {x})
+
       const categories = state.categories.map(c => c.id === parentCategory
         ? {
           ...c,
           questions: inAdding
             ? c.questions.map(q => q.inAdding ? { ...question, inAdding: q.inAdding } : q)
-            : c.questions.map(q => q.id === id ? { ...question, inEditing: q.inEditing } : q), // TODO sta, ako je inViewing
+            : c.questions.map(q => q.id === id ? { ...question, inViewing: q.inViewing, inEditing: q.inEditing } : q), // TODO sta, ako je inViewing
           inEditing: c.inEditing,
           inAdding: c.inAdding
         }

@@ -40,7 +40,7 @@ const AssignedAnswers = ({ questionKey, questionTitle, assignedAnswers, isDisabl
     //     })()
     // }, [assignedAnswers])
 
-    const { state, assignQuestionAnswer, unAssignQuestionAnswer } = useCategoryContext();
+    const { state, assignQuestionAnswer } = useCategoryContext();
     const [showAssign, setShowAssign] = useState(false);
 
     const onSelectQuestionAnswer = async (answerKey: IAnswerKey) => {
@@ -50,7 +50,7 @@ const AssignedAnswers = ({ questionKey, questionTitle, assignedAnswers, isDisabl
         }
         // TODO in next version do not update MongoDB immediately, wait until users presses Save
         // User could have canceled question update
-        await assignQuestionAnswer(questionKey, answerKey, assigned);
+        await assignQuestionAnswer('Assign', questionKey, answerKey, assigned);
         setShowAssign(false);
     }
 
@@ -68,7 +68,11 @@ const AssignedAnswers = ({ questionKey, questionTitle, assignedAnswers, isDisabl
             time: new Date(),
             nickName: globalState.authUser.nickName
         }
-        await unAssignQuestionAnswer(questionKey, answerKey, unAssigned);
+        await assignQuestionAnswer('UnAssign', questionKey, answerKey, unAssigned);
+
+        // TODO in next version do not update MongoDB immediately, wait until users presses Save
+        // User could have canceled question update
+        //setShowAssign(false);
     }
 
     return (

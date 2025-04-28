@@ -360,8 +360,7 @@ export interface ICategoriesContext {
 	viewQuestion: (questionKey: IQuestionKey) => void;
 	editQuestion: (questionKey: IQuestionKey) => void;
 	updateQuestion: (question: IQuestion) => Promise<any>;
-	assignQuestionAnswer: (questionKey: IQuestionKey, answerKey: IAnswerKey, assigned: IWhoWhen) => Promise<any>;
-	unAssignQuestionAnswer: (questionKey: IQuestionKey, answerKey: IAnswerKey, unAssigned: IWhoWhen) => Promise<any>;
+	assignQuestionAnswer: (action: string, questionKey: IQuestionKey, answerKey: IAnswerKey, assigned: IWhoWhen) => Promise<any>;
 	createAnswer: (answer: IAnswer) => Promise<any>;
 	deleteQuestion: (question: IQuestion) => void;
 }

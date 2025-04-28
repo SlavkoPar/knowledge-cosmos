@@ -616,7 +616,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
   }, []);
 
 
-  const assignQuestionAnswer = useCallback(async (questionKey: IQuestionKey, answerKey: IAnswerKey, assigned: IWhoWhen): Promise<any> => {
+  const assignQuestionAnswer = useCallback(async (action: string, questionKey: IQuestionKey, answerKey: IAnswerKey, assigned: IWhoWhen): Promise<any> => {
     try {
       const assignedAnwser: IAssignedAnswer = {
         questionKey,
@@ -629,7 +629,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
       }
       let question: IQuestion|null = null;
       const dto = new AssignedAnswerDto(assignedAnwser).assignedAnswerDto;
-      const url = `${protectedResources.KnowledgeAPI.endpointQuestionAnswer}`;
+      const url = `${protectedResources.KnowledgeAPI.endpointQuestionAnswer}/${action}`;
       console.time()
       console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> AssignAnswer', dto)
       await Execute("POST", url, dto)
@@ -644,8 +644,9 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
             //dispatch({ type: ActionTypes.CLOSE_QUESTION_FORM })
           }
         });
-      dispatch({ type: ActionTypes.SET_QUESTION_AFTER_ASSIGN_ANSWER, payload: { question: question! } });
-
+        if (question) {
+          dispatch({ type: ActionTypes.SET_QUESTION_AFTER_ASSIGN_ANSWER, payload: { question } });
+        }
       /*
       const assignedAnswers = [...question.assignedAnswers, newAssignedAnwser];
       const obj: IQuestion = {
@@ -666,61 +667,6 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
       console.log('error', error);
       dispatch({ type: ActionTypes.SET_ERROR, payload: { error } });
     }
-  }, []);
-
-
-  const unAssignQuestionAnswer = useCallback(async (questionKey: IQuestionKey, answerKey: IAnswerKey, unAssigned: IWhoWhen): Promise<any> => {
-    try {
-      /*
-      const { partitionKey, id } = answerKey;
-      const question = await dbp!.get('Questions', questionId);
-      // const answer: IAnswer = await dbp!.get('Answers', answerId);
-
-      const assignedAnswers = question.assignedAnswers.filter((aa: IAssignedAnswer) => aa.answerKey.id !== id);
-      const obj: IQuestion = {
-        ...question,
-        assignedAnswers,
-        numOfAssignedAnswers: assignedAnswers.length
-      }
-      await dbp!.put('Questions', obj, questionId);
-      console.log("Question Answer successfully assigned");
-      dispatch({ type: ActionTypes.SET_QUESTION_AFTER_ASSIGN_ANSWER, payload: { question: { ...obj } } });
-      return obj;
-      */
-    }
-    catch (error: any) {
-      console.log('error', error);
-      dispatch({ type: ActionTypes.SET_ERROR, payload: { error } });
-    }
-    // try {
-    //   const url = `/api/questions/unassign-question-answer/${questionId}`
-    //   const res = await axios.put(url, { answerId });
-    //   const { status, data } = res;
-    //   if (status === 200) {
-    //     console.log("Answer successfully un-assigned from Question");
-    //     dispatch({ type: ActionTypes.SET_QUESTION_AFTER_ASSIGN_ANSWER, payload: { question: data } });
-    //   }
-    //   else {
-    //     console.log('Status is not 200', status)
-    //     dispatch({
-    //       type: ActionTypes.SET_ERROR,
-    //       payload: { error: new Error('Status is not 200 status:' + status) }
-    //     });
-    //   }
-    // }
-    // catch (err: any | Error) {
-    //   if (axios.isError(err)) {
-    //     dispatch({
-    //       type: ActionTypes.SET_ERROR,
-    //       payload: {
-    //         error: err
-    //       }
-    //     })
-    //   }
-    //   else {
-    //     console.log(err);
-    //   }
-    // }
   }, []);
 
   const createAnswer = useCallback(async (answer: IAnswer): Promise<any> => {
@@ -747,7 +693,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
     getSubCategories, createCategory, viewCategory, editCategory, updateCategory, deleteCategory, deleteCategoryVariation,
     expandCategory, collapseCategory, loadCategoryQuestions,
     createQuestion, viewQuestion, editQuestion, updateQuestion, deleteQuestion,
-    assignQuestionAnswer, unAssignQuestionAnswer, createAnswer
+    assignQuestionAnswer, createAnswer
   }
   return (
     <CategoriesContext.Provider value={contextValue}>
