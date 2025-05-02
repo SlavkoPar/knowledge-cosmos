@@ -15,25 +15,26 @@ export interface IChatBotAnswer {
 
 class ChatBotAnswer {
   constructor(assignedAnswer: IAssignedAnswer) {
+    const { questionKey, answerKey, answerTitle, created, modified } = assignedAnswer;
     this.chatBotAnswer = {
-      questionKey: assignedAnswer.questionKey,
-      answerKey: assignedAnswer.answerKey,
-      answerTitle: assignedAnswer.answerTitle ?? '',
+      questionKey,
+      answerKey,
+      answerTitle, // : .answerTitle ?? '',
       created: assignedAnswer.created,
       modified: assignedAnswer.modified
     }
   }
-  chatBotAnswer: IChatBotAnswer 
+  chatBotAnswer: IChatBotAnswer
 }
 
 
 export interface INewQuestion {
-  firstAnswer: IChatBotAnswer | null;
+  firstChatBotAnswer: IChatBotAnswer | null;
   hasMoreAnswers: boolean;
 }
 
 export interface INextAnswer {
-  nextAnswer: IChatBotAnswer | null; //undefined;
+  nextChatBotAnswer: IChatBotAnswer | null; //undefined;
   hasMoreAnswers: boolean;
 }
 
@@ -57,7 +58,7 @@ export const useAI = async (categories: ICategory[]) => {
   const setNewQuestion = async (question: IQuestion): Promise<INewQuestion> => {
     setQuestion(question);
     let hasMoreAnswers = false;
-    let firstAnswer: IChatBotAnswer | null = null;
+    let firstChatBotAnswer: IChatBotAnswer | null = null;
     if (question) {
       const { assignedAnswers } = question;
       // const assignedAnswer = (assignedAnswers.length > 0)
@@ -67,14 +68,15 @@ export const useAI = async (categories: ICategory[]) => {
         //const answerKey: IAnswerKey = { partitionKey: assignedAnswer.answerKey.partitionKey, id: assignedAnswer.answerKey.id }
         //firstAnswer = await getAnswer(assignedAnswer.answerKey);
         const assignedAnswer = assignedAnswers[0];
-        firstAnswer = new ChatBotAnswer(assignedAnswer).chatBotAnswer;
+        firstChatBotAnswer = new ChatBotAnswer(assignedAnswer).chatBotAnswer;
         hasMoreAnswers = assignedAnswers.length > 1;
+        setIndex(0);
       }
     }
-    return { firstAnswer, hasMoreAnswers };
+    return { firstChatBotAnswer: firstChatBotAnswer, hasMoreAnswers };
   }
 
-  const getNextAnswer = async (): Promise<INextAnswer> => {
+  const getNextChatBotAnswer = async (): Promise<INextAnswer> => {
     const { assignedAnswers } = question!;
     const len = assignedAnswers.length;
     const i = index + 1;
@@ -83,12 +85,13 @@ export const useAI = async (categories: ICategory[]) => {
       //const answerKey: IAnswerKey = assignedAnswers[i].answerKey;
       //const nextAnswer = await getAnswer(answerKey);
       setIndex(i);
-      return { 
-        nextAnswer: new ChatBotAnswer(assignedAnswers[i]).chatBotAnswer, 
-        hasMoreAnswers: i + 1 < len }
+      return {
+        nextChatBotAnswer: new ChatBotAnswer(assignedAnswers[i]).chatBotAnswer,
+        hasMoreAnswers: i + 1 < len
+      }
     }
-    return { nextAnswer: null, hasMoreAnswers: false }
+    return { nextChatBotAnswer: null, hasMoreAnswers: false }
   }
 
-  return { setNewQuestion, getNextAnswer };
+  return { setNewQuestion, getNextChatBotAnswer };
 }

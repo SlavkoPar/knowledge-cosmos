@@ -34,7 +34,7 @@ export enum FormMode {
 export interface IAssignedAnswer {
 	questionKey: IQuestionKey;
 	answerKey: IAnswerKey;
-	answerTitle?: string;
+	answerTitle: string;
 	created: IWhoWhen,
 	modified: IWhoWhen | null
 }

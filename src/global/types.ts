@@ -196,7 +196,7 @@ export interface IGlobalContext {
 	searchAnswers: (filter: string, count: number) => Promise<IShortAnswer[]>;
 	getAnswer: (answerKey: IAnswerKey) => Promise<IAnswer | null>;
 	addHistory: (history: IHistory) => Promise<void>;
-	getAnswersRated: (questionKey: IQuestionKey) => Promise<IAnswerRatedListEx>;
+	getAnswersRated: (questionKey: IQuestionKey) => Promise<any>;
 }
 
 export enum GlobalActionTypes {
@@ -483,57 +483,6 @@ export interface IHistoryData {
 	answerId: number;
 	created?: Date
 }
-
-
-
-export interface IAnswerRatedDto {
-	QuestionKey: IQuestionKey;
-	AnswerKey: IAnswerKey;
-	AnswerTitle: string;
-	NumOfFixed: number; // number of user clicks on 'Fixed' button
-	NumOfNotFixed: number; // number of user clicks on 'Not Fixed' button
-	NumOfNotClicked: number;
-}
-
-export interface IAnswerRatedDtoList {
-	answerRatedDtoList: IAnswerRatedDto[]
-}
-export interface IAnswerRatedDtoListEx extends IAnswerRatedDtoList {
-	msg: string;
-}
-
-
-export interface IAnswerRated {
-	questionKey: IQuestionKey;
-	answerKey: IAnswerKey;
-	answerTitle: string;
-	numOfFixed: number; // number of user clicks on 'Fixed' button
-	numOfNotFixed: number; // number of user clicks on 'Not Fixed' button
-	numOfNotClicked: number;
-}
-
-export class AnswerRated {
-	constructor(dto: IAnswerRatedDto) {
-		this.answerRated = {
-			questionKey: dto.QuestionKey,
-			answerKey: dto.AnswerKey,
-			answerTitle: dto.AnswerTitle,
-			numOfFixed: dto.NumOfFixed, // number of user clicks on 'Fixed' button
-			numOfNotFixed: dto.NumOfFixed, // number of user clicks on 'Not Fixed' button
-			numOfNotClicked: dto.NumOfNotClicked
-		}
-	}
-	answerRated: IAnswerRated;
-}
-
-
-export interface IAnswerRatedList {
-	answerRatedList: IAnswerRated[] | null;
-}
-export interface IAnswerRatedListEx extends IAnswerRatedList {
-	msg: string;
-}
-
 
 
 export interface IUser {

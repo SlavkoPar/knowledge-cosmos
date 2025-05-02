@@ -10,7 +10,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus, faQuestion } from '@fortawesome/free-solid-svg-icons'
 import CatList from 'global/Components/SelectCategory/CatList';
 import { ICategory, IQuestion, IQuestionEx, IQuestionKey } from 'categories/types';
-import { IWhoWhen, ICat, IHistory, IAnswerRatedListEx, IAnswerRated, USER_ANSWER_ACTION } from 'global/types';
+import { IWhoWhen, ICat, IHistory, USER_ANSWER_ACTION } from 'global/types';
 import AssignedAnswersChatBot from 'global/ChatBotPage/AssignedAnswersChatBot';
 import { IChatBotAnswer, INewQuestion, INextAnswer, useAI } from './hooks/useAI'
 import { IAnswer } from 'groups/types';
@@ -46,7 +46,6 @@ const ChatBotPage: React.FC = () => {
 	const [showAnswer, setShowAnswer] = useState(false);
 	const [chatBotAnswer, setChatBotAnswer] = useState<IChatBotAnswer | null>(null);
 	const [hasMoreAnswers, setHasMoreAnswers] = useState<boolean>(false);
-	const [conversation, setConversation] = useState<number | undefined>(undefined);
 
 	const { getCatsByKind, getQuestion, addHistory, getAnswersRated, searchQuestions } = useGlobalContext();
 	const { dbp, canEdit, authUser, isDarkMode, variant, bg, cats, catsLoaded } = useGlobalState();
@@ -156,13 +155,6 @@ const ChatBotPage: React.FC = () => {
 		}
 		*/
 
-		let conv = conversation;
-		if (!conversation) {
-			//const last = await getMaxConversation(dbp!);
-			const last = new Date().getTime();
-			conv = last + 1
-			setConversation(conv);
-		}
 
 		if (chatBotAnswer) {
 			const props: IChild = {
@@ -173,7 +165,6 @@ const ChatBotPage: React.FC = () => {
 			setPastEvents((prevEvents) => [...prevEvents, props]);
 		}
 
-
 		const questionEx: IQuestionEx = await getQuestion(questionKey);
 		const { question } = questionEx;
 		if (!question) {
@@ -181,7 +172,7 @@ const ChatBotPage: React.FC = () => {
 			return;
 		}
 		const res: INewQuestion = await (await hook).setNewQuestion(question);
-		let { firstAnswer, hasMoreAnswers } = res; // as unknown as INewQuestion;
+		let { firstChatBotAnswer: firstAnswer, hasMoreAnswers } = res; // as unknown as INewQuestion;
 
 		// const answersRatedListEx: IAnswerRatedListEx = await getAnswersRated(questionKey);
 		// const { answerRatedList, msg } = answersRatedListEx;
@@ -219,7 +210,7 @@ const ChatBotPage: React.FC = () => {
 		// }
 	}
 
-	const answerFixed = async () => {
+	const onAnswerFixed = async () => {
 		const props: IChild = {
 			type: ChildType.ANSWER,
 			isDisabled: true,
@@ -260,14 +251,14 @@ const ChatBotPage: React.FC = () => {
 		setPastEvents((prevHistory) => [...prevHistory, props]);
 
 		// next
-		const next: INextAnswer = await (await hook).getNextAnswer();
-		const { nextAnswer, hasMoreAnswers } = next;
+		const next: INextAnswer = await (await hook).getNextChatBotAnswer();
+		const { nextChatBotAnswer, hasMoreAnswers } = next;
 
 		if (chatBotAnswer) {
 			const history: IHistory = {
 				questionKey: new QuestionKey(selectedQuestion!).questionKey,
 				answerKey: chatBotAnswer.answerKey,
-				userAction: nextAnswer ? USER_ANSWER_ACTION.NotFixed : USER_ANSWER_ACTION.NotClicked,
+				userAction: nextChatBotAnswer ? USER_ANSWER_ACTION.NotFixed : USER_ANSWER_ACTION.NotClicked,
 				created: {
 					nickName: authUser.nickName,
 					time: new Date()
@@ -289,8 +280,8 @@ const ChatBotPage: React.FC = () => {
 		// }
 		setHasMoreAnswers(hasMoreAnswers);
 		//setAnswerId((answerId) => answerId + 1); PPP
-		//setAnswer(nextAnswer); 
-		setChatBotAnswer(nextAnswer)
+		console.log('----->>>>', {nextChatBotAnswer})
+		setChatBotAnswer(nextChatBotAnswer);
 	}
 
 	const QuestionComponent = (props: IChild) => {
@@ -335,8 +326,8 @@ const ChatBotPage: React.FC = () => {
 								<Button
 									size="sm"
 									type="button"
-									onClick={answerFixed}
-									disabled={!hasMoreAnswers}
+									onClick={onAnswerFixed}
+									disabled={!chatBotAnswer}
 									className='align-middle ms-3 border border-1 rounded-1 py-0'
 									variant="success"
 								>
@@ -346,7 +337,7 @@ const ChatBotPage: React.FC = () => {
 									size="sm"
 									type="button"
 									onClick={getNextAnswer}
-									disabled={!hasMoreAnswers}
+									disabled={!chatBotAnswer}
 									className='align-middle ms-2 border border-1 rounded-1 py-0'
 									variant="primary"
 								>

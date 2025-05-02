@@ -36,24 +36,6 @@ export const GroupProvider: React.FC<Props> = ({ children }) => {
   const { groupNodesUpTheTree } = state;
   console.log('----->>> GroupProvider', { initialGroupsState, groupNodesUpTheTree })
 
-
-  // const { instance } = useMsal();
-  // const msalReans = {
-  //   scopes: protectedResources.KnowledgeAPI.scopes.write
-  // }
-
-  // const { result, error: msalError } = useMsalAuthentication(InteractionType.Popup, {
-  //   ...msalReans,
-  //   account: instance.getActiveAccount() ?? undefined,
-  //   redirectUri: '/redirect'
-  // });
-
-  // if (!result) {
-  //   console.error('=================>>> !result'); //, method, endpoint)
-  //   dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error('getActiveAccount') } });
-  // }
-
-
   const Execute = async (
     method: string,
     endpoint: string,

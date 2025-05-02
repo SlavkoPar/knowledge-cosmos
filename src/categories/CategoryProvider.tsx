@@ -628,7 +628,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
       const assignedAnwser: IAssignedAnswer = {
         questionKey,
         answerKey,
-        answerTitle: undefined,
+        answerTitle: '',
         created: {
           time: new Date(),
           nickName: assigned.nickName

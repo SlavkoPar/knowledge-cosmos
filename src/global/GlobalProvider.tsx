@@ -12,19 +12,14 @@ import {
   IWhoWhen,
   ICatExport,
   IHistory, IHistoryDtoEx, IHistoryData, HistoryDto,
-  IAnswerRated,
   IHistoryDtoListEx,
-  IHistoryListEx,
-  IAnswerRatedList,
-  IAnswerRatedListEx,
-  IAnswerRatedDtoListEx,
-  AnswerRated
+  IHistoryListEx
 } from 'global/types'
 
 import { globalReducer, initialGlobalState } from "global/globalReducer";
 
 import { Category, ICategory, ICategoryDto, ICategoryKey, IQuest, IQuestDto, IQuestion, IQuestionDto, IQuestionDtoEx, IQuestionEx, IQuestionKey, Question } from "categories/types";
-import { Group, IGroup, IGroupDto, IGroupKey, IAnswer, IAnswerDto, IAnswerKey, IShortAnswer, IShortAnswerDto, Answer } from "groups/types";
+import { Group, IGroup, IGroupDto, IGroupKey, IAnswer, IAnswerDto, IAnswerKey, IShortAnswer, IShortAnswerDto, Answer, IAssignedAnswer } from "groups/types";
 import { IUser } from 'global/types';
 
 import { IDBPDatabase, IDBPIndex, openDB } from 'idb' // IDBPTransaction
@@ -356,35 +351,6 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
   }, []);
 
   // differs from CategoryProvider, here we don't dispatch
-  const getQuestionWAS = async (questionKey: IQuestionKey): Promise<any> => {
-    return new Promise(async (resolve) => {
-      try {
-        const { partitionKey, id } = questionKey;
-        const url = `${protectedResources.KnowledgeAPI.endpointQuestion}/${partitionKey}/${id}`;
-        console.time()
-        await Execute("GET", url)
-          .then((questionDtoEx: IQuestionDtoEx) => {
-            console.timeEnd();
-            const { questionDto, msg } = questionDtoEx;
-            if (questionDto) {
-              const question: IQuestion = new Question(questionDto!).question;
-              console.log('qqqqqqqqqqqqqqqqqqq', { question })
-              // if (questionDto) {
-              //   resolve(question);
-              // }
-              // else {
-              //   resolve(new Error(msg));
-              // }
-            }
-          });
-      }
-      catch (error: any) {
-        console.log(error)
-        resolve(error);
-      }
-    })
-  }
-
   const getQuestion = async (questionKey: IQuestionKey): Promise<any> => {
     return new Promise(async (resolve) => {
       try {
@@ -677,91 +643,65 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
       }
     }, []);
 
-  // const compareFn = (a: IAnswerRated, b: IAnswerRated): number => {
-  //   if (a.fixed > b.fixed) {
-  //     return -1;
-  //   }
-  //   else if (a.fixed < b.fixed) {
-  //     return 1;
-  //   }
-
-  //   if (a.Undefined > b.Undefined) {
-  //     return -1;
-  //   }
-  //   else if (a.Undefined < b.Undefined) {
-  //     return 1;
-  //   }
-
-  //   if (a.notFixed > b.notFixed) {
-  //     return -1;
-  //   }
-  //   else if (a.notFixed < b.notFixed) {
-  //     return 1;
-  //   }
-
-  //   // a must be equal to b
-  //   return 0;
-  // }
-
-  const getAnswersRated = async (questionKey: IQuestionKey): Promise<IAnswerRatedListEx> => {
-    const mapAnswerRating = new Map<string, IAnswerRated>();
-    try {
-      console.log("getAnswersRated", { questionKey })
-      const url = `${protectedResources.KnowledgeAPI.endpointHistory}/${questionKey.partitionKey}/${questionKey.id}`;
-      console.time()
-      const answerRatedListEx: IAnswerRatedListEx = { answerRatedList: null, msg: "" }
-      await Execute("GET", url)
-        .then(async (answerRatedDtoListEx: IAnswerRatedDtoListEx) => {
-          console.timeEnd();
-          const { answerRatedDtoList, msg } = answerRatedDtoListEx;
-          if (answerRatedDtoList) {
-            answerRatedDtoList.forEach(answerRatedDto => {
-              const answerRated = new AnswerRated(answerRatedDto).answerRated;
-              const { answerKey, numOfFixed, numOfNotFixed, numOfNotClicked } = answerRated;
-              const answerId = answerKey.id;
-              /*
-              if (!mapAnswerRating.has(answerId)) {
-                mapAnswerRating.set(answerId, { fixed: fixed === true ? 1 : 0, notFixed: fixed === false ? 1 : 0, Undefined: fixed === undefined ? 1 : 0 });
-              }
-              else {
-                const answerRating = mapAnswerRating.get(answerId);
-                switch (fixed) {
-                  case true:
-                    answerRating!.fixed++;
-                    break;
-                  case false:
-                    answerRating!.notFixed++;
-                    break;
-                  case undefined:
-                    answerRating!.Undefined++;
-                    break;
-                  default:
-                    alert('unk rate')
-                    break;
-                }
-                mapAnswerRating.set(answerId, answerRating!);
-              }
-              const arr: IAnswerRated[] = [];
-              mapAnswerRating.forEach((value, key) => {
-                arr.push({ answerId: key, ...value })
-              })
-              answerRatings.answerRatedList = arr.sort(compareFn);
-                */
-            })
-          }
-          else {
-            answerRatedListEx.msg = msg;
-          }
-        });
-      return answerRatedListEx;
-    }
-    catch (error: any) {
-      console.log(error);
-      const answerRatedListEx: IAnswerRatedListEx = {
-        answerRatedList: null, msg: "Server problemos"
-      }
-      return answerRatedListEx;
-    }
+  const getAnswersRated = async (questionKey: IQuestionKey): Promise<any> => {
+    const mapAnswerRating = new Map<string, IAssignedAnswer>();
+    // try {
+    //   console.log("getAnswersRated", { questionKey })
+    //   const url = `${protectedResources.KnowledgeAPI.endpointHistory}/${questionKey.partitionKey}/${questionKey.id}`;
+    //   console.time()
+    //   const answerRatedListEx: IAnswerRatedListEx = { answerRatedList: null, msg: "" }
+    //   await Execute("GET", url)
+    //     .then(async (answerRatedDtoListEx: IAnswerRatedDtoListEx) => {
+    //       console.timeEnd();
+    //       const { answerRatedDtoList, msg } = answerRatedDtoListEx;
+    //       if (answerRatedDtoList) {
+    //         answerRatedDtoList.forEach(answerRatedDto => {
+    //           const answerRated = new AnswerRated(answerRatedDto).answerRated;
+    //           const { answerKey, numOfFixed, numOfNotFixed, numOfNotClicked } = answerRated;
+    //           const answerId = answerKey.id;
+    //           /*
+    //           if (!mapAnswerRating.has(answerId)) {
+    //             mapAnswerRating.set(answerId, { fixed: fixed === true ? 1 : 0, notFixed: fixed === false ? 1 : 0, Undefined: fixed === undefined ? 1 : 0 });
+    //           }
+    //           else {
+    //             const answerRating = mapAnswerRating.get(answerId);
+    //             switch (fixed) {
+    //               case true:
+    //                 answerRating!.fixed++;
+    //                 break;
+    //               case false:
+    //                 answerRating!.notFixed++;
+    //                 break;
+    //               case undefined:
+    //                 answerRating!.Undefined++;
+    //                 break;
+    //               default:
+    //                 alert('unk rate')
+    //                 break;
+    //             }
+    //             mapAnswerRating.set(answerId, answerRating!);
+    //           }
+    //           const arr: IAnswerRated[] = [];
+    //           mapAnswerRating.forEach((value, key) => {
+    //             arr.push({ answerId: key, ...value })
+    //           })
+    //           answerRatings.answerRatedList = arr.sort(compareFn);
+    //             */
+    //         })
+    //       }
+    //       else {
+    //         answerRatedListEx.msg = msg;
+    //       }
+    //     });
+    //   return answerRatedListEx;
+    // }
+    // catch (error: any) {
+    //   console.log(error);
+    //   const answerRatedListEx: IAnswerRatedListEx = {
+    //     answerRatedList: null, msg: "Server problemos"
+    //   }
+    //   return answerRatedListEx;
+    // }
   }
 
   useEffect(() => {
