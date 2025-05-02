@@ -1,5 +1,5 @@
 import React, { forwardRef, useCallback, useEffect, useRef, useState } from "react";
-import { IParentInfo, IQuestion, IAssignedAnswer } from "categories/types";
+import { IParentInfo, IQuestion } from "categories/types";
 import { useCategoryContext } from "categories/CategoryProvider";
 import { useGlobalState } from "global/GlobalProvider";
 import useInfiniteScroll from "react-infinite-scroll-hook";

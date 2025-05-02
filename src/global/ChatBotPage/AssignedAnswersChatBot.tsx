@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { Button, ListGroup, Modal } from "react-bootstrap";
-import { IAssignedAnswer } from "categories/types";
 import { useGlobalContext } from "global/GlobalProvider";
 import AssignedAnswerChatBot from "global/ChatBotPage/AssignedAnswerChatBot";
 import { AutoSuggestAnswers } from 'categories/AutoSuggestAnswers'
 import { IWhoWhen } from "global/types";
-import { IAnswer, IAnswerKey } from "groups/types";
+import { IAnswer, IAnswerKey, IAssignedAnswer } from "groups/types";
 import AddAnswer from "categories/components/questions/AddAnswer"
 import { initialAnswer } from "groups/GroupsReducer";
 
@@ -19,7 +18,7 @@ interface IProps {
 const AssignedAnswersChatBot = ({ questionId, questionTitle, assignedAnswers, isDisabled }: IProps) => {
 
     //const { state, assignQuestionAnswer, unAssignQuestionAnswer } = useCategoryContext();
-    const { globalState, joinAssignedAnswers } = useGlobalContext();
+    const { globalState } = useGlobalContext();
     const { authUser, isDarkMode, variant, dbp, error } = globalState;
 
     const [showAdd, setShowAdd] = useState(false);
@@ -29,7 +28,7 @@ const AssignedAnswersChatBot = ({ questionId, questionTitle, assignedAnswers, is
         handleClose();
     }
 
-    const [assignedAnswers2, setAssignAnswers2] = useState<IAssignedAnswer[]>([]);
+    //const [assignedAnswers2, setAssignAnswers2] = useState<IAssignedAnswer[]>([]);
 
     const [showAssign, setShowAssign] = useState(false);
 
@@ -54,21 +53,21 @@ const AssignedAnswersChatBot = ({ questionId, questionTitle, assignedAnswers, is
         //await unAssignQuestionAnswer(questionId, answerId);
     }
 
-    useEffect(() => {
-        (async () => {
-            if (assignedAnswers.length > 0) {
-                const arr = await joinAssignedAnswers(assignedAnswers);
-                setAssignAnswers2(arr);
-            }
-        })()
-    }, [])
+    // useEffect(() => {
+    //     (async () => {
+    //         if (assignedAnswers.length > 0) {
+    //             const arr = await joinAssignedAnswers(assignedAnswers);
+    //             setAssignAnswers2(arr);
+    //         }
+    //     })()
+    // }, [])
 
     return (
         <div className={'mx-0 my-1 border rounded-2 px-3 py-1 border border-info'} >
             <div>
                 <label className="text-info">Assigned Answers</label>
                 <ListGroup as="ul" variant={variant} className='my-1'>
-                    {assignedAnswers2.map((assignedAnswer: IAssignedAnswer) =>
+                    {assignedAnswers.map((assignedAnswer: IAssignedAnswer) =>
                         <AssignedAnswerChatBot
                             questionTitle={questionTitle}
                             assignedAnswer={assignedAnswer}

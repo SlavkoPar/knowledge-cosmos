@@ -1,5 +1,5 @@
 import { ActionMap, IWhoWhen, IRecord, IRecordDto, Dto2WhoWhen, WhoWhen2Dto, IWhoWhenDto } from 'global/types';
-import { IAnswer, IAnswerKey } from 'groups/types';
+import { AssignedAnswer, AssignedAnswerDto, IAnswer, IAnswerKey, IAssignedAnswer, IAssignedAnswerDto } from 'groups/types';
 
 export const Mode = {
 	UNDEFINED: undefined,
@@ -43,48 +43,8 @@ export enum FormMode {
 // 	assigned: IDateAndBy
 // }
 
-export interface IAssignedAnswer {
-	questionKey: IQuestionKey;
-	answerKey: IAnswerKey;
-	created: IWhoWhen,
-	title?: string;
-}
 
-export interface IAssignedAnswerDto {
-	QuestionKey: IQuestionKey;
-	AnswerKey: IAnswerKey;
-	Created: IWhoWhenDto;
-	AnswerTitle: string;
-}
 
-export interface IAssignedAnswerDtoEx {
-	assignedAnswerDto: IAssignedAnswerDto | null;
-	msg: string;
-}
-
-export class AssignedAnswerDto {
-	constructor(assignedAnswer: IAssignedAnswer) {
-		this.assignedAnswerDto = {
-			QuestionKey: assignedAnswer.questionKey,
-			AnswerKey: assignedAnswer.answerKey,
-			Created: new WhoWhen2Dto(assignedAnswer.created).whoWhenDto!,
-			AnswerTitle: ''
-		}
-	}
-	assignedAnswerDto: IAssignedAnswerDto;
-}
-
-export class AssignedAnswer {
-	constructor(dto: IAssignedAnswerDto) {
-		this.assignedAnswer = {
-			questionKey: dto.QuestionKey,
-			answerKey: dto.AnswerKey,
-			created: new Dto2WhoWhen(dto.Created).whoWhen!,
-			title: dto.AnswerTitle
-		}
-	}
-	assignedAnswer: IAssignedAnswer;
-}
 
 
 export interface IFromUserAssignedAnswer {
@@ -169,8 +129,6 @@ export class Question {
 	}
 	question: IQuestion
 }
-
-
 
 export class Category {
 	constructor(dto: ICategoryDto) {
@@ -257,6 +215,12 @@ export interface IQuestionDtoEx {
 	questionDto: IQuestionDto | null;
 	msg: string;
 }
+
+export interface IQuestionEx {
+	question: IQuestion | null;
+	msg: string;
+}
+
 
 export interface IQuestionsMore {
 	questions: IQuestionDto[];

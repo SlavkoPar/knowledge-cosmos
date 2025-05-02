@@ -5,11 +5,10 @@ import { ListGroup, Button, Modal } from "react-bootstrap";
 
 import { useGlobalState } from 'global/GlobalProvider'
 import { useHover } from 'hooks/useHover';
-import { IAssignedAnswer } from "categories/types";
 import { useCategoryContext } from "categories/CategoryProvider";
 import { formatDate } from 'common/utilities'
 import React, { useState } from "react";
-import { IAnswerKey } from 'groups/types';
+import { IAnswerKey, IAssignedAnswer } from 'groups/types';
 
 interface IProps {
     questionTitle: string,
@@ -20,7 +19,7 @@ interface IProps {
 }
 const AssignedAnswer = ({ questionTitle, assignedAnswer, isDisabled, unAssignAnswer }: IProps) => {
 
-    const { questionKey, answerKey, title, created } = assignedAnswer;
+    const { questionKey, answerKey, answerTitle: title, created } = assignedAnswer;
     const { partitionKey, id } = answerKey;
 
     const { time, nickName } = created;

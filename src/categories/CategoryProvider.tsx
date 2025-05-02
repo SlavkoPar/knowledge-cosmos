@@ -3,7 +3,6 @@ import React, { createContext, useContext, useReducer, useCallback, Dispatch } f
 
 import {
   ActionTypes, ICategory, IQuestion, ICategoriesContext, IParentInfo, IFromUserAssignedAnswer,
-  IAssignedAnswer,
   ICategoryDto, ICategoryDtoEx, ICategoryDtoListEx,
   IQuestionDto, IQuestionDtoEx,
   Category,
@@ -13,15 +12,12 @@ import {
   ICategoryKeyExtended,
   CategoryDto,
   QuestionDto,
-  IAssignedAnswerDto,
-  AssignedAnswerDto,
-  IAssignedAnswerDtoEx,
-  AssignedAnswer,
+  IQuestionEx,
 } from 'categories/types';
 
 import { initialCategoriesState, CategoriesReducer } from 'categories/CategoriesReducer';
 import { IWhoWhen, ICat, Dto2WhoWhen, WhoWhen2Dto } from 'global/types';
-import { IAnswer, IAnswerKey, IGroup } from 'groups/types';
+import { IAnswer, IAnswerKey, IGroup, IAssignedAnswer, IAssignedAnswerDto, IAssignedAnswerDtoEx, AssignedAnswer, AssignedAnswerDto } from 'groups/types';
 import { protectedResources } from 'authConfig';
 import { useMsal, useMsalAuthentication } from '@azure/msal-react';
 import { InteractionType } from '@azure/msal-browser';
@@ -580,39 +576,50 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
           .then((questionDtoEx: IQuestionDtoEx) => {
             console.timeEnd();
             const { questionDto, msg } = questionDtoEx;
-            console.log(111.111, {questionDtoEx})
-            const question: IQuestion = new Question(questionDto!).question;
-            console.log(111.222, {question})
             if (questionDto) {
-              resolve(question);
+              const questionEx: IQuestionEx = {
+                question: new Question(questionDto).question,
+                msg
+              }
+              resolve(questionEx);
             }
             else {
-              resolve(new Error(msg));
+              const questionEx: IQuestionEx = {
+                question: null,
+                msg
+              }
+              resolve(questionEx);
             }
             //}
           });
       }
       catch (error: any) {
-        console.log(error)
-        resolve(error);
+        console.log(error);
+        const questionEx: IQuestionEx = {
+          question: null,
+          msg: "Problemos"
+        }
+        resolve(questionEx);
       }
     })
   }
 
   const viewQuestion = useCallback(async (questionKey: IQuestionKey) => {
-    const question: IQuestion | Error = await getQuestion(questionKey);
-    if (question instanceof Error)
-      dispatch({ type: ActionTypes.SET_ERROR, payload: { error: question } });
-    else
+    const questionEx: IQuestionEx = await getQuestion(questionKey);
+    const { question, msg } = questionEx;
+    if (question)
       dispatch({ type: ActionTypes.VIEW_QUESTION, payload: { question } });
+    else
+      dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error(msg) } });
   }, []);
 
   const editQuestion = useCallback(async (questionKey: IQuestionKey) => {
-    const question: IQuestion | Error = await getQuestion(questionKey);
-    if (question instanceof Error)
-      dispatch({ type: ActionTypes.SET_ERROR, payload: { error: question } });
-    else
+    const questionEx: IQuestionEx = await getQuestion(questionKey);
+    const { question, msg } = questionEx;
+    if (question)
       dispatch({ type: ActionTypes.EDIT_QUESTION, payload: { question } });
+    else
+      dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error(msg) } });
   }, []);
 
 
@@ -621,13 +628,14 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
       const assignedAnwser: IAssignedAnswer = {
         questionKey,
         answerKey,
+        answerTitle: undefined,
         created: {
           time: new Date(),
           nickName: assigned.nickName
         },
-        title: ''
+        modified: null
       }
-      let question: IQuestion|null = null;
+      let question: IQuestion | null = null;
       const dto = new AssignedAnswerDto(assignedAnwser).assignedAnswerDto;
       const url = `${protectedResources.KnowledgeAPI.endpointQuestionAnswer}/${action}`;
       console.time()
@@ -644,9 +652,9 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
             //dispatch({ type: ActionTypes.CLOSE_QUESTION_FORM })
           }
         });
-        if (question) {
-          dispatch({ type: ActionTypes.SET_QUESTION_AFTER_ASSIGN_ANSWER, payload: { question } });
-        }
+      if (question) {
+        dispatch({ type: ActionTypes.SET_QUESTION_AFTER_ASSIGN_ANSWER, payload: { question } });
+      }
       /*
       const assignedAnswers = [...question.assignedAnswers, newAssignedAnwser];
       const obj: IQuestion = {

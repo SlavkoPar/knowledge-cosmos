@@ -9,16 +9,15 @@ import { useGlobalContext, useGlobalState } from 'global/GlobalProvider';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus, faQuestion } from '@fortawesome/free-solid-svg-icons'
 import CatList from 'global/Components/SelectCategory/CatList';
-import { ICategory, IQuestion, IQuestionKey } from 'categories/types';
-import { IWhoWhen, ICat, IHistory } from 'global/types';
+import { ICategory, IQuestion, IQuestionEx, IQuestionKey } from 'categories/types';
+import { IWhoWhen, ICat, IHistory, IAnswerRatedListEx, IAnswerRated, USER_ANSWER_ACTION } from 'global/types';
 import AssignedAnswersChatBot from 'global/ChatBotPage/AssignedAnswersChatBot';
-import { INewQuestion, INextAnswer, useAI } from './hooks/useAI'
+import { IChatBotAnswer, INewQuestion, INextAnswer, useAI } from './hooks/useAI'
 import { IAnswer } from 'groups/types';
 //import AnswerList from 'groups/components/answers/AnswerList';
 
 import Q from 'assets/Q.png';
 import A from 'assets/A.png';
-
 
 type ChatBotParams = {
 	source: string;
@@ -29,6 +28,7 @@ type ChatBotParams = {
 const ChatBotPage: React.FC = () => {
 
 	let { source, tekst, email } = useParams<ChatBotParams>();
+	tekst = 'Domena'
 
 	// TODO do we need this?
 	// const globalState = useGlobalState();
@@ -42,13 +42,13 @@ const ChatBotPage: React.FC = () => {
 	const [selectedQuestion, setSelectedQuestion] = useState<IQuestion | null>(null);
 
 	const [autoSuggestId, setAutoSuggestId] = useState<number>(1);
-	const [answerId, setAnswerId] = useState<number>(1);
+	//const [answerId, setAnswerId] = useState<number>(1);
 	const [showAnswer, setShowAnswer] = useState(false);
-	const [answer, setAnswer] = useState<IAnswer | undefined>(undefined);
+	const [chatBotAnswer, setChatBotAnswer] = useState<IChatBotAnswer | null>(null);
 	const [hasMoreAnswers, setHasMoreAnswers] = useState<boolean>(false);
 	const [conversation, setConversation] = useState<number | undefined>(undefined);
 
-	const { getCatsByKind, addHistory, getAnswersRated, searchQuestions } = useGlobalContext();
+	const { getCatsByKind, getQuestion, addHistory, getAnswersRated, searchQuestions } = useGlobalContext();
 	const { dbp, canEdit, authUser, isDarkMode, variant, bg, cats, catsLoaded } = useGlobalState();
 
 	const setParentCategory = (cat: ICategory) => {
@@ -66,6 +66,16 @@ const ChatBotPage: React.FC = () => {
 	const [catsUsageSel, setCatUsageSel] = useState<Map<string, boolean>>(new Map<string, boolean>());
 
 	const [pastEvents, setPastEvents] = useState<IChild[]>([]);
+
+	class QuestionKey {
+		constructor(question: IQuestion) {
+			this.questionKey = {
+				partitionKey: question.partitionKey,
+				id: question.id
+			}
+		}
+		questionKey: IQuestionKey;
+	}
 
 	enum ChildType {
 		AUTO_SUGGEST,
@@ -131,9 +141,10 @@ const ChatBotPage: React.FC = () => {
 		// const question = await getQuestion(questionId);
 
 		// salji kasnije kad klikne na Fixed
+		/* TODO proveri
 		if (answer) {
 			const history: IHistory = {
-				questionId: selectedQuestion!.id,
+				questionId: questionKey.id,
 				answerId: answer.id,
 				fixed: undefined,
 				created: { 
@@ -143,6 +154,7 @@ const ChatBotPage: React.FC = () => {
 			}
 			addHistory(history);
 		}
+		*/
 
 		let conv = conversation;
 		if (!conversation) {
@@ -152,18 +164,32 @@ const ChatBotPage: React.FC = () => {
 			setConversation(conv);
 		}
 
-		if (answer) {
+		if (chatBotAnswer) {
 			const props: IChild = {
 				type: ChildType.ANSWER,
 				isDisabled: true,
-				txt: answer.title,
+				txt: chatBotAnswer.answerTitle,
 			}
 			setPastEvents((prevEvents) => [...prevEvents, props]);
 		}
-		const res: INewQuestion = await (await hook).setNewQuestion(questionKey);
-		const { question, firstAnswer, hasMoreAnswers } = res; // as unknown as INewQuestion;
-		const answersRated = await getAnswersRated(question!.id!);
-		console.log({ answersRated });
+
+
+		const questionEx: IQuestionEx = await getQuestion(questionKey);
+		const { question } = questionEx;
+		if (!question) {
+			alert(questionEx.msg)
+			return;
+		}
+		const res: INewQuestion = await (await hook).setNewQuestion(question);
+		let { firstAnswer, hasMoreAnswers } = res; // as unknown as INewQuestion;
+
+		// const answersRatedListEx: IAnswerRatedListEx = await getAnswersRated(questionKey);
+		// const { answerRatedList, msg } = answersRatedListEx;
+		// let firstAnswerRated: IAnswerRated | null = answerRatedList && answerRatedList.length > 0
+		// 	? answerRatedList[0]
+		// 	: null;
+
+		// console.log('answersRatedListEx 2', { answersRatedListEx });
 		if (question) {
 			const props: IChild = {
 				type: ChildType.QUESTION,
@@ -178,10 +204,8 @@ const ChatBotPage: React.FC = () => {
 		setSelectedQuestion(question);
 		setShowAnswer(true);
 		setHasMoreAnswers(hasMoreAnswers);
-		setAnswerId((answerId) => answerId + 1);
-		/* uncomment
-		setAnswer(firstAnswer);
-		*/
+		//setAnswerId((answerId) => answerId + 1);
+		setChatBotAnswer(firstAnswer);
 		// // salji kasnije kad klikne na Fixed
 		// if (firstAnswer) {
 		// 	addHistory(dbp, {
@@ -195,34 +219,33 @@ const ChatBotPage: React.FC = () => {
 		// }
 	}
 
-
 	const answerFixed = async () => {
 		const props: IChild = {
 			type: ChildType.ANSWER,
 			isDisabled: true,
-			txt: answer ? answer.title : 'no answers',
+			txt: chatBotAnswer ? chatBotAnswer.answerTitle : 'no answer title',
 			hasMoreAnswers: true
 		}
 		setPastEvents((prevHistory) => [...prevHistory, props]);
 
 		const history: IHistory = {
-			questionId: selectedQuestion!.id,
-			answerId: answer!.id,
-			fixed: undefined,
-			created: { 
-				nickName: authUser.nickName, 
-				time: new Date() 
+			questionKey: new QuestionKey(selectedQuestion!).questionKey,
+			answerKey: chatBotAnswer!.answerKey,
+			userAction: USER_ANSWER_ACTION.Fixed,
+			created: {
+				nickName: authUser.nickName,
+				time: new Date()
 			}
 		}
 		addHistory(history);
-			
+
 		//
 		// TODO logic 
 		//
 
 		setHasMoreAnswers(false);
 		//setAnswerId((answerId) => answerId + 1);
-		setAnswer(undefined);
+		setChatBotAnswer(chatBotAnswer); //undefined);
 		setShowAnswer(false);
 	}
 
@@ -231,7 +254,7 @@ const ChatBotPage: React.FC = () => {
 		const props: IChild = {
 			type: ChildType.ANSWER,
 			isDisabled: true,
-			txt: answer ? answer.title : 'no answers',
+			txt: chatBotAnswer ? chatBotAnswer.answerTitle : 'no answer',
 			hasMoreAnswers: true
 		}
 		setPastEvents((prevHistory) => [...prevHistory, props]);
@@ -240,242 +263,245 @@ const ChatBotPage: React.FC = () => {
 		const next: INextAnswer = await (await hook).getNextAnswer();
 		const { nextAnswer, hasMoreAnswers } = next;
 
-		if (answer) {
+		if (chatBotAnswer) {
 			const history: IHistory = {
-				questionId: selectedQuestion!.id,
-				answerId: answer.id,
-				fixed: nextAnswer ? false : undefined,
-				created: { 
-					nickName: authUser.nickName, 
-					time: new Date() 
+				questionKey: new QuestionKey(selectedQuestion!).questionKey,
+				answerKey: chatBotAnswer.answerKey,
+				userAction: nextAnswer ? USER_ANSWER_ACTION.NotFixed : USER_ANSWER_ACTION.NotClicked,
+				created: {
+					nickName: authUser.nickName,
+					time: new Date()
 				}
 			}
 			addHistory(history);
+		}
+
+		// salji gore
+		// if (nextAnswer) {
+		// 	addHistory(dbp, {
+		// 		conversation,
+		// 		client: authUser.nickName,
+		// 		questionId: selectedQuestion!.id!,
+		// 		answerId: nextAnswer.id!,
+		// 		fixed: hasMoreAnswers ? undefined : false,
+		// 		created: new Date()
+		// 	})
+		// }
+		setHasMoreAnswers(hasMoreAnswers);
+		//setAnswerId((answerId) => answerId + 1); PPP
+		//setAnswer(nextAnswer); 
+		setChatBotAnswer(nextAnswer)
 	}
 
-	// salji gore
-	// if (nextAnswer) {
-	// 	addHistory(dbp, {
-	// 		conversation,
-	// 		client: authUser.nickName,
-	// 		questionId: selectedQuestion!.id!,
-	// 		answerId: nextAnswer.id!,
-	// 		fixed: hasMoreAnswers ? undefined : false,
-	// 		created: new Date()
-	// 	})
-	// }
-	setHasMoreAnswers(hasMoreAnswers);
-	setAnswerId((answerId) => answerId + 1);
-	/* uncomment setAnswer(nextAnswer); */
-}
-
-const QuestionComponent = (props: IChild) => {
-	const { isDisabled, txt } = props;
-	return (
-		<Row
-			className={`my-1 bg-warning text-dark mx-1 border border-1 rounded-1`}
-			id={autoSuggestId.toString()}
-		>
-			<Col xs={0} md={3} className='mb-1'>
-			</Col>
-			<Col xs={12} md={9}>
-				<div className="d-flex justify-content-start align-items-center">
-					{/* <div className="w-75"> */}
-					<img width="22" height="18" src={Q} alt="Question" className='me-1' />
-					{txt}
-					{/* </div> */}
-				</div>
-			</Col>
-		</Row>
-	)
-}
-
-const AnswerComponent = (props: IChild) => {
-	const { isDisabled, txt } = props;
-	return (
-		<div
-			id={answerId.toString()}
-			className={`${isDarkMode ? "dark" : "light"} mx-6 border border-1 rounded-1`}
-		>
-			<Row>
-				<Col xs={12} md={12} className={`${isDisabled ? 'secondary' : 'primary'} d-flex justify-content-start align-items-center`}>
-					<img width="22" height="18" src={A} alt="Answer" className='m-2' />
-					{/* contentEditable="true" aria-multiline="true" */}
-					<div>
+	const QuestionComponent = (props: IChild) => {
+		const { isDisabled, txt } = props;
+		return (
+			<Row
+				className={`my-1 bg-warning text-dark mx-1 border border-1 rounded-1`}
+				id={autoSuggestId.toString()}
+			>
+				<Col xs={0} md={3} className='mb-1'>
+				</Col>
+				<Col xs={12} md={9}>
+					<div className="d-flex justify-content-start align-items-center">
+						{/* <div className="w-75"> */}
+						<img width="22" height="18" src={Q} alt="Question" className='me-1' />
 						{txt}
+						{/* </div> */}
 					</div>
-					{!isDisabled && answer &&
-						<div>
-							<Button
-								size="sm"
-								type="button"
-								onClick={answerFixed}
-								disabled={!hasMoreAnswers}
-								className='align-middle ms-3 border border-1 rounded-1 py-0'
-								variant="success"
-							>
-								Fixed
-							</Button>
-							<Button
-								size="sm"
-								type="button"
-								onClick={getNextAnswer}
-								disabled={!hasMoreAnswers}
-								className='align-middle ms-2 border border-1 rounded-1 py-0'
-								variant="primary"
-							>
-								Haven't fixed
-							</Button>
-						</div>
-					}
 				</Col>
 			</Row>
-		</div>
-	);
-};
+		)
+	}
 
-const AutoSuggestComponent = (props: IChild) => {
-	const { isDisabled, txt } = props;
-	return (
-		<Row className={`my-1 ${isDarkMode ? "dark" : ""}`} key={autoSuggestId}>
-			<Col xs={12} md={3} className='mb-1'>
-				<label className="text-info">Please enter the Question</label>
-				{/* <CatList
+	const AnswerComponent = (props: IChild) => {
+		const { isDisabled, txt } = props;
+		return (
+			<div
+				// id={answerId.toString()}   PPP
+				id={chatBotAnswer?.answerKey.id}
+
+				className={`${isDarkMode ? "dark" : "light"} mx-6 border border-1 rounded-1`}
+			>
+				<Row>
+					<Col xs={12} md={12} className={`${isDisabled ? 'secondary' : 'primary'} d-flex justify-content-start align-items-center`}>
+						<img width="22" height="18" src={A} alt="Answer" className='m-2' />
+						{/* contentEditable="true" aria-multiline="true" */}
+						<div>
+							{txt}
+						</div>
+						{!isDisabled && chatBotAnswer &&
+							<div>
+								<Button
+									size="sm"
+									type="button"
+									onClick={answerFixed}
+									disabled={!hasMoreAnswers}
+									className='align-middle ms-3 border border-1 rounded-1 py-0'
+									variant="success"
+								>
+									Fixed
+								</Button>
+								<Button
+									size="sm"
+									type="button"
+									onClick={getNextAnswer}
+									disabled={!hasMoreAnswers}
+									className='align-middle ms-2 border border-1 rounded-1 py-0'
+									variant="primary"
+								>
+									Haven't fixed
+								</Button>
+							</div>
+						}
+					</Col>
+				</Row>
+			</div>
+		);
+	};
+
+	const AutoSuggestComponent = (props: IChild) => {
+		const { isDisabled, txt } = props;
+		return (
+			<Row className={`my-1 ${isDarkMode ? "dark" : ""}`} key={autoSuggestId}>
+				<Col xs={12} md={3} className='mb-1'>
+					<label className="text-info">Please enter the Question</label>
+					{/* <CatList
 				parentCategory={'null'}
 				level={1}
 				setParentCategory={setParentCategory}
 			/> */}
-			</Col>
-			<Col xs={0} md={12}>
-				{isDisabled &&
-					<label className="text-info">Please enter the Question</label>
-				}
-				<div className="d-flex justify-content-start align-items-center">
-					<div className="w-75">
-						{isDisabled &&
-							<div>
-								{txt}
-							</div>
-						}
-						{!isDisabled &&
-							<>
-								{/* <div>{Date.now().toString()}</div> */}
-								<AutoSuggestQuestions
-									tekst={tekst}
-									onSelectQuestion={onSelectQuestion}
-									allCategories={cats}
-									searchQuestions={searchQuestions}
-								/>
-							</>
-						}
+				</Col>
+				<Col xs={0} md={12}>
+					{isDisabled &&
+						<label className="text-info">Please enter the Question</label>
+					}
+					<div className="d-flex justify-content-start align-items-center">
+						<div className="w-75">
+							{isDisabled &&
+								<div>
+									{txt}
+								</div>
+							}
+							{!isDisabled &&
+								<>
+									{/* <div>{Date.now().toString()}</div> */}
+									<AutoSuggestQuestions
+										tekst={tekst}
+										onSelectQuestion={onSelectQuestion}
+										allCategories={cats}
+										searchQuestions={searchQuestions}
+									/>
+								</>
+							}
+						</div>
 					</div>
-				</div>
-			</Col>
-		</Row>
-	)
-}
+				</Col>
+			</Row>
+		)
+	}
 
-return (
-	<Container id='container' fluid className='text-info'> {/* align-items-center" */}
-		<div key='Welcome'>
-			<p><b>Welcome</b>, I am Buddy and I am here to help You</p>
-		</div>
-
-		<Form key='options' className='text-center border border-1 m-1 rounded-1'>
-			<div className='text-center'>
-				Select Options
+	return (
+		<Container id='container' fluid className='text-info'> {/* align-items-center" */}
+			<div key='Welcome'>
+				<p><b>Welcome</b>, I am Buddy and I am here to help You</p>
 			</div>
-			<div className='text-center'>
-				{/* <ListGroup horizontal> */}
-				{catsOptions.map(({ id: id, title: title }: ICat) => (
-					// <ListGroup.Item>
-					<Form.Check // prettier-ignore
-						id={id}
-						key={id}
-						label={title}
-						name="opcije"
-						type='checkbox'
-						inline
-						className=''
-						onChange={onOptionChange}
-					/>
-					// </ListGroup.Item>
-				))}
-				{/* </ListGroup> */}
-			</div>
-		</Form>
 
-		{showUsage &&
-			<Form key="usage" className='text-center border border-1 m-1 rounded-1'>
+			<Form key='options' className='text-center border border-1 m-1 rounded-1'>
 				<div className='text-center'>
-					Select services for which you need support
+					Select Options
 				</div>
 				<div className='text-center'>
-					{catsUsage.map(({ id: id, title: title }: ICat) => (
+					{/* <ListGroup horizontal> */}
+					{catsOptions.map(({ id: id, title: title }: ICat) => (
+						// <ListGroup.Item>
 						<Form.Check // prettier-ignore
 							id={id}
+							key={id}
 							label={title}
-							name="usluge"
+							name="opcije"
 							type='checkbox'
 							inline
 							className=''
-							onChange={onUsageChange}
+							onChange={onOptionChange}
 						/>
+						// </ListGroup.Item>
 					))}
+					{/* </ListGroup> */}
 				</div>
 			</Form>
-		}
 
-		<div key='history' className='history'>
-			{
-				pastEvents.map(childProps => {
-					switch (childProps.type) {
-						case ChildType.AUTO_SUGGEST:
-							return <AutoSuggestComponent {...childProps} />;
-						case ChildType.QUESTION:
-							return <QuestionComponent {...childProps} />;
-						case ChildType.ANSWER:
-							return <AnswerComponent {...childProps} />;
-						default:
-							return <div>unknown</div>
-					}
-				})
+			{showUsage &&
+				<Form key="usage" className='text-center border border-1 m-1 rounded-1'>
+					<div className='text-center'>
+						Select services for which you need support
+					</div>
+					<div className='text-center'>
+						{catsUsage.map(({ id: id, title: title }: ICat) => (
+							<Form.Check // prettier-ignore
+								id={id}
+								label={title}
+								name="usluge"
+								type='checkbox'
+								inline
+								className=''
+								onChange={onUsageChange}
+							/>
+						))}
+					</div>
+				</Form>
 			}
-		</div>
 
-		{/* {selectedQuestion &&
+			<div key='history' className='history'>
+				{
+					pastEvents.map(childProps => {
+						switch (childProps.type) {
+							case ChildType.AUTO_SUGGEST:
+								return <AutoSuggestComponent {...childProps} />;
+							case ChildType.QUESTION:
+								return <QuestionComponent {...childProps} />;
+							case ChildType.ANSWER:
+								return <AnswerComponent {...childProps} />;
+							default:
+								return <div>unknown</div>
+						}
+					})
+				}
+			</div>
+
+			{/* {selectedQuestion &&
 				<div>
 					<QuestionComponent type={ChildType.QUESTION} isDisabled={true} txt={selectedQuestion.title} hasMoreAnswers={hasMoreAnswers} />
 				</div>
 			} */}
 
-		{showAnswer &&
-			<div key="answer">
-				<AnswerComponent type={ChildType.ANSWER} isDisabled={false} txt={answer ? answer.title : 'no answers'} hasMoreAnswers={hasMoreAnswers} />
-			</div>
-		}
+			{showAnswer &&
+				<div key="answer">
+					<AnswerComponent type={ChildType.ANSWER} isDisabled={false} txt={chatBotAnswer ? chatBotAnswer.answerTitle : 'no answers'} hasMoreAnswers={hasMoreAnswers} />
+				</div>
+			}
 
-		{catsSelected && !showAutoSuggest &&
-			<Button
-				key="newQuestion"
-				variant="secondary"
-				size="sm"
-				type="button"
-				onClick={() => {
-					setAutoSuggestId(autoSuggestId + 1);
-					setShowAutoSuggest(true);
-				}}
-				className='m-1 border border-1 rounded-1 py-0'
-			>
-				New Question
-			</Button>
-		}
+			{catsSelected && !showAutoSuggest &&
+				<Button
+					key="newQuestion"
+					variant="secondary"
+					size="sm"
+					type="button"
+					onClick={() => {
+						setAutoSuggestId(autoSuggestId + 1);
+						setShowAutoSuggest(true);
+					}}
+					className='m-1 border border-1 rounded-1 py-0'
+				>
+					New Question
+				</Button>
+			}
 
-		{showAutoSuggest &&
-			<AutoSuggestComponent type={ChildType.AUTO_SUGGEST} isDisabled={false} txt={tekst!} />
-		}
-	</Container>
-);
+			{showAutoSuggest &&
+				<AutoSuggestComponent type={ChildType.AUTO_SUGGEST} isDisabled={false} txt={tekst!} />
+			}
+		</Container>
+	);
 }
 
 export default ChatBotPage

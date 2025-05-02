@@ -2,25 +2,47 @@ import React, { useEffect, useState } from "react";
 
 import { ICategory, IQuestion, IQuestionKey } from 'categories/types';
 import { useGlobalContext } from "global/GlobalProvider";
-import { IAnswer, IAnswerKey } from "groups/types";
+import { IAnswer, IAnswerKey, IAssignedAnswer } from "groups/types";
+import { IWhoWhen } from "global/types";
+
+export interface IChatBotAnswer {
+  questionKey: IQuestionKey;
+  answerKey: IAnswerKey;
+  answerTitle: string;
+  created: IWhoWhen,
+  modified: IWhoWhen | null
+}
+
+class ChatBotAnswer {
+  constructor(assignedAnswer: IAssignedAnswer) {
+    this.chatBotAnswer = {
+      questionKey: assignedAnswer.questionKey,
+      answerKey: assignedAnswer.answerKey,
+      answerTitle: assignedAnswer.answerTitle ?? '',
+      created: assignedAnswer.created,
+      modified: assignedAnswer.modified
+    }
+  }
+  chatBotAnswer: IChatBotAnswer 
+}
+
 
 export interface INewQuestion {
-  question: IQuestion | null;
-  firstAnswer: IAnswer | null;
+  firstAnswer: IChatBotAnswer | null;
   hasMoreAnswers: boolean;
 }
 
 export interface INextAnswer {
-  nextAnswer: IAnswer | null; //undefined;
+  nextAnswer: IChatBotAnswer | null; //undefined;
   hasMoreAnswers: boolean;
 }
 
 export const useAI = async (categories: ICategory[]) => {
 
-  const { getCatsByKind, getQuestion, getAnswer } = useGlobalContext();
+  const { getCatsByKind, getAnswer } = useGlobalContext();
 
   const [question, setQuestion] = useState<IQuestion | null>(null);
-  const [answer, setAnswer] = useState<IAnswer | undefined>(undefined);
+  //const [answer, setAnswer] = useState<IAnswer | undefined>(undefined);
   const [index, setIndex] = useState<number>(0);
 
   // useEffect(() => {
@@ -32,23 +54,24 @@ export const useAI = async (categories: ICategory[]) => {
   //   })()
   // }, [])
 
-  const setNewQuestion = async (questionKey: IQuestionKey): Promise<INewQuestion> => {
-    const question = await getQuestion(questionKey);
+  const setNewQuestion = async (question: IQuestion): Promise<INewQuestion> => {
     setQuestion(question);
     let hasMoreAnswers = false;
-    let firstAnswer: IAnswer | null = null;
+    let firstAnswer: IChatBotAnswer | null = null;
     if (question) {
       const { assignedAnswers } = question;
-      const assignedAnswer = (assignedAnswers.length > 0)
-        ? question.assignedAnswers[0]
-        : undefined;
-      if (assignedAnswer) {
-        const answerKey: IAnswerKey = { partitionKey: '', id: assignedAnswer.answerKey.id }
-        firstAnswer = await getAnswer(answerKey);
+      // const assignedAnswer = (assignedAnswers.length > 0)
+      //   ? assignedAnswers[0]
+      //   : undefined;
+      if (assignedAnswers && assignedAnswers.length > 0) {
+        //const answerKey: IAnswerKey = { partitionKey: assignedAnswer.answerKey.partitionKey, id: assignedAnswer.answerKey.id }
+        //firstAnswer = await getAnswer(assignedAnswer.answerKey);
+        const assignedAnswer = assignedAnswers[0];
+        firstAnswer = new ChatBotAnswer(assignedAnswer).chatBotAnswer;
         hasMoreAnswers = assignedAnswers.length > 1;
       }
     }
-    return { question, firstAnswer, hasMoreAnswers };
+    return { firstAnswer, hasMoreAnswers };
   }
 
   const getNextAnswer = async (): Promise<INextAnswer> => {
@@ -56,10 +79,13 @@ export const useAI = async (categories: ICategory[]) => {
     const len = assignedAnswers.length;
     const i = index + 1;
     if (index + 1 < len) {
-      const answerKey: IAnswerKey = { partitionKey: '', id: assignedAnswers[i].answerKey.id }
-      const nextAnswer = await getAnswer(answerKey);
+      //const answerKey: IAnswerKey = { partitionKey: '', id: assignedAnswers[i].answerKey.id }
+      //const answerKey: IAnswerKey = assignedAnswers[i].answerKey;
+      //const nextAnswer = await getAnswer(answerKey);
       setIndex(i);
-      return { nextAnswer: nextAnswer, hasMoreAnswers: i + 1 < len }
+      return { 
+        nextAnswer: new ChatBotAnswer(assignedAnswers[i]).chatBotAnswer, 
+        hasMoreAnswers: i + 1 < len }
     }
     return { nextAnswer: null, hasMoreAnswers: false }
   }

@@ -89,7 +89,7 @@ export function Navigation(props: INavigation) {
             >
               {isAuthenticated &&
                 // <NavLink to={`/supporter/0/${encodeURIComponent('Does Firefox support Manifest 3?')}/xyz`} className="nav-link"
-                  <NavLink to={`/supporter/0/${encodeURIComponent('work bater')}/xyz`} className="nav-link"
+                  <NavLink to={`/supporter/0/${encodeURIComponent('domena')}/xyz`} className="nav-link"
                     onClick={() => {
                       //closeQuestionForm();
                     }
@@ -116,7 +116,7 @@ export function Navigation(props: INavigation) {
 
               {isAuthenticated &&
                 // <NavLink to={`/supporter/0/${encodeURIComponent('Does Firefox support Manifest 3?')}/xyz`} className="nav-link"
-                <NavLink to={`/ChatBotPage/0/${encodeURIComponent('work bater')}/xyz`} className="nav-link"
+                <NavLink to={`/ChatBotPage/0/${encodeURIComponent('domena')}/xyz`} className="nav-link"
                   onClick={() => {
                     //closeQuestionForm();
                   }

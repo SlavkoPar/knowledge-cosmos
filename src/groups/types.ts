@@ -1,4 +1,5 @@
-import { ActionMap, IWhoWhen, IRecord, IRecordDto, Dto2WhoWhen, WhoWhen2Dto } from 'global/types';
+import { IQuestionKey } from 'categories/types';
+import { ActionMap, IWhoWhen, IRecord, IRecordDto, Dto2WhoWhen, WhoWhen2Dto, IWhoWhenDto } from 'global/types';
 
 export const Mode = {
 	UNDEFINED: undefined,
@@ -27,33 +28,60 @@ export enum FormMode {
 	editing
 }
 
-// export interface IAnswerAnswer {
-// 	groupId: string;
-// 	answerId: number;
-// 	id: number,
-// 	answer: {
-// 		id: number,
-// 		title: string
-// 	},
-// 	user: {
-// 		id?: number,
-// 		createdBy: string
-// 	}
-// 	assigned: IDateAndBy
-// }
+
+
 
 export interface IAssignedAnswer {
-	answer: {
-		id: number,
-		title?: string
-	}
-	user: {
-		nickName: string,
-		createdBy: string
-	}
-	assigned: IWhoWhen
+	questionKey: IQuestionKey;
+	answerKey: IAnswerKey;
+	answerTitle?: string;
+	created: IWhoWhen,
+	modified: IWhoWhen | null
 }
 
+
+
+export interface IAssignedAnswerDto {
+	QuestionKey: IQuestionKey;
+	AnswerKey: IAnswerKey;
+	AnswerTitle: string;
+	Created: IWhoWhenDto;
+	Modified: IWhoWhenDto | null;
+}
+
+export interface IAssignedAnswerDtoEx {
+	assignedAnswerDto: IAssignedAnswerDto | null;
+	msg: string;
+}
+
+
+export class AssignedAnswerDto {
+	constructor(assignedAnswer: IAssignedAnswer) {
+		const { questionKey, answerKey, answerTitle, created, modified } = assignedAnswer;
+		this.assignedAnswerDto = {
+			QuestionKey: questionKey,
+			AnswerKey: answerKey,
+			AnswerTitle: answerTitle ?? '',
+			Created: new WhoWhen2Dto(created).whoWhenDto!,
+			Modified: modified ? new WhoWhen2Dto(modified).whoWhenDto! : null
+		}
+	}
+	assignedAnswerDto: IAssignedAnswerDto;
+}
+
+export class AssignedAnswer {
+	constructor(dto: IAssignedAnswerDto) {
+		const { QuestionKey, AnswerKey, AnswerTitle,Created, Modified } = dto;
+		this.assignedAnswer = {
+			questionKey: QuestionKey,
+			answerKey: AnswerKey,
+			answerTitle: AnswerTitle,
+			created: new Dto2WhoWhen(Created).whoWhen!,
+			modified: Modified ? new Dto2WhoWhen(Modified).whoWhen! : null
+		}
+	}
+	assignedAnswer: IAssignedAnswer;
+}
 
 export interface IAnswer extends IRecord {
 	partitionKey: string;
@@ -63,7 +91,7 @@ export interface IAnswer extends IRecord {
 	groupTitle?: string;
 	source: number;
 	status: number;
-	GroupTitle?: string;
+	//GroupTitle?: string;
 	included?: boolean;
 }
 

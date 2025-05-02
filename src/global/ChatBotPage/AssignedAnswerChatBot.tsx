@@ -1,3 +1,4 @@
+import React, { useState } from "react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCopy, faEnvelope, faRemove } from '@fortawesome/free-solid-svg-icons'
 
@@ -5,10 +6,8 @@ import { ListGroup, Button, Modal } from "react-bootstrap";
 
 import { useGlobalContext, useGlobalState } from 'global/GlobalProvider'
 import { useHover } from 'hooks/useHover';
-import { IAssignedAnswer } from "categories/types";
 import { formatDate } from 'common/utilities'
-import React, { useState } from "react";
-import { IAnswerKey } from 'groups/types';
+import { IAnswerKey, IAssignedAnswer } from 'groups/types';
 
 interface IProps {
     questionTitle: string,
@@ -19,7 +18,7 @@ interface IProps {
 }
 const AssignedAnswerChatBot = ({ questionTitle, assignedAnswer, isDisabled, unAssignAnswer }: IProps) => {
 
-    const { questionKey, answerKey, title, created } = assignedAnswer;
+    const { questionKey, answerKey, answerTitle: title, created } = assignedAnswer;
     const { partitionKey, id } = answerKey;
     const emailFromClient = localStorage.getItem('emailFromClient');
 

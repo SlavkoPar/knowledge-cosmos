@@ -11,16 +11,19 @@ import {
   IParentInfo,
   IWhoWhen,
   ICatExport,
-  IHistory, IHistoryDtoEx, IHistoryData, HistoryDto, History,
-  IAnswerRating,
+  IHistory, IHistoryDtoEx, IHistoryData, HistoryDto,
+  IAnswerRated,
   IHistoryDtoListEx,
   IHistoryListEx,
-  IAnswerRatings
+  IAnswerRatedList,
+  IAnswerRatedListEx,
+  IAnswerRatedDtoListEx,
+  AnswerRated
 } from 'global/types'
 
 import { globalReducer, initialGlobalState } from "global/globalReducer";
 
-import { Category, IAssignedAnswer, ICategory, ICategoryDto, ICategoryKey, IQuest, IQuestDto, IQuestion, IQuestionDto, IQuestionDtoEx, IQuestionKey, Question } from "categories/types";
+import { Category, ICategory, ICategoryDto, ICategoryKey, IQuest, IQuestDto, IQuestion, IQuestionDto, IQuestionDtoEx, IQuestionEx, IQuestionKey, Question } from "categories/types";
 import { Group, IGroup, IGroupDto, IGroupKey, IAnswer, IAnswerDto, IAnswerKey, IShortAnswer, IShortAnswerDto, Answer } from "groups/types";
 import { IUser } from 'global/types';
 
@@ -352,57 +355,72 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
     }
   }, []);
 
-  const joinAssignedAnswers = async (assignedAnswers: IAssignedAnswer[]): Promise<IAssignedAnswer[]> => {
-    const arr: IAssignedAnswer[] = [];
-    try {
-      // // join answer.title
-      // let i = 0;
-      // while (i < assignedAnswers.length) {
-      //   const assignedAnswer = assignedAnswers[i];
-      //   const answer: IAnswer = await dbp!.get("Answers", assignedAnswer.answer.id);
-      //   const title = answer ? answer.title : "Answer doesn't exist any more";
-      //   arr.push({ ...assignedAnswer, answer: { ...assignedAnswer.answer, title } });
-      //   i++;
-      // }
-    }
-    catch (error: any) {
-      console.log(error);
-      dispatch({ type: GlobalActionTypes.SET_ERROR, payload: error });
-    }
-    return arr;
+  // differs from CategoryProvider, here we don't dispatch
+  const getQuestionWAS = async (questionKey: IQuestionKey): Promise<any> => {
+    return new Promise(async (resolve) => {
+      try {
+        const { partitionKey, id } = questionKey;
+        const url = `${protectedResources.KnowledgeAPI.endpointQuestion}/${partitionKey}/${id}`;
+        console.time()
+        await Execute("GET", url)
+          .then((questionDtoEx: IQuestionDtoEx) => {
+            console.timeEnd();
+            const { questionDto, msg } = questionDtoEx;
+            if (questionDto) {
+              const question: IQuestion = new Question(questionDto!).question;
+              console.log('qqqqqqqqqqqqqqqqqqq', { question })
+              // if (questionDto) {
+              //   resolve(question);
+              // }
+              // else {
+              //   resolve(new Error(msg));
+              // }
+            }
+          });
+      }
+      catch (error: any) {
+        console.log(error)
+        resolve(error);
+      }
+    })
   }
 
-  // differs from CategoryProvider, here we don't dispatch
   const getQuestion = async (questionKey: IQuestionKey): Promise<any> => {
     return new Promise(async (resolve) => {
       try {
         const { partitionKey, id } = questionKey;
-        //const url = `${process.env.REACT_APP_API_URL}/Question/${parentCategory}/${id}`;
-        //console.log(`FETCHING --->>> ${url}`)
-        //dispatch({ type: GlobalActionTypes.SET_LOADING, payload: {} })
-        console.time()
         const url = `${protectedResources.KnowledgeAPI.endpointQuestion}/${partitionKey}/${id}`;
+        console.time()
         await Execute("GET", url)
           .then((questionDtoEx: IQuestionDtoEx) => {
             console.timeEnd();
-            console.log({ questionDtoEx });
             const { questionDto, msg } = questionDtoEx;
-            const question: IQuestion = new Question(questionDto!).question;
-            // if (questionDto) {
-            // }
-            // else {
-            // }
-            console.log('QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ', { question })
-            resolve(question);
+            if (questionDto) {
+              const questionEx: IQuestionEx = {
+                question: new Question(questionDto).question,
+                msg
+              }
+              resolve(questionEx);
+            }
+            else {
+              const questionEx: IQuestionEx = {
+                question: null,
+                msg
+              }
+              resolve(questionEx);
+            }
+            //}
           });
-
-
       }
       catch (error: any) {
         console.log(error);
-        dispatch({ type: GlobalActionTypes.SET_ERROR, payload: error });
+        const questionEx: IQuestionEx = {
+          question: null,
+          msg: "Problemos"
+        }
+        resolve(questionEx);
       }
-    });
+    })
   }
 
   const getCatsByKind = async (kind: number): Promise<ICat[]> => {
@@ -641,17 +659,15 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
         const url = `${protectedResources.KnowledgeAPI.endpointHistory}`;
         console.time()
         await Execute("POST", url, historyDto)
-          .then(async (historyDtoEx: IHistoryDtoEx | null) => {
+          .then(async (questionDtoEx: IQuestionDtoEx) => {
+            const { questionDto, msg } = questionDtoEx;
             console.timeEnd();
-            if (historyDtoEx) {
-              const { historyDto } = historyDtoEx;
-              if (historyDto) {
-                const history = new History(historyDto).history;
-                console.log('History successfully created')
-                // dispatch({ type: ActionTypes.SET_ADDED_CATEGORY, payload: { category: { ...category, questions: [] } } });
-                // dispatch({ type: ActionTypes.CLOSE_CATEGORY_FORM })
-                await loadCats(); // reload
-              }
+            if (questionDto) {
+              //const history = new History(historyDto).history;
+              console.log('History successfully created', { questionDto })
+              // dispatch({ type: ActionTypes.SET_ADDED_CATEGORY, payload: { category: { ...category, questions: [] } } });
+              // dispatch({ type: ActionTypes.CLOSE_CATEGORY_FORM })
+              //await loadCats(); // reload
             }
           });
       }
@@ -661,48 +677,49 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
       }
     }, []);
 
-  const compareFn = (a: IAnswerRating, b: IAnswerRating): number => {
-    if (a.fixed > b.fixed) {
-      return -1;
-    }
-    else if (a.fixed < b.fixed) {
-      return 1;
-    }
+  // const compareFn = (a: IAnswerRated, b: IAnswerRated): number => {
+  //   if (a.fixed > b.fixed) {
+  //     return -1;
+  //   }
+  //   else if (a.fixed < b.fixed) {
+  //     return 1;
+  //   }
 
-    if (a.Undefined > b.Undefined) {
-      return -1;
-    }
-    else if (a.Undefined < b.Undefined) {
-      return 1;
-    }
+  //   if (a.Undefined > b.Undefined) {
+  //     return -1;
+  //   }
+  //   else if (a.Undefined < b.Undefined) {
+  //     return 1;
+  //   }
 
-    if (a.notFixed > b.notFixed) {
-      return -1;
-    }
-    else if (a.notFixed < b.notFixed) {
-      return 1;
-    }
+  //   if (a.notFixed > b.notFixed) {
+  //     return -1;
+  //   }
+  //   else if (a.notFixed < b.notFixed) {
+  //     return 1;
+  //   }
 
-    // a must be equal to b
-    return 0;
-  }
+  //   // a must be equal to b
+  //   return 0;
+  // }
 
-  const getAnswersRated = async (questionId: string): Promise<IAnswerRatings> => { // IAnswerRating[]
-    const mapAnswerRating = new Map<string, IAnswerRating>();
+  const getAnswersRated = async (questionKey: IQuestionKey): Promise<IAnswerRatedListEx> => {
+    const mapAnswerRating = new Map<string, IAnswerRated>();
     try {
-      console.log("getAnswersRated", { questionId })
-      const url = `${protectedResources.KnowledgeAPI.endpointHistory}`;
+      console.log("getAnswersRated", { questionKey })
+      const url = `${protectedResources.KnowledgeAPI.endpointHistory}/${questionKey.partitionKey}/${questionKey.id}`;
       console.time()
-      //const historyListEx: IHistoryListEx = { historyList: [], msg: "" };
-      const answerRatings: IAnswerRatings = { ratings: [], msg: "" }
+      const answerRatedListEx: IAnswerRatedListEx = { answerRatedList: null, msg: "" }
       await Execute("GET", url)
-        .then(async (historyDtoListEx: IHistoryDtoListEx) => {
+        .then(async (answerRatedDtoListEx: IAnswerRatedDtoListEx) => {
           console.timeEnd();
-          const { historyDtoList, msg } = historyDtoListEx;
-          if (historyDtoList) {
-            const historyList = historyDtoList.map(historyDto => new History(historyDto).history);
-            historyList.forEach(history => {
-              const { answerId, fixed } = history;
+          const { answerRatedDtoList, msg } = answerRatedDtoListEx;
+          if (answerRatedDtoList) {
+            answerRatedDtoList.forEach(answerRatedDto => {
+              const answerRated = new AnswerRated(answerRatedDto).answerRated;
+              const { answerKey, numOfFixed, numOfNotFixed, numOfNotClicked } = answerRated;
+              const answerId = answerKey.id;
+              /*
               if (!mapAnswerRating.has(answerId)) {
                 mapAnswerRating.set(answerId, { fixed: fixed === true ? 1 : 0, notFixed: fixed === false ? 1 : 0, Undefined: fixed === undefined ? 1 : 0 });
               }
@@ -724,22 +741,26 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
                 }
                 mapAnswerRating.set(answerId, answerRating!);
               }
-              const arr: IAnswerRating[] = [];
+              const arr: IAnswerRated[] = [];
               mapAnswerRating.forEach((value, key) => {
                 arr.push({ answerId: key, ...value })
               })
-              answerRatings.ratings = arr.sort(compareFn);
+              answerRatings.answerRatedList = arr.sort(compareFn);
+                */
             })
           }
           else {
-            answerRatings.msg = msg;
+            answerRatedListEx.msg = msg;
           }
         });
-      return answerRatings;
+      return answerRatedListEx;
     }
     catch (error: any) {
       console.log(error);
-      return { ratings: [], msg: "Server problemos" }
+      const answerRatedListEx: IAnswerRatedListEx = {
+        answerRatedList: null, msg: "Server problemos"
+      }
+      return answerRatedListEx;
     }
   }
 
@@ -753,7 +774,6 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
     <GlobalContext.Provider value={{
       globalState, OpenDB,
       getUser, exportToJSON, health,
-      joinAssignedAnswers,
       loadCats, getSubCats, getCatsByKind, searchQuestions, getQuestion,
       loadShortGroups, getSubGroups, getGroupsByKind, searchAnswers, getAnswer,
       addHistory, getAnswersRated

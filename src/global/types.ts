@@ -1,5 +1,5 @@
 // Define the Global State
-import { IAssignedAnswer, ICategory, ICategoryKey, IQuest, IQuestion, IQuestionKey } from 'categories/types';
+import { ICategory, ICategoryKey, IQuest, IQuestion, IQuestionEx, IQuestionKey } from 'categories/types';
 import { IGroup, IGroupKey, IShortAnswer, IAnswer, IAnswerKey } from 'groups/types';
 //import { IOption } from 'common/types';
 import { IDBPDatabase } from 'idb';
@@ -62,34 +62,34 @@ export class WhoWhen2Dto {
 export class HistoryDto {
 	constructor(history: IHistory) {
 		this.historyDto = {
-			QuestionId: history.questionId,
-			AnswerId: history.answerId,
-			Fixed: history.fixed == undefined
-				? 2
-				: history.fixed
-					? 1
-					: 0,
+			QuestionKey: history.questionKey,
+			AnswerKey: history.answerKey,
+			UserAction: history.userAction, // == USER_ANSWER_ACTION.
+			// 	? 2
+			// 	: history.userAction
+			// 		? 1
+			// 		: 0,
 			Created: new WhoWhen2Dto(history.created).whoWhenDto!,
 		}
 	}
 	historyDto: IHistoryDto;
 }
 
-export class History {
-	constructor(dto: IHistoryDto) {
-		this.history = {
-			questionId: dto.QuestionId,
-			answerId: dto.AnswerId,
-			fixed: dto.Fixed == 2
-				? undefined
-				: dto.Fixed == 1
-					? true
-					: false,
-			created: new Dto2WhoWhen(dto.Created!).whoWhen,
-		}
-	}
-	history: IHistory;
-}
+// export class History {
+// 	constructor(dto: IHistoryDto) {
+// 		this.history = {
+// 			questionKey: dto.QuestionKey,
+// 			answerKey: dto.AnswerKey,
+// 			userAction: dto.Fixed == 2
+// 				? undefined
+// 				: dto.Fixed == 1
+// 					? true
+// 					: false,
+// 			created: new Dto2WhoWhen(dto.Created!).whoWhen,
+// 		}
+// 	}
+// 	history: IHistory;
+// }
 
 
 export interface IAuthUser {
@@ -189,15 +189,14 @@ export interface IGlobalContext {
 	getSubCats: (categoryKey: ICategoryKey) => Promise<any>;
 	getCatsByKind: (kind: number) => Promise<ICat[]>;
 	searchQuestions: (filter: string, count: number) => Promise<IQuest[]>;
-	getQuestion: (questionKey: IQuestionKey) => Promise<IQuestion | null>;
-	joinAssignedAnswers: (assignedAnswers: IAssignedAnswer[]) => Promise<IAssignedAnswer[]>;
+	getQuestion: (questionKey: IQuestionKey) => Promise<IQuestionEx>;
 	loadShortGroups: () => void;
 	getSubGroups: (categoryKey: ICategoryKey) => Promise<any>;
 	getGroupsByKind: (kind: number) => Promise<IShortGroup[]>;
 	searchAnswers: (filter: string, count: number) => Promise<IShortAnswer[]>;
 	getAnswer: (answerKey: IAnswerKey) => Promise<IAnswer | null>;
 	addHistory: (history: IHistory) => Promise<void>;
-	getAnswersRated: (questionId: string) => Promise<IAnswerRatings>;
+	getAnswersRated: (questionKey: IQuestionKey) => Promise<IAnswerRatedListEx>;
 }
 
 export enum GlobalActionTypes {
@@ -439,19 +438,26 @@ export interface IRoleData {
 }
 
 
+export enum USER_ANSWER_ACTION { 
+	NotFixed = 0, 
+	Fixed = 1, 
+	NotClicked = 2 
+};
+
 export interface IHistory {
 	id?: number;
-	questionId: string;
-	answerId: string;
-	fixed: boolean | undefined; // when client didn't click on 'Fixed' or 'Not fixed' buttons
+	questionKey: IQuestionKey;
+	answerKey: IAnswerKey;
+	userAction: USER_ANSWER_ACTION; // when client didn't click on 'Fixed' or 'Not fixed' buttons
 	created?: IWhoWhen
 }
 
 export interface IHistoryDto {
+	PartitionKey?: string;
 	Id?: number;
-	QuestionId: string;
-	AnswerId: string;
-	Fixed: number; // when client didn't click on 'Fixed' or 'Not fixed' buttons
+	QuestionKey: IQuestionKey;
+	AnswerKey: IAnswerKey;
+	UserAction: USER_ANSWER_ACTION; // when client didn't click on 'Fixed' or 'Not fixed' buttons
 	Created: IWhoWhenDto
 }
 
@@ -478,17 +484,56 @@ export interface IHistoryData {
 	created?: Date
 }
 
-export interface IAnswerRating {
-	answerId?: string;
-	fixed: number;
-	notFixed: number; // client clicked on 'Not fixed' button
-	Undefined: number; // not clicked
+
+
+export interface IAnswerRatedDto {
+	QuestionKey: IQuestionKey;
+	AnswerKey: IAnswerKey;
+	AnswerTitle: string;
+	NumOfFixed: number; // number of user clicks on 'Fixed' button
+	NumOfNotFixed: number; // number of user clicks on 'Not Fixed' button
+	NumOfNotClicked: number;
 }
 
-export interface IAnswerRatings {
-	ratings: IAnswerRating[];
+export interface IAnswerRatedDtoList {
+	answerRatedDtoList: IAnswerRatedDto[]
+}
+export interface IAnswerRatedDtoListEx extends IAnswerRatedDtoList {
 	msg: string;
 }
+
+
+export interface IAnswerRated {
+	questionKey: IQuestionKey;
+	answerKey: IAnswerKey;
+	answerTitle: string;
+	numOfFixed: number; // number of user clicks on 'Fixed' button
+	numOfNotFixed: number; // number of user clicks on 'Not Fixed' button
+	numOfNotClicked: number;
+}
+
+export class AnswerRated {
+	constructor(dto: IAnswerRatedDto) {
+		this.answerRated = {
+			questionKey: dto.QuestionKey,
+			answerKey: dto.AnswerKey,
+			answerTitle: dto.AnswerTitle,
+			numOfFixed: dto.NumOfFixed, // number of user clicks on 'Fixed' button
+			numOfNotFixed: dto.NumOfFixed, // number of user clicks on 'Not Fixed' button
+			numOfNotClicked: dto.NumOfNotClicked
+		}
+	}
+	answerRated: IAnswerRated;
+}
+
+
+export interface IAnswerRatedList {
+	answerRatedList: IAnswerRated[] | null;
+}
+export interface IAnswerRatedListEx extends IAnswerRatedList {
+	msg: string;
+}
+
 
 
 export interface IUser {

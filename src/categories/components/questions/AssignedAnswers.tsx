@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { Button, ListGroup, Modal } from "react-bootstrap";
-import { IAssignedAnswer, IQuestionKey } from "categories/types";
+import { IQuestionKey } from "categories/types";
 import { useCategoryContext } from "categories/CategoryProvider";
 import { useGlobalContext } from "global/GlobalProvider";
 import AssignedAnswer from "./AssignedAnswer";
 import { AutoSuggestAnswers } from 'categories/AutoSuggestAnswers'
 import { IWhoWhen } from "global/types";
-import { IAnswer, IAnswerKey } from "groups/types";
+import { IAnswer, IAnswerKey, IAssignedAnswer } from "groups/types";
 import AddAnswer from "categories/components/questions/AddAnswer"
 import { initialAnswer } from "groups/GroupsReducer"; // PRE
 
@@ -19,7 +19,7 @@ interface IProps {
 
 const AssignedAnswers = ({ questionKey, questionTitle, assignedAnswers, isDisabled }: IProps) => {
 
-    const { globalState, joinAssignedAnswers, searchAnswers } = useGlobalContext();
+    const { globalState, searchAnswers } = useGlobalContext();
     const { authUser, isDarkMode, variant, shortGroups } = globalState;
 
     //const [assignedAnswers2, setAssignAnswers2] = useState<IAssignedAnswer[]>([]);
