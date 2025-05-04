@@ -17,11 +17,10 @@ import AddCategory from "categories/components/AddCategory";
 import EditCategory from "categories/components/EditCategory";
 import ViewCategory from "categories/components/ViewCategory";
 import QuestionList from './questions/QuestionList';
-import useFetchWithMsal from 'hooks/useFetchWithMsal';
-import { protectedResources } from 'authConfig';
+
 
 const CategoryRow = ({ category }: { category: ICategory }) => {
-    const { partitionKey, id, title, level, inViewing, inEditing, inAdding, hasSubCategories, questions, numOfQuestions, isExpanded } = category;
+    const { partitionKey, id, title, level, inViewing, inEditing, inAdding, hasSubCategories, numOfQuestions, isExpanded } = category;
     const [categoryKey] = useState<ICategoryKey>({ partitionKey, id }); // otherwise reloads
 
     const parentInfo: IParentInfo = {

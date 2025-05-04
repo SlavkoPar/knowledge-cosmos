@@ -166,31 +166,18 @@ export class AutoSuggestQuestions extends React.Component<{
 
 		const catQuests = new Map<string, IQuest[]>();
 
-		const questionKeys: IQuestionKey[] = [];
+		//const questionIds: string[] = [];
 		try {
 			console.log('--------->>>>> getSuggestions')
-			var questDtoList: IQuest[] = await this.searchQuestions(escapedValue, 20);
-
-			questDtoList.forEach((quest: IQuest) => {
-				const { id, partitionKey, parentCategory, title } = quest;
-				const questionKey = { partitionKey, id }
-				if (!questionKeys.includes(questionKey)) {
-					questionKeys.push(questionKey);
-
-					// 2) Group questions by parentCategory
-					const quest: IQuest = {
-						partitionKey,
-						id,
-						parentCategory,
-						title,
-						categoryTitle: ''
-					}
-					if (!catQuests.has(parentCategory)) {
-						catQuests.set(parentCategory, [quest]);
-					}
-					else {
-						catQuests.get(parentCategory)!.push(quest);
-					}
+			var questList: IQuest[] = await this.searchQuestions(escapedValue, 20);
+			console.log('QQQ', {questList})
+			questList.forEach((quest: IQuest) => {
+				const { id, parentCategory } = quest;
+				if (!catQuests.has(parentCategory)) {
+					catQuests.set(parentCategory, [quest]);
+				}
+				else {
+					catQuests.get(parentCategory)!.push(quest);
 				}
 			})
 		}
@@ -246,7 +233,7 @@ export class AutoSuggestQuestions extends React.Component<{
 		await tx.done;
 		*/
 
-		if (questionKeys.length === 0)
+		if (catQuests.size === 0)
 			return [];
 
 		try {
@@ -312,9 +299,10 @@ export class AutoSuggestQuestions extends React.Component<{
 	};
 
 	protected onSuggestionSelected(event: React.FormEvent<any>, data: Autosuggest.SuggestionSelectedEventData<IQuest>): void {
-		const question: IQuest = data.suggestion;
+		const quest: IQuest = data.suggestion;
+		const { partitionKey, id, parentCategory } = quest;
 		// alert(`Selected question is ${question.questionId} (${question.text}).`);
-		this.props.onSelectQuestion({ partitionKey: question.parentCategory, id: question.id });
+		this.props.onSelectQuestion({ partitionKey, id, parentCategory });
 	}
 
 	/*

@@ -15,13 +15,13 @@ export const initialQuestion: IQuestion = {
 
 
 export const initialCategory: ICategory = {
-  partitionKey: 'null',
-  id: '',
+  partitionKey: 'root',
+  id: 'root',
   kind: 0,
   title: '',
   level: 0,
   variations: [],
-  parentCategory: 'null',
+  parentCategory: null,
   hasSubCategories: false,
   questions: [],
   numOfQuestions: 0,
@@ -407,8 +407,8 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
       const { id, level } = categoryInfo;
       const question: IQuestion = {
         ...initialQuestion,
-        partitionKey: id,
-        parentCategory: id,
+        partitionKey: id!,
+        parentCategory: id!,
         inAdding: true
       }
       return {
@@ -417,6 +417,44 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
           ? { ...c, questions: [question, ...c.questions], inAdding: true, numOfQuestions: c.numOfQuestions + 1 }
           : { ...c, inAdding: false }),
         mode: Mode.AddingQuestion
+      };
+    }
+
+    case ActionTypes.SET_QUESTION_SELECTED: {
+      const { questionKey } = action.payload;
+      const { parentCategory, partitionKey, id } = questionKey;
+      //const inAdding = state.mode === Mode.AddingQuestion;
+
+      // for inAdding, id is IDBValidKey('000000000000000000000000')
+      // thats why we look for q.inAdding instead of q.id === id
+      // let parentCategory: string | null = null;
+      // state.categories.forEach(c =>  {
+      //   const q = c.questions.find(q => q.id === id);
+      //   if (q) {
+      //     parentCategory = q.parentCategory;
+      //     console.log('ququ', q)
+      //   }
+      // })
+      // if (parentCategory === null) {
+      //   alert(`Not found parent Category of question ${id}`);
+      //   return {
+      //     ...state,
+      //   }
+      // }
+      const categoryKey: ICategoryKey = { partitionKey, id: parentCategory! } // C/Q have the same partitionKey
+      let { categories } = state;
+      return {
+        ...state,
+        categories: []/*(categories.map(c => c.id === categoryKey.id
+          ? { ...c, isExpanded: true, inViewing: c.inViewing, inEditing: c.inEditing }
+          : { ...c, isExpanded: false, inViewing: false, inEditing: false  }
+        )*/,
+        categoryKeyExpanded: categoryKey,
+        categoryNodeLoaded: false,
+        questionId: id,
+        mode: Mode.NULL,
+        error: undefined,
+        loading: false
       };
     }
 
@@ -503,7 +541,7 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
         mode: Mode.ViewingQuestion,
         loading: false,
         categoryId: question.parentCategory,
-        questionId: question.id,
+        questionId: question.id
       }
     }
 

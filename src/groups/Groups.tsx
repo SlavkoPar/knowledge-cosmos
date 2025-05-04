@@ -17,8 +17,6 @@ import EditAnswer from "groups/components/answers/EditAnswer";
 
 import { initialAnswer } from "groups/GroupsReducer";
 import ModalAddAnswer from './ModalAddAnswer';
-import useFetchWithMsal from 'hooks/useFetchWithMsal';
-import { protectedResources } from 'authConfig';
 import AddGroup from './components/AddGroup';
 
 interface IProps {
@@ -41,7 +39,7 @@ const Providered = ({ groupId_answerId }: IProps) => {
     const [createAnswerError, setCreateAnswerError] = useState("");
 
     const dispatch = useGroupDispatch();
-    const [groupKey] = useState<IGroupKey>({ partitionKey: 'null', id: 'null' })
+    const [groupKey] = useState<IGroupKey>({ partitionKey: 'root', id: 'root' })
 
     useEffect(() => {
         (async () => {

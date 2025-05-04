@@ -20,7 +20,7 @@ const GroupList = ({ title, groupKey, level }: IParentInfo) => {
     }, [getSubGroups, groupKey]);
 
    
-    const mySubGroups = groupKey.id === 'null'
+    const mySubGroups = groupKey.id === 'root'
         ? groups.filter(c => c.parentGroup === null)
         : groups.filter(c => c.parentGroup === groupKey.id);
     console.log("+++++++>>>>>>> GroupList ", { groupKey, groups, mySubGroups});

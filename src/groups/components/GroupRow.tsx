@@ -17,8 +17,7 @@ import AddGroup from "groups/components/AddGroup";
 import EditGroup from "groups/components/EditGroup";
 import ViewGroup from "groups/components/ViewGroup";
 import AnswerList from './answers/AnswerList';
-import useFetchWithMsal from 'hooks/useFetchWithMsal';
-import { protectedResources } from 'authConfig';
+
 
 const GroupRow = ({ group }: { group: IGroup }) => {
     const { partitionKey, id, title, level, inViewing, inEditing, inAdding, hasSubGroups, answers, numOfAnswers, isExpanded } = group;

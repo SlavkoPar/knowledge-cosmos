@@ -22,10 +22,9 @@ const CategoryList = ({ title, categoryKey, level }: IParentInfo) => {
     }, [getSubCategories, categoryKey]);
 
    
-    const mySubCategories = categoryKey.id === 'null'
+    const mySubCategories = categoryKey.id === 'root'
         ? categories.filter(c => c.parentCategory === null)
         : categories.filter(c => c.parentCategory === categoryKey.id);
-    console.log("+++++++>>>>>>> CategoryList ", { categoryKey, categories, mySubCategories});
 
     return (
         <div className={level! > 1 ? 'ms-2' : ''}>

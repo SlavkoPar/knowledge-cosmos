@@ -68,8 +68,8 @@ export interface IQuestion extends IRecord {
 }
 
 export interface ICategoryKey {
-	partitionKey: string;
-	id: string;
+	partitionKey: string; // can be null but we put 'root' instead
+	id: string;  // can be null but we put 'root' instead
 }
 
 export interface ICategoryKeyExtended extends ICategoryKey {
@@ -131,23 +131,25 @@ export class Question {
 }
 
 export class Category {
-	constructor(dto: ICategoryDto) {
+	constructor(categoryDto: ICategoryDto) {
+		const { PartitionKey, Id, Kind, ParentCategory, Title, Level, Variations, Created, Modified, 
+						NumOfQuestions, HasSubCategories, Questions } = categoryDto;
 		this.category = {
-			partitionKey: dto.PartitionKey,
-			id: dto.Id,
-			kind: dto.Kind,
-			parentCategory: dto.ParentCategory!,
-			title: dto.Title,
-			level: dto.Level!,
-			variations: dto.Variations ?? [],
-			numOfQuestions: dto.NumOfQuestions!,
-			hasSubCategories: dto.HasSubCategories!,
-			created: new Dto2WhoWhen(dto.Created!).whoWhen,
-			modified: dto.Modified
-				? new Dto2WhoWhen(dto.Modified).whoWhen
+			partitionKey: PartitionKey!,
+			id: Id!,
+			kind: Kind,
+			parentCategory: ParentCategory ?? null,
+			title: Title,
+			level: Level!,
+			variations: Variations ?? [],
+			numOfQuestions: NumOfQuestions!,
+			hasSubCategories: HasSubCategories!,
+			created: new Dto2WhoWhen(Created!).whoWhen,
+			modified: Modified
+				? new Dto2WhoWhen(Modified).whoWhen
 				: undefined,
-			questions: dto.Questions
-				? dto.Questions.map(questionDto => new Question(questionDto/*, dto.Id*/).question)
+			questions: Questions
+				? Questions.map(questionDto => new Question(questionDto).question)
 				: []
 		}
 	}
@@ -157,16 +159,20 @@ export class Category {
 
 export class CategoryDto {
 	constructor(category: ICategory) {
+		const PartitionKey = category.partitionKey === 'root' ? null : category.partitionKey;
+		const Id = category.id === 'root' ? null : category.id;
+		const ParentCategory = category.parentCategory === 'root' ? null : category.parentCategory;
+		const { kind, parentCategory, title, level, variations, created, modified } = category;
 		this.categoryDto = {
-			PartitionKey: category.partitionKey,
-			Id: category.id,
-			Kind: category.kind,
-			ParentCategory: category.parentCategory,
-			Title: category.title,
-			Level: category.level,
-			Variations: category.variations,
-			Created: new WhoWhen2Dto(category.created).whoWhenDto!,
-			Modified: new WhoWhen2Dto(category.modified).whoWhenDto!
+			PartitionKey,
+			Id,
+			ParentCategory,
+			Kind: kind,
+			Title: title,
+			Level: level,
+			Variations: variations,
+			Created: new WhoWhen2Dto(created).whoWhenDto!,
+			Modified: new WhoWhen2Dto(modified).whoWhenDto!
 		}
 	}
 	categoryDto: ICategoryDto;
@@ -244,8 +250,8 @@ export interface IQuest {
 
 
 export interface ICategoryDto extends IRecordDto {
-	PartitionKey: string;
-	Id: string;
+	PartitionKey: string | null;
+	Id: string | null;
 	Kind: number;
 	ParentCategory: string | null;
 	Title: string;
@@ -270,7 +276,7 @@ export interface ICategoryInfo {
 }
 
 export interface IParentInfo {
-	execute?: (method: string, endpoint: string) => Promise<any>,
+	// execute?: (method: string, endpoint: string) => Promise<any>,
 	// partitionKey: string | null,
 	// parentCategory: string | null,
 	categoryKey: ICategoryKey,
@@ -376,6 +382,7 @@ export enum ActionTypes {
 	VIEW_QUESTION = 'VIEW_QUESTION',
 	EDIT_QUESTION = 'EDIT_QUESTION',
 
+	SET_QUESTION_SELECTED = 'SET_QUESTION_SELECTED',
 	SET_QUESTION = 'SET_QUESTION',
 	SET_QUESTION_AFTER_ASSIGN_ANSWER = 'SET_QUESTION_AFTER_ASSIGN_ANSWER',
 	SET_QUESTION_ANSWERS = 'SET_QUESTION_ANSWERS',
@@ -474,6 +481,10 @@ export type CategoriesPayload = {
 
 	[ActionTypes.EDIT_QUESTION]: {
 		question: IQuestion;
+	};
+
+	[ActionTypes.SET_QUESTION_SELECTED]: {
+		questionKey: IQuestionKey;
 	};
 
 	[ActionTypes.SET_QUESTION]: {

@@ -10,8 +10,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 //import { faPlus } from '@fortawesome/free-solid-svg-icons'
 import QPlus from 'assets/QPlus.png';
 import { IQuestionKey } from 'categories/types';
-import useFetchWithMsal from 'hooks/useFetchWithMsal';
-import { protectedResources } from 'authConfig';
+
 
 type SupportParams = {
 	source: string;

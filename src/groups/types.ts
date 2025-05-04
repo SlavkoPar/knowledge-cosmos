@@ -96,8 +96,8 @@ export interface IAnswer extends IRecord {
 }
 
 export interface IGroupKey {
-	partitionKey: string;
-	id: string;
+	partitionKey: string; // can be null but we put 'root' instead
+	id: string;  // can be null but we put 'root' instead
 }
 
 export interface IGroupKeyExtended extends IGroupKey {
@@ -155,25 +155,27 @@ export class Answer {
 }
 
 
-
 export class Group {
-	constructor(dto: IGroupDto) {
+	constructor(groupDto: IGroupDto) {
+		const { PartitionKey, Id, Kind, ParentGroup, Title, Level, Variations, Created, Modified, 
+			NumOfAnswers, HasSubGroups, Answers } = groupDto;
+
 		this.group = {
-			partitionKey: dto.PartitionKey,
-			id: dto.Id,
-			kind: dto.Kind,
-			parentGroup: dto.ParentGroup!,
-			title: dto.Title,
-			level: dto.Level!,
-			variations: dto.Variations ?? [],
-			numOfAnswers: dto.NumOfAnswers!,
-			hasSubGroups: dto.HasSubGroups!,
-			created: new Dto2WhoWhen(dto.Created!).whoWhen,
-			modified: dto.Modified
-				? new Dto2WhoWhen(dto.Modified).whoWhen
+			partitionKey: PartitionKey!,
+			id: Id!,
+			kind: Kind,
+			parentGroup: ParentGroup,
+			title: Title,
+			level: Level!,
+			variations: Variations ?? [],
+			numOfAnswers: NumOfAnswers!,
+			hasSubGroups: HasSubGroups!,
+			created: new Dto2WhoWhen(Created!).whoWhen,
+			modified: Modified
+				? new Dto2WhoWhen(Modified).whoWhen
 				: undefined,
-			answers: dto.Answers
-				? dto.Answers.map(answerDto => new Answer(answerDto/*, dto.Id*/).answer)
+			answers: Answers
+				? Answers.map(answerDto => new Answer(answerDto).answer)
 				: []
 		}
 	}
@@ -183,16 +185,20 @@ export class Group {
 
 export class GroupDto {
 	constructor(group: IGroup) {
+		const PartitionKey = group.partitionKey === 'root' ? null : group.partitionKey;
+		const Id = group.id === 'root' ? null : group.id;
+		const ParentGroup = group.parentGroup === 'root' ? null : group.parentGroup;
+		const { kind, title, level, variations, created, modified } = group;
 		this.groupDto = {
-			PartitionKey: group.partitionKey,
-			Id: group.id,
-			Kind: group.kind,
-			ParentGroup: group.parentGroup,
-			Title: group.title,
-			Level: group.level,
-			Variations: group.variations,
-			Created: new WhoWhen2Dto(group.created).whoWhenDto!,
-			Modified: new WhoWhen2Dto(group.modified).whoWhenDto!
+			PartitionKey,
+			Id,
+			ParentGroup,
+			Kind: kind,
+			Title: title,
+			Level: level,
+			Variations: variations,
+			Created: new WhoWhen2Dto(created).whoWhenDto!,
+			Modified: new WhoWhen2Dto(modified).whoWhenDto!
 		}
 	}
 	groupDto: IGroupDto;
@@ -260,8 +266,8 @@ export interface IShortAnswer {
 
 
 export interface IGroupDto extends IRecordDto {
-	PartitionKey: string;
-	Id: string;
+	PartitionKey: string | null;
+	Id: string | null;
 	Kind: number;
 	ParentGroup: string | null;
 	Title: string;
@@ -286,7 +292,7 @@ export interface IGroupInfo {
 }
 
 export interface IParentInfo {
-	execute?: (method: string, endpoint: string) => Promise<any>,
+	//execute?: (method: string, endpoint: string) => Promise<any>,
 	// partitionKey: string | null,
 	// parentGroup: string | null,
 	groupKey: IGroupKey,

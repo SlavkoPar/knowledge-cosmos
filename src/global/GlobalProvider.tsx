@@ -30,7 +30,6 @@ import { escapeRegexCharacters } from 'common/utilities'
 import groupData from './groups-answers.json';
 import roleData from './roles-users.json';
 import historyData from './history.json';
-import useFetchWithMsal from "hooks/useFetchWithMsal";
 import { protectedResources } from "authConfig";
 
 const GlobalContext = createContext<IGlobalContext>({} as any);
@@ -129,42 +128,45 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
     return new Promise(async (resolve) => {
       try {
         console.time();
-        await Execute("GET", protectedResources.KnowledgeAPI.endpointCategory, null).then((response: ICategoryDto[] | Response) => {
-          console.log({ response }, protectedResources.KnowledgeAPI.endpointCategory)
-          const categories = new Map<string, ICategory>();
-          const cats = new Map<string, ICat>();
-          console.timeEnd();
-          if (response instanceof Response) {
-            throw (response);
-          }
-          const data: ICategoryDto[] = response;
-          data.forEach((categoryDto: ICategoryDto) => categories.set(categoryDto.Id, new Category(categoryDto).category));
-          //
-          categories.forEach(category => {
-            const { partitionKey, id, parentCategory, title, variations, hasSubCategories, kind } = category;
-            let titlesUpTheTree = id;
-            let parentCat = parentCategory;
-            while (parentCat) {
-              const cat2 = categories.get(parentCat)!;
-              titlesUpTheTree = cat2!.id + ' / ' + titlesUpTheTree;
-              parentCat = cat2.parentCategory;
+        await Execute("GET", protectedResources.KnowledgeAPI.endpointCategory, null)
+          .then((response: ICategoryDto[] | Response) => {
+            console.log({ response }, protectedResources.KnowledgeAPI.endpointCategory)
+            const categoryMap = new Map<string, ICategory>();
+            const cats = new Map<string, ICat>();
+            console.timeEnd();
+            if (response instanceof Response) {
+              throw (response);
             }
-            category.titlesUpTheTree = titlesUpTheTree;
-            const cat: ICat = {
-              partitionKey,
-              id,
-              parentCategory: parentCat,
-              title: title,
-              // words: title.toLowerCase().replaceAll('?', '').split(' ').map((s: string) => s.trim()).filter(w => w.length > 1),
-              titlesUpTheTree: '',
-              variations: variations,
-              hasSubCategories: hasSubCategories,
-              kind: kind
-            }
-            cats.set(id, cat);
-          })
-          dispatch({ type: GlobalActionTypes.SET_ALL_CATEGORIES, payload: { cats } });
-        });
+            const data: ICategoryDto[] = response;
+            data.forEach((categoryDto: ICategoryDto) => categoryMap.set(categoryDto.Id!, new Category(categoryDto).category));
+            //
+            categoryMap.forEach(category => {
+              const { partitionKey, id, parentCategory, title, variations, hasSubCategories, kind } = category;
+              console.log('ctgry', category)
+              let titlesUpTheTree = id;
+              let parentCat = parentCategory;
+              while (parentCat) {
+                const cat2 = categoryMap.get(parentCat)!;
+                console.log('cat2', cat2)
+                titlesUpTheTree = cat2!.id + ' / ' + titlesUpTheTree;
+                parentCat = cat2.parentCategory;
+              }
+              category.titlesUpTheTree = titlesUpTheTree;
+              const cat: ICat = {
+                partitionKey,
+                id,
+                parentCategory: parentCat,
+                title: title,
+                // words: title.toLowerCase().replaceAll('?', '').split(' ').map((s: string) => s.trim()).filter(w => w.length > 1),
+                titlesUpTheTree: '',
+                variations: variations,
+                hasSubCategories: hasSubCategories,
+                kind: kind
+              }
+              cats.set(id, cat);
+            })
+            dispatch({ type: GlobalActionTypes.SET_ALL_CATEGORIES, payload: { cats } });
+          });
       }
       catch (error: any) {
         console.log(error)
@@ -180,18 +182,18 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
       try {
         console.time();
         const filterEncoded = encodeURIComponent(filter);
-        const url = `${protectedResources.KnowledgeAPI.endpointQuestion}/${filterEncoded}/${count}/null`;
+        const url = `${protectedResources.KnowledgeAPI.endpointQuestion}/${filterEncoded}/${count}/nesto`;
         await Execute("GET", url).then((questDtos: IQuestDto[] | undefined) => {
           console.log({ questDtos }, protectedResources.KnowledgeAPI.endpointCategory);
           console.timeEnd();
           if (questDtos) {
-            const listQuest: IQuest[] = questDtos.map((q: IQuestDto) => ({
+            const quests: IQuest[] = questDtos.map((q: IQuestDto) => ({
               partitionKey: q.PartitionKey,
               id: q.Id,
               parentCategory: q.ParentCategory,
               title: q.Title
             }))
-            resolve(listQuest);
+            resolve(quests);
           }
           else {
             // reject()
@@ -228,7 +230,7 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
             throw (response);
           }
           const data: IGroupDto[] = response;
-          data.forEach((groupDto: IGroupDto) => groups.set(groupDto.Id, new Group(groupDto).group));
+          data.forEach((groupDto: IGroupDto) => groups.set(groupDto.Id!, new Group(groupDto).group));
           //
           groups.forEach(group => {
             const { partitionKey, id, parentGroup, title, variations, hasSubGroups, kind } = group;
@@ -264,16 +266,17 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
 
   const getSubGroups = useCallback(async (groupKey: IGroupKey) => {
     return new Promise(async (resolve) => {
-      const { partitionKey, id } = groupKey;
+      const partitionKey = groupKey.partitionKey === 'root' ? null : groupKey.partitionKey;
+      const id = groupKey.id === 'root' ? null : groupKey.id;
       try {
         //dispatch({ type: GlobalActionTypes.SET_LOADING, payload: {} });
         const url = `${protectedResources.KnowledgeAPI.endpointGroup}/${partitionKey}/${id}`;
-        console.log('calling getSubCategories:', url)
+        console.log('calling getSubGroups:', url)
         console.time();
         await Execute("GET", url).then((groupDtos: IGroupDto[]) => {
           console.timeEnd();
-          const subCategories = groupDtos!.map((groupDto: IGroupDto) => new Group(groupDto).group);
-          const subGroups = subCategories.map((c: IGroup) => ({
+          const subGroupDtos = groupDtos!.map((groupDto: IGroupDto) => new Group(groupDto).group);
+          const subGroups = subGroupDtos.map((c: IGroup) => ({
             ...c,
             answers: [],
             isExpanded: false
@@ -333,9 +336,7 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
   const OpenDB = useCallback(async (): Promise<any> => {
     try {
       await loadCats();
-      console.log(111111111111)
       await loadShortGroups();
-      console.log(22222)
       return true;
     }
     catch (err: any) {
@@ -419,54 +420,11 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
   }
 
   //////////////////////////////////////////////////////////////////////////////////////////////////
-  // Select Category
-  // TOD mozda ne mora iz baze
-  const getSubCatsWas = async ({ parentCategory, level }: IParentInfo): Promise<any> => {
-    try {
-      const { dbp } = globalState;
-      const tx = dbp!.transaction('Categories')
-      const index = tx.store.index('parentCategory_idx');
-      const list: ICategory[] = [];
-      for await (const cursor of index.iterate(parentCategory)) {
-        console.log(cursor.value);
-        list.push(cursor.value)
-      }
-      await tx.done;
-      const subCats = list.map((c: ICategory) => ({
-        ...c,
-        questions: [],
-        isExpanded: false
-      }))
-      return subCats;
-
-
-      // const url = `/api/categories/${wsId}-${parentCategory}`
-      // const res = await axios.get(url)
-      // const { status, data } = res;
-      // if (status === 200) {
-      //   const subCategories = data.map((c: ICategory) => ({
-      //     ...c,
-      //     questions: [],
-      //     isExpanded: false
-      //   }))
-      //   return subCategories;
-      // }
-      // else {
-      //   console.log('Status is not 200', status)
-      //   dispatch({
-      //     type: ActionTypes.SET_ERROR,
-      //     payload: { error: new Error('Status is not 200 status:' + status) }
-      //   });
-      // }
-    }
-    catch (err: any | Error) {
-      console.log(err);
-      dispatch({ type: GlobalActionTypes.SET_ERROR, payload: { error: err } });
-    }
-  }
-
+  //
 
   const getSubCats = useCallback(async (categoryKey: ICategoryKey) => {
+    const partitionKey = categoryKey.partitionKey === 'root' ? null : categoryKey.partitionKey;
+    const id = categoryKey.id === 'root' ? null : categoryKey.id;
     return new Promise(async (resolve) => {
       const { partitionKey, id } = categoryKey;
       try {

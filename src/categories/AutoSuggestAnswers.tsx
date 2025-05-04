@@ -171,33 +171,16 @@ export class AutoSuggestAnswers extends React.Component<{
 			return [];
 
 		const groupAnswers = new Map<string, IShortAnswer[]>();
-		const answerKeys: IAnswerKey[] = [];
 		try {
 			console.log('--------->>>>> getSuggestions')
 			var shortAnswerList: IShortAnswer[] = await this.searchAnswers(escapedValue, 20);
 			shortAnswerList.forEach((shortAnswer: IShortAnswer) => {
 				const { partitionKey, id, parentGroup, title } = shortAnswer;
-				if (!this.alreadyAssigned.includes(id)) {
-					const answerKey = { partitionKey, id }
-					if (!answerKeys.includes(answerKey)) {
-						answerKeys.push(answerKey);
-					}
-
-					//2) Group answers by parentGroup
-					// const ans2: IShortAnswer = {
-					// 	partitionKey,
-					// 	id,
-					// 	parentGroup,
-					// 	title,
-					// 	groupTitle: ''
-					// }
-					if (!groupAnswers.has(parentGroup)) {
-						groupAnswers.set(parentGroup, [shortAnswer]);
-					}
-					else {
-						groupAnswers.get(parentGroup)!.push(shortAnswer);
-					}
-					//}
+				if (!groupAnswers.has(parentGroup)) {
+					groupAnswers.set(parentGroup, [shortAnswer]);
+				}
+				else {
+					groupAnswers.get(parentGroup)!.push(shortAnswer);
 				}
 			})
 		}
@@ -205,13 +188,8 @@ export class AutoSuggestAnswers extends React.Component<{
 			console.debug(error)
 		};
 
-		if (answerKeys.length === 0)
+		if (groupAnswers.size === 0)
 			return [];
-
-		console.log('kitaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa =>', groupAnswers.size, {groupAnswers})
-
-		// if (groupAnswers.size === 0)
-		// 	return [];
 
 		try {
 			////////////////////////////////////////////////////////////
@@ -225,7 +203,6 @@ export class AutoSuggestAnswers extends React.Component<{
 			let groupSections: IGroupSection[] = [];
 			groupAnswers.forEach((shortAnswers, id) => {
 				const group = this.shortGroups.get(id);
-				console.log('GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG', group)
 				const { title, titlesUpTheTree, variations } = group!;
 				const groupSection: IGroupSection = {
 					id,

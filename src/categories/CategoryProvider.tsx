@@ -119,12 +119,12 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
   // }, [dispatch]);
 
   const reloadCategoryNode = useCallback(
-    async (categoryKey: ICategoryKey | null, questionId: string | null): Promise<any> => {
+    async (categoryKey: ICategoryKey, questionId: string | null): Promise<any> => {
       return new Promise(async (resolve) => {
         try {
           console.log('CategoryProvider.reloadCategoryNode')
-          const { id } = categoryKey!;
-          const cat: ICat | undefined = cats.get(id);
+          const { id } = categoryKey;
+          const cat: ICat | undefined = cats.get(id!);
           if (!cat) {
             alert('reload cats' + id)
             return
@@ -161,7 +161,8 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
 
   const getSubCategories = useCallback(async (categoryKey: ICategoryKey) => {
     return new Promise(async (resolve) => {
-      const { partitionKey, id } = categoryKey;
+      const partitionKey = categoryKey.partitionKey === 'root' ? null : categoryKey.partitionKey;
+      const id = categoryKey.id === 'root' ? null : categoryKey.id;
       try {
         dispatch({ type: ActionTypes.SET_LOADING });
         const url = `${protectedResources.KnowledgeAPI.endpointCategory}/${partitionKey}/${id}`;
@@ -364,19 +365,20 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
             }
           }
           else {
+            const whichRowId: string = categoryKey.id!;
             const resp: { msg: string } = response;
             if (response.msg == "OK") {
-              dispatch({ type: ActionTypes.DELETE, payload: { id: categoryKey.id } });
+              dispatch({ type: ActionTypes.DELETE, payload: { id: whichRowId } });
               await loadCats(); // reload
             }
             else if (resp.msg === "HasSubCategories") {
-              dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error("First remove sub categories"), whichRowId: categoryKey.id } });
+              dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error("First remove sub categories"), whichRowId } });
             }
             else if (resp.msg === "NumOfQuestions") {
-              dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error("First remove category questions"), whichRowId: categoryKey.id } });
+              dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error("First remove category questions"), whichRowId } });
             }
             else {
-              dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error(response), whichRowId: categoryKey.id } });
+              dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error(response), whichRowId } });
             }
           }
         })

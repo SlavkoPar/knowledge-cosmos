@@ -98,12 +98,12 @@ export const GroupProvider: React.FC<Props> = ({ children }) => {
   // }, [dispatch]);
 
   const reloadGroupNode = useCallback(
-    async (groupKey: IGroupKey | null, answerId: string | null): Promise<any> => {
+    async (groupKey: IGroupKey/* | null*/, answerId: string | null): Promise<any> => {
       return new Promise(async (resolve) => {
         try {
           console.log('GroupProvider.reloadGroupNode')
-          const { partitionKey, id } = groupKey!;
-          const shortGroup: IShortGroup | undefined = shortGroups.get(id);
+          const { partitionKey, id } = groupKey;
+          const shortGroup: IShortGroup | undefined = shortGroups.get(id!);
           if (!shortGroup) {
             alert('reload grps' + id)
             return
@@ -139,8 +139,9 @@ export const GroupProvider: React.FC<Props> = ({ children }) => {
 
 
   const getSubGroups = useCallback(async (groupKey: IGroupKey) => {
+    const partitionKey = groupKey.partitionKey === 'root' ? null : groupKey.partitionKey;
+    const id = groupKey.id === 'root' ? null : groupKey.id;
     return new Promise(async (resolve) => {
-      const { partitionKey, id } = groupKey;
       try {
         dispatch({ type: ActionTypes.SET_LOADING });
         const url = `${protectedResources.KnowledgeAPI.endpointGroup}/${partitionKey}/${id}`;
@@ -164,13 +165,13 @@ export const GroupProvider: React.FC<Props> = ({ children }) => {
   const createGroup = useCallback(
     async (group: IGroup) => {
       const { partitionKey, id, variations, title, kind, modified } = group;
-      dispatch({ type: ActionTypes.SET_GROUP_LOADING, payload: { id, loading: false } });
+      dispatch({ type: ActionTypes.SET_GROUP_LOADING, payload: { id: id!, loading: false } });
       try {
         const groupDto = new GroupDto(group).groupDto;
         console.log("groupDto", { groupDto })
         const url = `${protectedResources.KnowledgeAPI.endpointGroup}`;
         console.time()
-        await Execute("POST", url, groupDto, id)
+        await Execute("POST", url, groupDto, id!)
           .then(async (groupDtoEx: IGroupDtoEx | null) => {
             console.timeEnd();
             if (groupDtoEx) {
@@ -187,7 +188,7 @@ export const GroupProvider: React.FC<Props> = ({ children }) => {
       }
       catch (error: any) {
         console.log(error)
-        dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error('Server Error'), whichRowId: id } });
+        dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error('Server Error'), whichRowId: id! } });
       }
     }, [dispatch]);
 
@@ -291,7 +292,7 @@ export const GroupProvider: React.FC<Props> = ({ children }) => {
   const updateGroup = useCallback(
     async (group: IGroup, closeForm: boolean) => {
       const { partitionKey, id, variations, title, kind, modified } = group;
-      dispatch({ type: ActionTypes.SET_GROUP_LOADING, payload: { id, loading: false } });
+      dispatch({ type: ActionTypes.SET_GROUP_LOADING, payload: { id: id!, loading: false } });
       try {
         const groupDto = new GroupDto(group).groupDto;
 
@@ -332,30 +333,32 @@ export const GroupProvider: React.FC<Props> = ({ children }) => {
     //dispatch({ type: ActionTypes.SET_GROUP_LOADING, payload: { id, loading: false } });
     try {
       const url = `${protectedResources.KnowledgeAPI.endpointGroup}` ///${groupKey.partitionKey}/${groupKey.id}`;
-      console.time()
+      console.time();
+      const whichRowId: string = groupKey.id!;
       await Execute("DELETE", url, { PartitionKey: groupKey.partitionKey, Id: groupKey.id })
         .then(async (response: any | Response) => {
           console.timeEnd();
           if (response instanceof Response) {
             console.error({ response });
             if (response.status == 404) {
-              dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error('Group Not Found'), whichRowId: groupKey.id } });
+              dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error('Group Not Found'), whichRowId } });
             }
           }
           else {
+            const { id } = groupKey;
             const resp: { msg: string } = response;
             if (response.msg == "OK") {
-              dispatch({ type: ActionTypes.DELETE, payload: { id: groupKey.id } });
+              dispatch({ type: ActionTypes.DELETE, payload: { id: id! } });
               await loadShortGroups(); // reload
             }
             else if (resp.msg === "HasSubGroups") {
-              dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error("First remove sub groups"), whichRowId: groupKey.id } });
+              dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error("First remove sub groups"), whichRowId } });
             }
             else if (resp.msg === "NumOfAnswers") {
-              dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error("First remove group answers"), whichRowId: groupKey.id } });
+              dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error("First remove group answers"), whichRowId } });
             }
             else {
-              dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error(response), whichRowId: groupKey.id } });
+              dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error(response), whichRowId } });
             }
           }
         })

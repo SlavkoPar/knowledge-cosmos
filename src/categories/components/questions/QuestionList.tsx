@@ -5,8 +5,7 @@ import { useGlobalState } from "global/GlobalProvider";
 import useInfiniteScroll from "react-infinite-scroll-hook";
 import { List, ListItem, Loading } from "common/components/InfiniteList";
 import QuestionRow from "categories/components/questions/QuestionRow";
-import useFetchWithMsal from "hooks/useFetchWithMsal";
-import { protectedResources } from "authConfig";
+
 
 const QuestionList = ({ title, categoryKey, level }: IParentInfo) => {
   const pageSize = 100;
@@ -18,20 +17,20 @@ const QuestionList = ({ title, categoryKey, level }: IParentInfo) => {
   const category = categories.find(c => c.id === categoryKey.id)!
   const { partitionKey, questions, numOfQuestions, hasMoreQuestions } = category;
 
-  //error: msalError1, 
+  /*
   const { execute: readExecute } = useFetchWithMsal("", {
     scopes: protectedResources.KnowledgeAPI.scopes.read,
   });
 
-  // error: msalError2, 
   const { execute: writeExecute } = useFetchWithMsal("", {
     scopes: protectedResources.KnowledgeAPI.scopes.write,
   });
+  */
 
   async function loadMore() {
     try {
       const parentInfo: IParentInfo = {
-        execute: readExecute,
+        //execute: readExecute,
         categoryKey,
         startCursor: questions.length,
         includeQuestionId: questionId ?? null
@@ -62,9 +61,9 @@ const QuestionList = ({ title, categoryKey, level }: IParentInfo) => {
       //if (categoryId === categoryKey.id && questionId) {
       if (categoryKey && questionId) {
         if (canEdit)
-          editQuestion({ partitionKey: categoryKey.id, id: questionId })
+          editQuestion({ partitionKey: categoryKey.id!, id: questionId })
         else
-          viewQuestion({ partitionKey: categoryKey.id, id: questionId })
+          viewQuestion({ partitionKey: categoryKey.id!, id: questionId })
       }
     }
   }, [viewQuestion, categoryKey, questionId, canEdit]);

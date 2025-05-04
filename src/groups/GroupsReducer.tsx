@@ -13,13 +13,13 @@ export const initialAnswer: IAnswer = {
 
 
 export const initialGroup: IGroup = {
-  partitionKey: 'null',
-  id: '',
+  partitionKey: 'root',
+  id: 'root',
   kind: 0,
   title: '',
   level: 0,
   variations: [],
-  parentGroup: 'null',
+  parentGroup: null,
   hasSubGroups: false,
   answers: [],
   numOfAnswers: 0,
@@ -405,8 +405,8 @@ const reducer = (state: IGroupsState, action: GroupsActions) => {
       const { id, level } = groupInfo;
       const answer: IAnswer = {
         ...initialAnswer,
-        partitionKey: id,
-        parentGroup: id,
+        partitionKey: id!,
+        parentGroup: id!,
         inAdding: true
       }
       return {

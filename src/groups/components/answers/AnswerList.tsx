@@ -5,8 +5,6 @@ import { useGlobalState } from "global/GlobalProvider";
 import useInfiniteScroll from "react-infinite-scroll-hook";
 import { List, ListItem, Loading } from "common/components/InfiniteList";
 import AnswerRow from "groups/components/answers/AnswerRow";
-import useFetchWithMsal from "hooks/useFetchWithMsal";
-import { protectedResources } from "authConfig";
 
 const AnswerList = ({ title, groupKey, level }: IParentInfo) => {
   const pageSize = 100;
@@ -18,20 +16,20 @@ const AnswerList = ({ title, groupKey, level }: IParentInfo) => {
   const group = groups.find(c => c.id === groupKey.id)!
   const { partitionKey, answers, numOfAnswers, hasMoreAnswers } = group;
 
-  //error: msalError1, 
+  /*
   const { execute: readExecute } = useFetchWithMsal("", {
     scopes: protectedResources.KnowledgeAPI.scopes.read,
   });
 
-  // error: msalError2, 
   const { execute: writeExecute } = useFetchWithMsal("", {
     scopes: protectedResources.KnowledgeAPI.scopes.write,
   });
+  */
 
   async function loadMore() {
     try {
       const parentInfo: IParentInfo = {
-        execute: readExecute,
+        //execute: readExecute,
         groupKey,
         startCursor: answers.length,
         includeAnswerId: answerId ?? null

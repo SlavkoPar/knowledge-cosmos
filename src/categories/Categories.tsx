@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react'
 import { Container, Row, Col, Button } from "react-bootstrap";
 
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
-import { Mode, ActionTypes, ICategoryKey } from "./types";
+import { Mode, ActionTypes, ICategoryKey, IQuestionKey } from "./types";
 
 import { useGlobalContext, useGlobalState } from 'global/GlobalProvider';
 
@@ -17,9 +17,8 @@ import EditQuestion from "categories/components/questions/EditQuestion";
 
 import { initialQuestion } from "categories/CategoriesReducer";
 import ModalAddQuestion from './ModalAddQuestion';
-import useFetchWithMsal from 'hooks/useFetchWithMsal';
-import { protectedResources } from 'authConfig';
 import AddCategory from './components/AddCategory';
+import { AutoSuggestQuestions } from './AutoSuggestQuestions';
 
 interface IProps {
     categoryId_questionId: string | undefined
@@ -30,18 +29,29 @@ const Providered = ({ categoryId_questionId }: IProps) => {
     const { categoryKeyExpanded, categoryId_questionId_done, questionId, categoryNodeLoaded } = state;
     console.log('Providered', { categoryKeyExpanded, categoryNodeLoaded })
 
-    const { isDarkMode, authUser } = useGlobalState();
+    const { searchQuestions } = useGlobalContext();
+    const { isDarkMode, authUser, cats } = useGlobalState();
+
+    let navigate = useNavigate();
 
     const [modalShow, setModalShow] = useState(false);
     const handleClose = () => {
         setModalShow(false);
     }
 
+    const dispatch = useCategoryDispatch();
+
+    const onSelectQuestion = async (questionKey: IQuestionKey) => {
+        //navigate(`/categories/${questionKey.partitionKey}_${questionKey.id}`)
+        dispatch({type: ActionTypes.SET_QUESTION_SELECTED, payload: { questionKey }})
+    }
+
     const [newQuestion, setNewQuestion] = useState({ ...initialQuestion });
     const [createQuestionError, setCreateQuestionError] = useState("");
 
-    const dispatch = useCategoryDispatch();
-    const [categoryKey] = useState<ICategoryKey>({ partitionKey: 'null', id: 'null' })
+    const [categoryKey] = useState<ICategoryKey>({ partitionKey: 'root', id: 'root' })
+
+    let tekst = '';
 
     useEffect(() => {
         (async () => {
@@ -86,7 +96,7 @@ const Providered = ({ categoryId_questionId }: IProps) => {
         <>
             <Container>
                 <h6 style={{ color: 'rgb(13, 110, 253)', marginLeft: '30%' }}>Categories / Questions</h6>
-                <Button variant="secondary" size="sm" type="button" style={{padding: '1px 4px'}}
+                <Button variant="secondary" size="sm" type="button" style={{ padding: '1px 4px' }}
                     onClick={() => dispatch({
                         type: ActionTypes.ADD_SUB_CATEGORY,
                         payload: {
@@ -98,6 +108,22 @@ const Providered = ({ categoryId_questionId }: IProps) => {
                 >
                     Add Category
                 </Button>
+
+                <Row className={`${isDarkMode ? "dark" : ""}`}>
+                    <Col>
+                        <div className="d-flex justify-content-start align-items-center">
+                            <div className="w-75 my-1">
+                                <AutoSuggestQuestions
+                                    tekst={tekst}
+                                    onSelectQuestion={onSelectQuestion}
+                                    allCategories={cats}
+                                    searchQuestions={searchQuestions}
+                                />
+                            </div>
+                        </div>
+                    </Col>
+                </Row>
+
                 <Row className="my-1">
                     <Col xs={12} md={5}>
                         <div>
@@ -112,7 +138,7 @@ const Providered = ({ categoryId_questionId }: IProps) => {
                             {state.mode === Mode.ViewingCategory && <ViewCategory inLine={false} />}
                             {state.mode === Mode.EditingCategory && <EditCategory inLine={false} />}
                             {/* {state.mode === FORM_MODES.ADD_QUESTION && <AddQuestion category={null} />} */}
-                             {/* TODO check if we set questionId everywhere */}
+                            {/* TODO check if we set questionId everywhere */}
                             {questionId && state.mode === Mode.ViewingQuestion && <ViewQuestion inLine={false} />}
                             {questionId && state.mode === Mode.EditingQuestion && <EditQuestion inLine={false} />}
                         </div>

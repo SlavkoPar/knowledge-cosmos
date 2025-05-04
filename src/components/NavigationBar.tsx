@@ -101,7 +101,7 @@ export const NavigationBar = () => {
                         ToDoList
                     </Nav.Link> */}
 
-                    <NavLink 
+                    {/* <NavLink 
                         to={`/supporter/0/${encodeURIComponent('domena')}/xyz`} 
                         className="nav-link"
                         onClick={() => {
@@ -109,7 +109,7 @@ export const NavigationBar = () => {
                         }}
                     >
                         <FontAwesomeIcon icon={faSurprise} color='lightblue' />{' '}Supporter <small>(QA)</small>
-                    </NavLink>
+                    </NavLink> */}
 
                     <NavLink to="/categories" className="nav-link">
                         <img width="22" height="18" src={Q} alt="Add Question" />{' '}Questions
