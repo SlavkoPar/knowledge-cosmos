@@ -704,6 +704,10 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
     // }
   }
 
+  const setLastRouteVisited = useCallback((lastRouteVisited: string) : void => {
+    dispatch({ type: GlobalActionTypes.SET_LAST_ROUTE_VISITED, payload: { lastRouteVisited } });
+  }, []);
+ 
   useEffect(() => {
     (async () => {
       await OpenDB();
@@ -712,7 +716,7 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
 
   return (
     <GlobalContext.Provider value={{
-      globalState, OpenDB,
+      globalState, OpenDB, setLastRouteVisited,
       getUser, exportToJSON, health,
       loadCats, getSubCats, getCatsByKind, searchQuestions, getQuestion,
       loadShortGroups, getSubGroups, getGroupsByKind, searchAnswers, getAnswer,

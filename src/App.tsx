@@ -17,12 +17,13 @@ import Export from 'Export';
 import { GlobalActionTypes, IUser } from 'global/types';
 import { AccountInfo } from '@azure/msal-browser';
 import { useMsal } from '@azure/msal-react';
+import AboutShort from 'AboutShort';
 
 function App() {
   console.log('-----------> App')
 
-  const { getUser, OpenDB } = useGlobalContext();
-  const { dbp, authUser, isAuthenticated, everLoggedIn, catsLoaded, shortGroupsLoaded } = useGlobalState()
+  const { getUser, OpenDB, setLastRouteVisited } = useGlobalContext();
+  const { dbp, authUser, isAuthenticated, everLoggedIn, catsLoaded, shortGroupsLoaded, lastRouteVisited } = useGlobalState()
   const { nickName, role } = authUser;
 
   const formInitialValues = {
@@ -61,8 +62,8 @@ function App() {
 
   useEffect(() => {
     (async () => {
-      const isAuthRoute =
-        locationPathname.startsWith('/invitation') ||
+      console.log('App ===>>>', locationPathname);
+      const isAuthRoute = locationPathname.startsWith('/invitation') ||
         locationPathname.startsWith('/register') ||
         locationPathname.startsWith('/sign-in') ||
         locationPathname.startsWith('/about');  // allow about without registration
@@ -126,7 +127,7 @@ function App() {
         //   // save params
         //   // navigate('/' + returnUrl, { replace: true });
         //   navigate('/', { replace: true });
-        // }
+        // }     
       }
       const supporter = searchParams.get('supporter');
       if (isAuthenticated && supporter === '1') {
@@ -141,10 +142,13 @@ function App() {
         }
         navigate(`/supporter/${source}/${question}`);
       }
-
     })()
-
   }, [dbp, isAuthenticated, nickName, everLoggedIn, locationPathname, navigate])
+
+  useEffect(() => {
+    console.log('----------->>>>>>>>>> App lastRouteVisited', lastRouteVisited);
+    navigate(lastRouteVisited);
+  }, [])
 
   if (!isAuthenticated || !catsLoaded || !shortGroupsLoaded)
     return <div>App loading</div>
@@ -158,8 +162,8 @@ function App() {
         <Col md={12}>
           <div className="wrapper">
             <Routes>
-              <Route path="/" element={(!isAuthenticated && !everLoggedIn) ? <About /> : <ChatBotPage />} />
-              <Route path="/knowledge-cosmos" element={(!isAuthenticated && !everLoggedIn) ? <About /> : <ChatBotPage />} />
+              <Route path="/" element={(!isAuthenticated && !everLoggedIn) ? <AboutShort /> : <Categories />} />
+              <Route path="/knowledge-cosmos" element={(!isAuthenticated && !everLoggedIn) ? <AboutShort /> : <Categories />} />
               {/* <Route path="" element={(!isAuthenticated && !everLoggedIn) ? <About /> : <Categories />} /> */}
               {/* <Route path="/register/:returnUrl" element={<RegisterForm />} />
               <Route path="/sign-in" element={<LoginForm initialValues={formInitialValues} invitationId='' />} /> */}
@@ -173,6 +177,7 @@ function App() {
 
               <Route path="/export" element={<Export />} />
               <Route path="/about" element={<About />} />
+              <Route path="/about-short" element={<AboutShort />} />
               <Route path="/health" element={<Health />} />
             </Routes>
           </div>

@@ -162,6 +162,7 @@ export interface IGlobalState {
 	catsLoaded?: number;
 	shortGroups: Map<string, IShortGroup>;
 	shortGroupsLoaded?: number;
+	lastRouteVisited: string
 }
 
 export interface IGlobalStateFromLocalStorage {
@@ -170,6 +171,7 @@ export interface IGlobalStateFromLocalStorage {
 	isDarkMode: boolean;
 	variant: string;
 	bg: string;
+	lastRouteVisited: string;
 }
 
 export interface IParentInfo {
@@ -183,6 +185,7 @@ export interface IGlobalContext {
 	globalState: IGlobalState;
 	getUser: (nickName: string) => Promise<any>;
 	OpenDB: () => Promise<any>;
+	setLastRouteVisited: (lastRouteVisited: string) => void;
 	exportToJSON: (category: ICategory, parentCategory: string) => void;
 	health: () => void;
 	loadCats: () => void;
@@ -210,6 +213,7 @@ export enum GlobalActionTypes {
 	SET_ALL_CATEGORIES = 'SET_ALL_CATEGORIES',
 	SET_ALL_GROUPS = 'SET_ALL_GROUPS',
 	SET_QUESTION_AFTER_ASSIGN_ANSWER = 'SET_QUESTION_AFTER_ASSIGN_ANSWER',
+	SET_LAST_ROUTE_VISITED = 'SET_LAST_ROUTE_VISITED'
 }
 
 export interface ILoginUser {
@@ -278,9 +282,12 @@ export type GlobalPayload = {
 		shortGroups: Map<string, IShortGroup>
 	};
 
-
 	[GlobalActionTypes.SET_QUESTION_AFTER_ASSIGN_ANSWER]: {
 		question: IQuestion
+	};
+
+	[GlobalActionTypes.SET_LAST_ROUTE_VISITED]: {
+		lastRouteVisited: string
 	};
 };
 
@@ -438,10 +445,10 @@ export interface IRoleData {
 }
 
 
-export enum USER_ANSWER_ACTION { 
-	NotFixed = 0, 
-	Fixed = 1, 
-	NotClicked = 2 
+export enum USER_ANSWER_ACTION {
+	NotFixed = 0,
+	Fixed = 1,
+	NotClicked = 2
 };
 
 export interface IHistory {

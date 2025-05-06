@@ -35,6 +35,7 @@ export interface IAssignedAnswer {
 	questionKey: IQuestionKey;
 	answerKey: IAnswerKey;
 	answerTitle: string;
+	answerLink: string;
 	created: IWhoWhen,
 	modified: IWhoWhen | null
 }
@@ -45,6 +46,7 @@ export interface IAssignedAnswerDto {
 	QuestionKey: IQuestionKey;
 	AnswerKey: IAnswerKey;
 	AnswerTitle: string;
+	AnswerLink: string;
 	Created: IWhoWhenDto;
 	Modified: IWhoWhenDto | null;
 }
@@ -57,11 +59,12 @@ export interface IAssignedAnswerDtoEx {
 
 export class AssignedAnswerDto {
 	constructor(assignedAnswer: IAssignedAnswer) {
-		const { questionKey, answerKey, answerTitle, created, modified } = assignedAnswer;
+		const { questionKey, answerKey, answerTitle, answerLink, created, modified } = assignedAnswer;
 		this.assignedAnswerDto = {
 			QuestionKey: questionKey,
 			AnswerKey: answerKey,
 			AnswerTitle: answerTitle ?? '',
+			AnswerLink: answerTitle ?? '',
 			Created: new WhoWhen2Dto(created).whoWhenDto!,
 			Modified: modified ? new WhoWhen2Dto(modified).whoWhenDto! : null
 		}
@@ -71,11 +74,12 @@ export class AssignedAnswerDto {
 
 export class AssignedAnswer {
 	constructor(dto: IAssignedAnswerDto) {
-		const { QuestionKey, AnswerKey, AnswerTitle,Created, Modified } = dto;
+		const { QuestionKey, AnswerKey, AnswerTitle, AnswerLink, Created, Modified } = dto;
 		this.assignedAnswer = {
 			questionKey: QuestionKey,
 			answerKey: AnswerKey,
 			answerTitle: AnswerTitle,
+			answerLink: AnswerLink,
 			created: new Dto2WhoWhen(Created).whoWhen!,
 			modified: Modified ? new Dto2WhoWhen(Modified).whoWhen! : null
 		}
@@ -87,6 +91,7 @@ export interface IAnswer extends IRecord {
 	partitionKey: string;
 	id: string;
 	title: string;
+	link: string | null;
 	parentGroup: string;
 	groupTitle?: string;
 	source: number;
@@ -142,6 +147,7 @@ export class Answer {
 			partitionKey: dto.PartitionKey,
 			id: dto.Id,
 			title: dto.Title,
+			link: dto.Link, 
 			groupTitle: dto.GroupTitle,
 			source: dto.Source,
 			status: dto.Status,
@@ -212,6 +218,7 @@ export class AnswerDto {
 			Id: answer.id,
 			ParentGroup: answer.parentGroup,
 			Title: answer.title,
+			Link: answer.link ?? null,
 			GroupTitle: "",
 			Source: answer.source,
 			Status: answer.status,
@@ -228,6 +235,7 @@ export interface IAnswerDto extends IRecordDto {
 	ParentGroup: string;
 	// but it is not a valid key
 	Title: string;
+	Link: string | null;
 	GroupTitle: string;
 	Source: number;
 	Status: number;

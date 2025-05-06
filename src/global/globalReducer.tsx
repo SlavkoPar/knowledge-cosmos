@@ -24,8 +24,8 @@ const initGlobalState: IGlobalState = {
     cats: new Map<string, ICat>(),
     catsLoaded: undefined,
     shortGroups: new Map<string, IShortGroup>(),
-    shortGroupsLoaded: undefined
-
+    shortGroupsLoaded: undefined,
+    lastRouteVisited: '/categories'
 }
 
 let globalStateFromLocalStorage: IGlobalStateFromLocalStorage | undefined;
@@ -72,12 +72,13 @@ if ('localStorage' in window) {
 
 export const initialGlobalState: IGlobalState = initGlobalState;
 if (globalStateFromLocalStorage) {
-    const { everLoggedIn, nickName, isDarkMode, variant, bg } = globalStateFromLocalStorage;
+    const { everLoggedIn, nickName, isDarkMode, variant, bg, lastRouteVisited } = globalStateFromLocalStorage;
     initialGlobalState.everLoggedIn = everLoggedIn;
     initialGlobalState.authUser.nickName = nickName;
     initialGlobalState.isDarkMode = isDarkMode;
     initialGlobalState.variant = variant;
     initialGlobalState.bg = bg;
+    initialGlobalState.lastRouteVisited = lastRouteVisited;
 }
 
 export const globalReducer: Reducer<IGlobalState, GlobalActions> = (state, action) => {
@@ -86,17 +87,19 @@ export const globalReducer: Reducer<IGlobalState, GlobalActions> = (state, actio
         GlobalActionTypes.AUTHENTICATE,
         GlobalActionTypes.DARK_MODE,
         GlobalActionTypes.LIGHT_MODE,
-        GlobalActionTypes.UN_AUTHENTICATE
+        GlobalActionTypes.UN_AUTHENTICATE,
+        GlobalActionTypes.SET_LAST_ROUTE_VISITED
     ];
     if (aTypesToStore.includes(action.type)) {
-        const { authUser, everLoggedIn, isDarkMode, variant, bg } = newState;
+        const { authUser, everLoggedIn, isDarkMode, variant, bg, lastRouteVisited } = newState;
         const { nickName } = authUser;
         const obj: IGlobalStateFromLocalStorage = {
             nickName,
             everLoggedIn,
             isDarkMode,
             variant,
-            bg
+            bg,
+            lastRouteVisited
         }
         localStorage.setItem('GLOBAL_STATE', JSON.stringify(obj));
     }
@@ -167,6 +170,14 @@ const reducer: Reducer<IGlobalState, GlobalActions> = (state, action) => {
 
         case GlobalActionTypes.DARK_MODE:
             return { ...state, isDarkMode: true, variant: 'dark', bg: 'dark' };
+
+        case GlobalActionTypes.SET_LAST_ROUTE_VISITED: {
+            const { lastRouteVisited } = action.payload;
+            return {
+                ...state,
+                lastRouteVisited
+            };
+        }
 
         case GlobalActionTypes.SET_ALL_CATEGORIES: {
             const { cats } = action.payload;

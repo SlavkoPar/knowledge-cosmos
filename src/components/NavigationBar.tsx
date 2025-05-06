@@ -4,15 +4,16 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faQuestion, faSurprise, faUser, faUserFriends, faReply } from '@fortawesome/free-solid-svg-icons'
 import Q from 'assets/Q.png';
 
-import { GlobalActionTypes} from 'global/types'
-import { useGlobalDispatch  } from 'global/GlobalProvider'
+import { GlobalActionTypes } from 'global/types'
+import { useGlobalDispatch } from 'global/GlobalProvider'
 import { IUser } from 'global/types'
 
 import { AuthenticatedTemplate, UnauthenticatedTemplate, useMsal, useMsalAuthentication, useIsAuthenticated } from '@azure/msal-react';
 import { InteractionStatus, InteractionType, InteractionRequiredAuthError, AccountInfo } from "@azure/msal-browser";
-import { Nav, Navbar, Dropdown, DropdownButton } from 'react-bootstrap';
+import { Nav, Navbar, Dropdown, DropdownButton, NavDropdown } from 'react-bootstrap';
 
 import { loginRequest, protectedResources } from 'authConfig';
+import AboutShort from 'AboutShort';
 
 export const NavigationBar = () => {
 
@@ -30,6 +31,8 @@ export const NavigationBar = () => {
         scopes: protectedResources.KnowledgeAPI.scopes.read
     }
     const { login, result, error: msalError } = useMsalAuthentication(InteractionType.Silent, request);
+
+    let navigate = useNavigate();
 
     // useEffect(() => {
     //     if (msalError instanceof InteractionRequiredAuthError) {
@@ -62,7 +65,7 @@ export const NavigationBar = () => {
             ...loginRequest,
             redirectUri: '/redirect'
         })
-        .catch((error) => console.log(error));
+            .catch((error) => console.log(error));
     };
 
     const handleLogoutRedirect = () => {
@@ -77,6 +80,11 @@ export const NavigationBar = () => {
             account: instance.getActiveAccount(),
         });
     };
+
+    const handleAbout = () => {
+        navigate('/about');
+    };
+
 
     // if (accounts.length > 0) {
     //     return <span>There are currently {accounts.length} users signed in!</span>
@@ -97,20 +105,6 @@ export const NavigationBar = () => {
                     Microsoft identity platform
                 </a>
                 <AuthenticatedTemplate>
-                    {/* <Nav.Link className="navbarButton" href="/todolist">
-                        ToDoList
-                    </Nav.Link> */}
-
-                    <NavLink 
-                        to={`/supporter/0/${encodeURIComponent('domena')}/xyz`} 
-                        className="nav-link"
-                        onClick={() => {
-                            //closeQuestionForm();
-                        }}
-                    >
-                        <FontAwesomeIcon icon={faSurprise} color='lightblue' />{' '}Supporter <small>(QA)</small>
-                    </NavLink>
-
                     <NavLink to="/categories" className="nav-link">
                         <img width="22" height="18" src={Q} alt="Add Question" />{' '}Questions
                     </NavLink>
@@ -120,16 +114,12 @@ export const NavigationBar = () => {
                     </NavLink>
 
                     {/* <NavLink to={`/supporter/0/${encodeURIComponent('Does Firefox support Manifest 3?')}/xyz`} className="nav-link" */}
-                    <NavLink to={`/ChatBotPage/0/${encodeURIComponent('domena')}/xyz`} className="nav-link"
+                    <NavLink to={`/ChatBotPage/0/${encodeURIComponent('daljinski')}/xyz`} className="nav-link"
                         onClick={() => {
                             //closeQuestionForm();
                         }
                         }>
                         <FontAwesomeIcon icon={faUserFriends} color='lightblue' />{' '}ChatBot
-                    </NavLink>
-                    
-                    <NavLink to="/about" className="nav-link">
-                        About
                     </NavLink>
 
                     <div className="collapse navbar-collapse justify-content-end">
@@ -143,6 +133,25 @@ export const NavigationBar = () => {
                             </Dropdown.Item>
                             <Dropdown.Item as="button" onClick={handleLogoutRedirect}>
                                 Sign out using Redirect
+                            </Dropdown.Item>
+                            <NavDropdown.Divider  className='mx-2' />
+                            <Dropdown.Item as="button" onClick={handleAbout}>
+                                <NavDropdown.Item eventKey="DARK_MODE">
+                                    Dark mode
+                                </NavDropdown.Item>
+                                <NavDropdown.Item eventKey="LIGHT_MODE">
+                                    Light mode
+                                </NavDropdown.Item>
+
+                                <NavDropdown.Divider />
+
+                                <NavDropdown.Item as={Link} to="/health" >
+                                    Health
+                                </NavDropdown.Item>
+
+                                <NavDropdown.Item as={Link} to="/about" >
+                                    About
+                                </NavDropdown.Item>
                             </Dropdown.Item>
                         </DropdownButton>
                     </div>
@@ -159,7 +168,7 @@ export const NavigationBar = () => {
                         </DropdownButton>
                     </div>
                 </UnauthenticatedTemplate>
-            </Navbar>
+            </Navbar >
         </>
     );
 };

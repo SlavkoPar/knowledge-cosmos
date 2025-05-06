@@ -28,7 +28,7 @@ const AnswerForm = ({ mode, answer, submitForm, children, showCloseButton, sourc
   const editing = mode === FormMode.editing;
   const adding = mode === FormMode.adding;
 
-  const { partitionKey, parentGroup, title, id } = answer;
+  const { partitionKey, parentGroup, title, link, id } = answer;
   // const groupKey = {partitionKey, id: parentGroup};
   const groupKey: IGroupKey = { partitionKey: 'null', id: 'null' };
 
@@ -158,6 +158,29 @@ const AnswerForm = ({ mode, answer, submitForm, children, showCloseButton, sourc
           <Form.Text className="text-danger">
             {formik.touched.title && formik.errors.title ? (
               <div className="text-danger">{formik.errors.title}</div>
+            ) : null}
+          </Form.Text>
+        </Form.Group>
+
+        <Form.Group controlId="link">
+          <Form.Label>Link</Form.Label>
+          <Form.Control
+            as="input"
+            name="link"
+            onChange={formik.handleChange}
+            //onBlur={formik.handleBlur}
+            // onBlur={(e: React.FocusEvent<HTMLTextAreaElement>): void => {
+            //   if (isEdit && formik.initialValues.title !== formik.values.title)
+            //     formik.submitForm();
+            // }}
+            value={formik.values.link??''}
+            placeholder='Link'
+            className="text-primary w-100"
+            disabled={isDisabled}
+          />
+          <Form.Text className="text-danger">
+            {formik.touched.link && formik.errors.link ? (
+              <div className="text-danger">{formik.errors.link}</div>
             ) : null}
           </Form.Text>
         </Form.Group>

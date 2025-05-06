@@ -629,6 +629,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
         questionKey,
         answerKey,
         answerTitle: '',
+        answerLink: '',
         created: {
           time: new Date(),
           nickName: assigned.nickName

@@ -28,7 +28,7 @@ type ChatBotParams = {
 const ChatBotPage: React.FC = () => {
 
 	let { source, tekst, email } = useParams<ChatBotParams>();
-	tekst = 'Domena'
+	tekst = 'daljinski'
 
 	// TODO do we need this?
 	// const globalState = useGlobalState();
@@ -47,8 +47,8 @@ const ChatBotPage: React.FC = () => {
 	const [chatBotAnswer, setChatBotAnswer] = useState<IChatBotAnswer | null>(null);
 	const [hasMoreAnswers, setHasMoreAnswers] = useState<boolean>(false);
 
-	const { getCatsByKind, getQuestion, addHistory, getAnswersRated, searchQuestions } = useGlobalContext();
-	const { dbp, canEdit, authUser, isDarkMode, variant, bg, cats, catsLoaded } = useGlobalState();
+	const { getCatsByKind, getQuestion, addHistory, getAnswersRated, searchQuestions, setLastRouteVisited } = useGlobalContext();
+	const { dbp, canEdit, authUser, isDarkMode, variant, bg, cats, catsLoaded, lastRouteVisited } = useGlobalState();
 
 	const setParentCategory = (cat: ICategory) => {
 		alert(cat.title)
@@ -86,6 +86,7 @@ const ChatBotPage: React.FC = () => {
 		type: ChildType;
 		isDisabled: boolean;
 		txt: string,
+		link: string | null,
 		hasMoreAnswers?: boolean
 	}
 	// const deca: JSX.Element[] = [];
@@ -105,6 +106,10 @@ const ChatBotPage: React.FC = () => {
 			setCatUsage(await getCatsByKind(3));
 		})()
 	}, []) // [catsLoaded])
+
+	useEffect(() => {
+		setLastRouteVisited(`/ChatBotPage/0/${encodeURIComponent('daljinski')}/xyz`);
+	}, [setLastRouteVisited])
 
 
 	if (!catsLoaded || catsOptions.length === 0)
@@ -161,6 +166,7 @@ const ChatBotPage: React.FC = () => {
 				type: ChildType.ANSWER,
 				isDisabled: true,
 				txt: chatBotAnswer.answerTitle,
+				link: chatBotAnswer.answerLink
 			}
 			setPastEvents((prevEvents) => [...prevEvents, props]);
 		}
@@ -186,6 +192,7 @@ const ChatBotPage: React.FC = () => {
 				type: ChildType.QUESTION,
 				isDisabled: true,
 				txt: question.title,
+				link: null
 			}
 			setPastEvents((prevEvents) => [...prevEvents, props]);
 		}
@@ -215,6 +222,7 @@ const ChatBotPage: React.FC = () => {
 			type: ChildType.ANSWER,
 			isDisabled: true,
 			txt: chatBotAnswer ? chatBotAnswer.answerTitle : 'no answer title',
+			link: chatBotAnswer ? chatBotAnswer.answerLink : 'no answer link',
 			hasMoreAnswers: true
 		}
 		setPastEvents((prevHistory) => [...prevHistory, props]);
@@ -246,6 +254,7 @@ const ChatBotPage: React.FC = () => {
 			type: ChildType.ANSWER,
 			isDisabled: true,
 			txt: chatBotAnswer ? chatBotAnswer.answerTitle : 'no answer',
+			link: chatBotAnswer ? chatBotAnswer.answerLink : 'no link',
 			hasMoreAnswers: true
 		}
 		setPastEvents((prevHistory) => [...prevHistory, props]);
@@ -280,7 +289,7 @@ const ChatBotPage: React.FC = () => {
 		// }
 		setHasMoreAnswers(hasMoreAnswers);
 		//setAnswerId((answerId) => answerId + 1); PPP
-		console.log('----->>>>', {nextChatBotAnswer})
+		console.log('----->>>>', { nextChatBotAnswer })
 		setChatBotAnswer(nextChatBotAnswer);
 	}
 
@@ -306,12 +315,11 @@ const ChatBotPage: React.FC = () => {
 	}
 
 	const AnswerComponent = (props: IChild) => {
-		const { isDisabled, txt } = props;
+		const { isDisabled, txt, link } = props;
 		return (
 			<div
 				// id={answerId.toString()}   PPP
 				id={chatBotAnswer?.answerKey.id}
-
 				className={`${isDarkMode ? "dark" : "light"} mx-6 border border-1 rounded-1`}
 			>
 				<Row>
@@ -319,7 +327,8 @@ const ChatBotPage: React.FC = () => {
 						<img width="22" height="18" src={A} alt="Answer" className='m-2' />
 						{/* contentEditable="true" aria-multiline="true" */}
 						<div>
-							{txt}
+							{txt} <br/>
+							{link ? <a href={link} target="_blank" className="text-reset text-decoration-none fw-lighter fs-6" >{link}</a> : null}
 						</div>
 						{!isDisabled && chatBotAnswer &&
 							<div>
@@ -394,103 +403,117 @@ const ChatBotPage: React.FC = () => {
 
 	return (
 		<Container id='container' fluid className='text-info'> {/* align-items-center" */}
-			<div key='Welcome'>
-				<p><b>Welcome</b>, I am Buddy and I am here to help You</p>
-			</div>
-
-			<Form key='options' className='text-center border border-1 m-1 rounded-1'>
-				<div className='text-center'>
-					Select Options
-				</div>
-				<div className='text-center'>
-					{/* <ListGroup horizontal> */}
-					{catsOptions.map(({ id: id, title: title }: ICat) => (
-						// <ListGroup.Item>
-						<Form.Check // prettier-ignore
-							id={id}
-							key={id}
-							label={title}
-							name="opcije"
-							type='checkbox'
-							inline
-							className=''
-							onChange={onOptionChange}
-						/>
-						// </ListGroup.Item>
-					))}
-					{/* </ListGroup> */}
-				</div>
-			</Form>
-
-			{showUsage &&
-				<Form key="usage" className='text-center border border-1 m-1 rounded-1'>
-					<div className='text-center'>
-						Select services for which you need support
+			<Row className="my-1">
+				<Col className='border border-secondary mx-1 bg-secondary text-white 
+							d-flex align-items-center justify-content-center vh-100'>
+					{/* <div className='d-inline'> */}
+					Page at the Site
+					{/* </div> */}
+				</Col>
+				<Col className='border border-4 border-primary mx-1  bg-primary text-white'>
+					{/* <div className="d-inline"> */}
+					<div key='Welcome'>
+						<p><b>Welcome</b>, I am Buddy and I am here to help You</p>
 					</div>
-					<div className='text-center'>
-						{catsUsage.map(({ id: id, title: title }: ICat) => (
-							<Form.Check // prettier-ignore
-								id={id}
-								label={title}
-								name="usluge"
-								type='checkbox'
-								inline
-								className=''
-								onChange={onUsageChange}
-							/>
-						))}
-					</div>
-				</Form>
-			}
 
-			<div key='history' className='history'>
-				{
-					pastEvents.map(childProps => {
-						switch (childProps.type) {
-							case ChildType.AUTO_SUGGEST:
-								return <AutoSuggestComponent {...childProps} />;
-							case ChildType.QUESTION:
-								return <QuestionComponent {...childProps} />;
-							case ChildType.ANSWER:
-								return <AnswerComponent {...childProps} />;
-							default:
-								return <div>unknown</div>
+					<Form key='options' className='text-center border border-1 m-1 rounded-1'>
+						<div className='text-center'>
+							Select Options
+						</div>
+						<div className='text-center'>
+							{/* <ListGroup horizontal> */}
+							{catsOptions.map(({ id: id, title: title }: ICat) => (
+								// <ListGroup.Item>
+								<Form.Check // prettier-ignore
+									id={id}
+									key={id}
+									label={title}
+									name="opcije"
+									type='checkbox'
+									inline
+									className=''
+									onChange={onOptionChange}
+								/>
+								// </ListGroup.Item>
+							))}
+							{/* </ListGroup> */}
+						</div>
+					</Form>
+
+					{showUsage &&
+						<Form key="usage" className='text-center border border-1 m-1 rounded-1'>
+							<div className='text-center'>
+								Select services for which you need support
+							</div>
+							<div className='text-center'>
+								{catsUsage.map(({ id: id, title: title }: ICat) => (
+									<Form.Check // prettier-ignore
+										id={id}
+										label={title}
+										name="usluge"
+										type='checkbox'
+										inline
+										className=''
+										onChange={onUsageChange}
+									/>
+								))}
+							</div>
+						</Form>
+					}
+
+					<div key='history' className='history'>
+						{
+							pastEvents.map(childProps => {
+								switch (childProps.type) {
+									case ChildType.AUTO_SUGGEST:
+										return <AutoSuggestComponent {...childProps} />;
+									case ChildType.QUESTION:
+										return <QuestionComponent {...childProps} />;
+									case ChildType.ANSWER:
+										return <AnswerComponent {...childProps} />;
+									default:
+										return <div>unknown</div>
+								}
+							})
 						}
-					})
-				}
-			</div>
+					</div>
 
-			{/* {selectedQuestion &&
+					{/* {selectedQuestion &&
 				<div>
 					<QuestionComponent type={ChildType.QUESTION} isDisabled={true} txt={selectedQuestion.title} hasMoreAnswers={hasMoreAnswers} />
 				</div>
 			} */}
 
-			{showAnswer &&
-				<div key="answer">
-					<AnswerComponent type={ChildType.ANSWER} isDisabled={false} txt={chatBotAnswer ? chatBotAnswer.answerTitle : 'no answers'} hasMoreAnswers={hasMoreAnswers} />
-				</div>
-			}
+					{showAnswer &&
+						<div key="answer">
+							<AnswerComponent type={ChildType.ANSWER} isDisabled={false} txt={chatBotAnswer ? chatBotAnswer.answerTitle : 'no answers'} hasMoreAnswers={hasMoreAnswers} link={chatBotAnswer ? chatBotAnswer.answerLink : ''} />
+						</div>
+					}
 
-			{catsSelected && !showAutoSuggest &&
-				<Button
-					key="newQuestion"
-					variant="secondary"
-					size="sm"
-					type="button"
-					onClick={() => {
-						setAutoSuggestId(autoSuggestId + 1);
-						setShowAutoSuggest(true);
-					}}
-					className='m-1 border border-1 rounded-1 py-0'
-				>
-					New Question
-				</Button>
-			}
+					{catsSelected && !showAutoSuggest &&
+						<Button
+							key="newQuestion"
+							variant="secondary"
+							size="sm"
+							type="button"
+							onClick={() => {
+								setAutoSuggestId(autoSuggestId + 1);
+								setShowAutoSuggest(true);
+							}}
+							className='m-1 border border-1 rounded-1 py-0'
+						>
+							New Question
+						</Button>
+					}
 
-			{showAutoSuggest &&
-				<AutoSuggestComponent type={ChildType.AUTO_SUGGEST} isDisabled={false} txt={tekst!} />
-			}
+					{showAutoSuggest &&
+						<AutoSuggestComponent type={ChildType.AUTO_SUGGEST} isDisabled={false} txt={tekst!} link={null} />
+					}
+					{/* </div> */}
+				</Col>
+			</Row>
+
+
 		</Container>
 	);
 }

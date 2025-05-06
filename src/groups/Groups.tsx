@@ -17,8 +17,6 @@ import EditAnswer from "groups/components/answers/EditAnswer";
 
 import { initialAnswer } from "groups/GroupsReducer";
 import ModalAddAnswer from './ModalAddAnswer';
-import useFetchWithMsal from 'hooks/useFetchWithMsal';
-import { protectedResources } from 'authConfig';
 import AddGroup from './components/AddGroup';
 
 interface IProps {
@@ -30,6 +28,7 @@ const Providered = ({ groupId_answerId }: IProps) => {
     const { groupKeyExpanded, groupId_answerId_done, answerId, groupNodeLoaded } = state;
     console.log('Providered', { groupKeyExpanded, groupNodeLoaded })
 
+    const { setLastRouteVisited } = useGlobalContext();
     const { isDarkMode, authUser } = useGlobalState();
 
     const [modalShow, setModalShow] = useState(false);
@@ -70,6 +69,10 @@ const Providered = ({ groupId_answerId }: IProps) => {
             }
         })()
     }, [groupKeyExpanded, groupNodeLoaded, reloadGroupNode, groupId_answerId, groupId_answerId_done])
+
+    useEffect(() => {
+        setLastRouteVisited(`/groups`);
+    }, [setLastRouteVisited])
 
     if (groupId_answerId !== 'add_answer') {
         if (/*groupKeyExpanded ||*/ (groupId_answerId && groupId_answerId !== groupId_answerId_done)) {

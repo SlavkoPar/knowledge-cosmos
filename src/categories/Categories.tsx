@@ -17,8 +17,6 @@ import EditQuestion from "categories/components/questions/EditQuestion";
 
 import { initialQuestion } from "categories/CategoriesReducer";
 import ModalAddQuestion from './ModalAddQuestion';
-import useFetchWithMsal from 'hooks/useFetchWithMsal';
-import { protectedResources } from 'authConfig';
 import AddCategory from './components/AddCategory';
 
 interface IProps {
@@ -28,8 +26,8 @@ interface IProps {
 const Providered = ({ categoryId_questionId }: IProps) => {
     const { state, reloadCategoryNode } = useCategoryContext();
     const { categoryKeyExpanded, categoryId_questionId_done, questionId, categoryNodeLoaded } = state;
-    console.log('Providered', { categoryKeyExpanded, categoryNodeLoaded })
 
+    const { setLastRouteVisited } = useGlobalContext();
     const { isDarkMode, authUser } = useGlobalState();
 
     const [modalShow, setModalShow] = useState(false);
@@ -71,6 +69,10 @@ const Providered = ({ categoryId_questionId }: IProps) => {
         })()
     }, [categoryKeyExpanded, categoryNodeLoaded, reloadCategoryNode, categoryId_questionId, categoryId_questionId_done])
 
+    useEffect(() => {
+        setLastRouteVisited(`/categories`);
+    }, [setLastRouteVisited])
+
     if (categoryId_questionId !== 'add_question') {
         if (/*categoryKeyExpanded ||*/ (categoryId_questionId && categoryId_questionId !== categoryId_questionId_done)) {
             console.log("zzzzzz loading...", { categoryKeyExpanded, categoryId_questionId, categoryId_questionId_done })
@@ -86,7 +88,7 @@ const Providered = ({ categoryId_questionId }: IProps) => {
         <>
             <Container>
                 <h6 style={{ color: 'rgb(13, 110, 253)', marginLeft: '30%' }}>Categories / Questions</h6>
-                <Button variant="secondary" size="sm" type="button" style={{padding: '1px 4px'}}
+                <Button variant="secondary" size="sm" type="button" style={{ padding: '1px 4px' }}
                     onClick={() => dispatch({
                         type: ActionTypes.ADD_SUB_CATEGORY,
                         payload: {
@@ -112,7 +114,7 @@ const Providered = ({ categoryId_questionId }: IProps) => {
                             {state.mode === Mode.ViewingCategory && <ViewCategory inLine={false} />}
                             {state.mode === Mode.EditingCategory && <EditCategory inLine={false} />}
                             {/* {state.mode === FORM_MODES.ADD_QUESTION && <AddQuestion category={null} />} */}
-                             {/* TODO check if we set questionId everywhere */}
+                            {/* TODO check if we set questionId everywhere */}
                             {questionId && state.mode === Mode.ViewingQuestion && <ViewQuestion inLine={false} />}
                             {questionId && state.mode === Mode.EditingQuestion && <EditQuestion inLine={false} />}
                         </div>

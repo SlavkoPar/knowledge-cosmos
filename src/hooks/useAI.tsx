@@ -9,17 +9,19 @@ export interface IChatBotAnswer {
   questionKey: IQuestionKey;
   answerKey: IAnswerKey;
   answerTitle: string;
+  answerLink: string | null;
   created: IWhoWhen,
   modified: IWhoWhen | null
 }
 
 class ChatBotAnswer {
   constructor(assignedAnswer: IAssignedAnswer) {
-    const { questionKey, answerKey, answerTitle, created, modified } = assignedAnswer;
+    const { questionKey, answerKey, answerTitle, answerLink, created, modified } = assignedAnswer;
     this.chatBotAnswer = {
       questionKey,
       answerKey,
       answerTitle, // : .answerTitle ?? '',
+      answerLink,
       created: assignedAnswer.created,
       modified: assignedAnswer.modified
     }

@@ -11,6 +11,8 @@ import { GlobalProvider } from 'global/GlobalProvider';
 import { BrowserRouter as Router } from 'react-router-dom'
 
 import App from 'App';
+import About from 'About';
+import AboutShort from 'AboutShort';
 
 /**
 * Most applications will need to conditionally render certain components based on whether a user is signed in or not. 
@@ -55,6 +57,7 @@ const MainContent = () => {
                 {/* <Button className="signInButton" onClick={handleRedirect} variant="primary">
                     Sign up
                 </Button> */}
+                <AboutShort />
             </UnauthenticatedTemplate>
         </div>
     );
