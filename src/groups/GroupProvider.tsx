@@ -13,6 +13,7 @@ import {
   IGroupKeyExtended,
   GroupDto,
   AnswerDto,
+  IAnswerRowDto,
 } from 'groups/types';
 
 import { initialGroupsState, GroupsReducer } from 'groups/GroupsReducer';
@@ -399,7 +400,7 @@ export const GroupProvider: React.FC<Props> = ({ children }) => {
   const loadGroupAnswers = useCallback(
     async ({ groupKey, startCursor, includeAnswerId }: IParentInfo)
       : Promise<any> => {
-      const answers: IAnswer[] = [];
+      const answerRowDtos: IAnswerRowDto[] = [];
       try {
         const partitionKey = groupKey.partitionKey;
         const parentGroup = groupKey.id;
@@ -415,17 +416,17 @@ export const GroupProvider: React.FC<Props> = ({ children }) => {
             if (groupDto === null)
               return null;
             const { Title, Answers, HasMoreAnswers } = groupDto;
-            Answers!.forEach((answerDto: IAnswerDto) => {
-              const answer = new Answer(answerDto).answer;
+            Answers!.forEach((answerRowDto: IAnswerRowDto) => {
+              const answer = new Answer(answerRowDto).answer;
               if (includeAnswerId && answer.id === includeAnswerId) {
-                answer.included = true;
+                answerRowDto.Included = true;
               }
-              answer.groupTitle = Title;
-              answers.push(answer);
+              answerRowDto.GroupTitle = Title;
+              answerRowDtos.push(answerRowDto);
             })
             dispatch({
               type: ActionTypes.LOAD_GROUP_ANSWERS,
-              payload: { parentGroup, answers, hasMoreAnswers: HasMoreAnswers! }
+              payload: { parentGroup, answerRowDtos, hasMoreAnswers: HasMoreAnswers! }
             });
           });
         }

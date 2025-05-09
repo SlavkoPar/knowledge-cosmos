@@ -119,7 +119,7 @@ const ChatBotPage: React.FC = () => {
 		const target = event.target;
 		const value = target.type === 'checkbox' ? target.checked : target.value;
 		const name = target.name as any;
-		setShowUsage(true)
+		setShowUsage(true);
 		// setCatOptions((prevState) => ({ 
 		// 	stateName: prevState.stateName + 1 
 		// }))
@@ -176,6 +176,11 @@ const ChatBotPage: React.FC = () => {
 		if (!question) {
 			alert(questionEx.msg)
 			return;
+		}
+		console.log('Breeeeeeeeeeeeeeeeeeeeeeeeeeeeeee:', {question})
+		if (question.numOfRelatedFilters > 0) {
+			tekst =  question.relatedFilters[0].filter
+			alert(tekst);
 		}
 		const res: INewQuestion = await (await hook).setNewQuestion(question);
 		let { firstChatBotAnswer: firstAnswer, hasMoreAnswers } = res; // as unknown as INewQuestion;
@@ -418,11 +423,12 @@ const ChatBotPage: React.FC = () => {
 
 					<Form key='options' className='text-center border border-1 m-1 rounded-1'>
 						<div className='text-center'>
-							Select Options
+							Select Options<br/>
+							<i className='bg-secondary'> Select 'Demo' for test </i>
 						</div>
 						<div className='text-center'>
 							{/* <ListGroup horizontal> */}
-							{catsOptions.map(({ id: id, title: title }: ICat) => (
+							{catsOptions.map(({ id, title }: ICat) => (
 								// <ListGroup.Item>
 								<Form.Check // prettier-ignore
 									id={id}
@@ -443,10 +449,11 @@ const ChatBotPage: React.FC = () => {
 					{showUsage &&
 						<Form key="usage" className='text-center border border-1 m-1 rounded-1'>
 							<div className='text-center'>
-								Select services for which you need support
+								Select services for which you need support<br/>
+								<i className='bg-secondary'> Select 'Usage' for test </i>
 							</div>
 							<div className='text-center'>
-								{catsUsage.map(({ id: id, title: title }: ICat) => (
+								{catsUsage.map(({ id, title }: ICat) => (
 									<Form.Check // prettier-ignore
 										id={id}
 										label={title}

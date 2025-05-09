@@ -1,5 +1,5 @@
 import { Reducer } from 'react'
-import { Mode, ActionTypes, IGroupsState, IGroup, IAnswer, GroupsActions, ILocStorage, IGroupKey, IGroupKeyExtended } from "groups/types";
+import { Mode, ActionTypes, IGroupsState, IGroup, IAnswer, GroupsActions, ILocStorage, IGroupKey, IGroupKeyExtended, Answer } from "groups/types";
 
 export const initialAnswer: IAnswer = {
   partitionKey: '',
@@ -291,9 +291,11 @@ const reducer = (state: IGroupsState, action: GroupsActions) => {
     }
 
     case ActionTypes.LOAD_GROUP_ANSWERS: {
-      const { parentGroup, answers, hasMoreAnswers } = action.payload; // group doesn't contain inViewing, inEditing, inAdding 
-      console.log('>>>>>>>>>>>>LOAD_GROUP_ANSWERS', { parentGroup, answers, hasMoreAnswers })
+      const { parentGroup, answerRowDtos, hasMoreAnswers } = action.payload; // group doesn't contain inViewing, inEditing, inAdding 
+      console.log('>>>>>>>>>>>>LOAD_GROUP_ANSWERS', { parentGroup, answers: answerRowDtos, hasMoreAnswers })
       const group = state.groups.find(c => c.id === parentGroup);
+      const answers: IAnswer[] = answerRowDtos.map(answerRow => new Answer(answerRow).answer);
+      
       //if (answers.length > 0 && group!.answers.map(q => q.id).includes(answers[0].id)) {
       // privremeno  TODO  uradi isto i u group/answers
       // We have, at two places:
@@ -313,13 +315,13 @@ const reducer = (state: IGroupsState, action: GroupsActions) => {
         groups: state.groups.map(c => c.id === parentGroup
           ? {
             ...c,
-            answers: c.answers.concat(answers.map((q: IAnswer) => (q.included
+            answers: c.answers.concat(answers.map(answer => (answer.included
               ? {
-                ...q,
+                ...answer,
                 inViewing: state.mode === Mode.ViewingAnswer,
                 inEditing: state.mode === Mode.EditingAnswer
               }
-              : q))),
+              : answer))),
             hasMoreAnswers,
             inViewing: c.inViewing,
             inEditing: c.inEditing,

@@ -13,6 +13,9 @@ import {
   CategoryDto,
   QuestionDto,
   IQuestionEx,
+  IQuestionRowDto,
+  IQuestionRow,
+  QuestionRow,
 } from 'categories/types';
 
 import { initialCategoriesState, CategoriesReducer } from 'categories/CategoriesReducer';
@@ -420,7 +423,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
   const loadCategoryQuestions = useCallback(
     async ({ categoryKey, startCursor, includeQuestionId }: IParentInfo)
       : Promise<any> => {
-      const questions: IQuestion[] = [];
+      const questionRowDtos: IQuestionRowDto[] = [];
       try {
         const partitionKey = categoryKey.partitionKey;
         const parentCategory = categoryKey.id;
@@ -436,17 +439,16 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
             if (categoryDto === null)
               return null;
             const { Title, Questions, HasMoreQuestions } = categoryDto;
-            Questions!.forEach((questionDto: IQuestionDto) => {
-              const question = new Question(questionDto).question;
-              if (includeQuestionId && question.id === includeQuestionId) {
-                question.included = true;
+            Questions!.forEach((questionRowDto: IQuestionRowDto) => {
+              if (includeQuestionId && questionRowDto.Id === includeQuestionId) {
+                questionRowDto.Included = true;
               }
-              question.categoryTitle = Title;
-              questions.push(question);
+              questionRowDto.CategoryTitle = Title; // TODO treba li
+              questionRowDtos.push(questionRowDto);
             })
             dispatch({
               type: ActionTypes.LOAD_CATEGORY_QUESTIONS,
-              payload: { parentCategory, questions, hasMoreQuestions: HasMoreQuestions! }
+              payload: { parentCategory, questionRowDtos, hasMoreQuestions: HasMoreQuestions! }
             });
           });
         }
@@ -700,8 +702,8 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
   const contextValue: ICategoriesContext = {
     state, reloadCategoryNode,
     getSubCategories, createCategory, viewCategory, editCategory, updateCategory, deleteCategory, deleteCategoryVariation,
-    expandCategory, collapseCategory, loadCategoryQuestions,
-    createQuestion, viewQuestion, editQuestion, updateQuestion, deleteQuestion,
+    expandCategory, collapseCategory, 
+    loadCategoryQuestions, createQuestion, viewQuestion, editQuestion, updateQuestion, deleteQuestion,
     assignQuestionAnswer, createAnswer
   }
   return (

@@ -28,43 +28,82 @@ export enum FormMode {
 	editing
 }
 
-// export interface IQuestionAnswer {
-// 	categoryId: string;
-// 	questionId: number;
-// 	id: number,
-// 	answer: {
-// 		id: number,
-// 		title: string
-// 	},
-// 	user: {
-// 		id?: number,
-// 		createdBy: string
-// 	}
-// 	assigned: IDateAndBy
-// }
-
-
-
-
-
 export interface IFromUserAssignedAnswer {
 	id: string,
 	createdBy: string
 }
 
-export interface IQuestion extends IRecord {
+/////////////////////////////////////
+// Question Related Filters
+
+export interface IRelatedFilter {
+	questionKey: IQuestionKey | null;
+	filter: string;
+	numOfUsages: number;
+	created: IWhoWhen | null;
+	lastUsed: IWhoWhen | null;
+}
+
+export interface IRelatedFilterDto {
+	QuestionKey: IQuestionKey | null;
+	Filter: string;
+	NumOfUsages: number;
+	Created: IWhoWhenDto | null;
+	LastUsed: IWhoWhenDto | null;
+}
+
+export interface IRelatedFilterDtoEx {
+	relatedFilterDto: IRelatedFilterDto | null;
+	msg: string;
+}
+
+
+export class RelatedFilterDto {
+	constructor(relatedFilter: IRelatedFilter) {
+		const { questionKey, filter, numOfUsages, created, lastUsed } = relatedFilter;
+		this.relatedFilterDto = {
+			QuestionKey: questionKey,
+			Filter: filter,
+			Created: created ? new WhoWhen2Dto(created).whoWhenDto! : null,
+			LastUsed: lastUsed ? new WhoWhen2Dto(lastUsed).whoWhenDto! : null,
+			NumOfUsages: numOfUsages
+		}
+	}
+	relatedFilterDto: IRelatedFilterDto;
+}
+
+export class RelatedFilter {
+	constructor(dto: IRelatedFilterDto) {
+		const { QuestionKey, Filter, Created, LastUsed, NumOfUsages } = dto;
+		this.relatedFilter = {
+			questionKey: QuestionKey,
+			filter: Filter,
+			created: Created ? new Dto2WhoWhen(Created).whoWhen! : null,
+			lastUsed: LastUsed ? new Dto2WhoWhen(LastUsed).whoWhen! : null,
+			numOfUsages: NumOfUsages
+		}
+	}
+	relatedFilter: IRelatedFilter;
+}
+
+export interface IQuestionRow extends IRecord {
 	partitionKey: string;
 	id: string;
 	title: string;
 	parentCategory: string;
-	categoryTitle?: string;
+	categoryTitle: string;
+	included?: boolean;
+}
+
+export interface IQuestion extends IQuestionRow {
 	assignedAnswers: IAssignedAnswer[];
 	numOfAssignedAnswers: number;
+	relatedFilters: IRelatedFilter[]
+	numOfRelatedFilters: number,
 	source: number;
 	status: number;
 	fromUserAssignedAnswer?: IFromUserAssignedAnswer[];
-	CategoryTitle?: string;
-	included?: boolean;
+	//CategoryTitle?: string;
 }
 
 export interface ICategoryKey {
@@ -108,9 +147,33 @@ export interface ICategory extends IRecord {
 }
 
 
+export class QuestionRow {
+	constructor(rowDto: IQuestionRowDto) { //, parentCategory: string) {
+		this.questionRow = {
+			parentCategory: rowDto.ParentCategory,
+			partitionKey: rowDto.PartitionKey,
+			id: rowDto.Id,
+			title: rowDto.Title,
+			categoryTitle: rowDto.CategoryTitle,
+			created: new Dto2WhoWhen(rowDto.Created!).whoWhen,
+			modified: rowDto.Modified
+				? new Dto2WhoWhen(rowDto.Modified).whoWhen
+				: undefined,
+			included: rowDto.Included
+		}
+	}
+	questionRow: IQuestionRow
+}
+
 export class Question {
 	constructor(dto: IQuestionDto) { //, parentCategory: string) {
-		const assignedAnswers = dto.AssignedAnswerDtos.map((aDto: IAssignedAnswerDto) => new AssignedAnswer(aDto).assignedAnswer);
+		const assignedAnswers = dto.AssignedAnswerDtos ?
+			dto.AssignedAnswerDtos.map((dto: IAssignedAnswerDto) => new AssignedAnswer(dto).assignedAnswer)
+			: [];
+		const relatedFilters = dto.RelatedFilterDtos
+			? dto.RelatedFilterDtos.map((Dto: IRelatedFilterDto) => new RelatedFilter(Dto).relatedFilter)
+			: [];
+			// TODO possible to call base class construtor
 		this.question = {
 			parentCategory: dto.ParentCategory,
 			partitionKey: dto.PartitionKey,
@@ -118,9 +181,11 @@ export class Question {
 			title: dto.Title,
 			categoryTitle: dto.CategoryTitle,
 			assignedAnswers,
-			numOfAssignedAnswers: dto.NumOfAssignedAnswers,
-			source: dto.Source,
-			status: dto.Status,
+			numOfAssignedAnswers: dto.NumOfAssignedAnswers ?? 0,
+			relatedFilters,
+			numOfRelatedFilters: dto.NumOfRelatedFilters ?? 0,
+			source: dto.Source ?? 0,
+			status: dto.Status ?? 0,
 			created: new Dto2WhoWhen(dto.Created!).whoWhen,
 			modified: dto.Modified
 				? new Dto2WhoWhen(dto.Modified).whoWhen
@@ -147,7 +212,7 @@ export class Category {
 				? new Dto2WhoWhen(dto.Modified).whoWhen
 				: undefined,
 			questions: dto.Questions
-				? dto.Questions.map(questionDto => new Question(questionDto/*, dto.Id*/).question)
+				? dto.Questions.map(questionRowDto => new Question(questionRowDto/*, dto.Id*/).question)
 				: []
 		}
 	}
@@ -172,11 +237,6 @@ export class CategoryDto {
 	categoryDto: ICategoryDto;
 }
 
-export interface ICategoryDtoEx {
-	categoryDto: ICategoryDto | null;
-	msg: string;
-}
-
 
 
 export class QuestionDto {
@@ -187,8 +247,10 @@ export class QuestionDto {
 			ParentCategory: question.parentCategory,
 			Title: question.title,
 			CategoryTitle: "",
-			AssignedAnswerDtos: question.assignedAnswers.map((a: IAssignedAnswer) => new AssignedAnswerDto(a).assignedAnswerDto),
-			NumOfAssignedAnswers: question.numOfAssignedAnswers,
+			//AssignedAnswerDtos: question.assignedAnswers.map((a: IAssignedAnswer) => new AssignedAnswerDto(a).assignedAnswerDto),
+			//NumOfAssignedAnswers: question.numOfAssignedAnswers,
+			//RelatedFilterDtos: question.relatedFilters.map((a: IRelatedFilter) => new RelatedFilterDto(a).relatedFilterDto),
+			//NumOfRelatedFilters: question.numOfAssignedAnswers,
 			Source: question.source,
 			Status: question.status,
 			Created: new WhoWhen2Dto(question.created).whoWhenDto!,
@@ -198,17 +260,22 @@ export class QuestionDto {
 	questionDto: IQuestionDto;
 }
 
-export interface IQuestionDto extends IRecordDto {
+export interface IQuestionRowDto extends IRecordDto {
 	PartitionKey: string;
 	Id: string;
 	ParentCategory: string;
-	// but it is not a valid key
 	Title: string;
 	CategoryTitle: string;
-	AssignedAnswerDtos: IAssignedAnswerDto[];
-	NumOfAssignedAnswers: number,
-	Source: number;
-	Status: number;
+	Included?: boolean;
+	Source?: number;
+	Status?: number;
+}
+
+export interface IQuestionDto extends IQuestionRowDto {
+	AssignedAnswerDtos?: IAssignedAnswerDto[];
+	NumOfAssignedAnswers?: number,
+	RelatedFilterDtos?: IRelatedFilterDto[]
+	NumOfRelatedFilters?: number
 }
 
 export interface IQuestionDtoEx {
@@ -229,9 +296,9 @@ export interface IQuestionsMore {
 
 export interface IQuestDto {
 	PartitionKey: string;
+	Id: string;
 	ParentCategory: string;
 	Title: string;
-	Id: string;
 }
 
 export interface IQuest {
@@ -253,9 +320,15 @@ export interface ICategoryDto extends IRecordDto {
 	Level?: number;
 	NumOfQuestions?: number;
 	HasSubCategories?: boolean;
-	Questions?: IQuestionDto[];
+	Questions?: IQuestionRowDto[];
 	HasMoreQuestions?: boolean;
 }
+
+export interface ICategoryDtoEx {
+	categoryDto: ICategoryDto | null;
+	msg: string;
+}
+
 
 export interface ICategoryDtoListEx {
 	categoryDtoList: ICategoryDto[];
@@ -460,7 +533,7 @@ export type CategoriesPayload = {
 	// questions
 	[ActionTypes.LOAD_CATEGORY_QUESTIONS]: {
 		parentCategory: string | null,
-		questions: IQuestion[],
+		questionRowDtos: IQuestionRowDto[],
 		hasMoreQuestions: boolean
 	};
 

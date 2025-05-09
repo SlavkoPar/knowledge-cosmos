@@ -1,5 +1,5 @@
 import { Reducer } from 'react'
-import { Mode, ActionTypes, ICategoriesState, ICategory, IQuestion, CategoriesActions, ILocStorage, ICategoryKey, ICategoryKeyExtended } from "categories/types";
+import { Mode, ActionTypes, ICategoriesState, ICategory, IQuestion, CategoriesActions, ILocStorage, ICategoryKey, ICategoryKeyExtended, IQuestionRow, Question, IQuestionRowDto } from "categories/types";
 
 export const initialQuestion: IQuestion = {
   partitionKey: '',
@@ -9,6 +9,8 @@ export const initialQuestion: IQuestion = {
   title: '',
   assignedAnswers: [],
   numOfAssignedAnswers: 0,
+  relatedFilters: [],
+  numOfRelatedFilters: 0,
   source: 0,
   status: 0
 }
@@ -292,9 +294,10 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
     }
 
     case ActionTypes.LOAD_CATEGORY_QUESTIONS: {
-      const { parentCategory, questions, hasMoreQuestions } = action.payload; // category doesn't contain inViewing, inEditing, inAdding 
-      console.log('>>>>>>>>>>>>LOAD_CATEGORY_QUESTIONS', { parentCategory, questions, hasMoreQuestions })
+      const { parentCategory, questionRowDtos, hasMoreQuestions } = action.payload; // category doesn't contain inViewing, inEditing, inAdding 
+      console.log('>>>>>>>>>>>>LOAD_CATEGORY_QUESTIONS', { parentCategory, questionRowDtos, hasMoreQuestions })
       const category = state.categories.find(c => c.id === parentCategory);
+      const questions: IQuestion[] = questionRowDtos.map(questionRow => new Question(questionRow).question);
       //if (questions.length > 0 && category!.questions.map(q => q.id).includes(questions[0].id)) {
       // privremeno  TODO  uradi isto i u group/answers
       // We have, at two places:
@@ -314,13 +317,13 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
         categories: state.categories.map(c => c.id === parentCategory
           ? {
             ...c,
-            questions: c.questions.concat(questions.map((q: IQuestion) => (q.included
+            questions: c.questions.concat(questions.map(question => (question.included
               ? {
-                ...q,
+                ...question,
                 inViewing: state.mode === Mode.ViewingQuestion,
                 inEditing: state.mode === Mode.EditingQuestion
               }
-              : q))),
+              : question))),
             hasMoreQuestions,
             inViewing: c.inViewing,
             inEditing: c.inEditing,

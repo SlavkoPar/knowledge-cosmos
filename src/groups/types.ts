@@ -30,6 +30,8 @@ export enum FormMode {
 
 
 
+/////////////////////////////////////////////////
+// Assigned Answers
 
 export interface IAssignedAnswer {
 	questionKey: IQuestionKey;
@@ -39,8 +41,6 @@ export interface IAssignedAnswer {
 	created: IWhoWhen,
 	modified: IWhoWhen | null
 }
-
-
 
 export interface IAssignedAnswerDto {
 	QuestionKey: IQuestionKey;
@@ -55,7 +55,6 @@ export interface IAssignedAnswerDtoEx {
 	assignedAnswerDto: IAssignedAnswerDto | null;
 	msg: string;
 }
-
 
 export class AssignedAnswerDto {
 	constructor(assignedAnswer: IAssignedAnswer) {
@@ -87,17 +86,25 @@ export class AssignedAnswer {
 	assignedAnswer: IAssignedAnswer;
 }
 
-export interface IAnswer extends IRecord {
+
+
+//////////////////////////////////////
+// Answer
+
+export interface IAnswerRow extends IRecord {
 	partitionKey: string;
 	id: string;
 	title: string;
 	link: string | null;
 	parentGroup: string;
-	groupTitle?: string;
+	groupTitle: string;
+	included?: boolean;
+}
+
+export interface IAnswer extends IAnswerRow {
 	source: number;
 	status: number;
 	//GroupTitle?: string;
-	included?: boolean;
 }
 
 export interface IGroupKey {
@@ -137,6 +144,26 @@ export interface IGroup extends IRecord {
 	hasSubGroups: boolean;
 	groups?: IGroup[]; // used for export to json
 	titlesUpTheTree?: string;
+}
+
+
+export class AnswerRow {
+	constructor(rowDto: IAnswerRowDto) { //, parentCategory: string) {
+		this.answerRow = {
+			parentGroup: rowDto.ParentGroup,
+			partitionKey: rowDto.PartitionKey,
+			id: rowDto.Id,
+			title: rowDto.Title,
+			groupTitle: rowDto.GroupTitle,
+			link: rowDto.Link, 
+			created: new Dto2WhoWhen(rowDto.Created!).whoWhen,
+			modified: rowDto.Modified
+				? new Dto2WhoWhen(rowDto.Modified).whoWhen
+				: undefined,
+			included: rowDto.Included
+		}
+	}
+	answerRow: IAnswerRow
 }
 
 
@@ -229,7 +256,7 @@ export class AnswerDto {
 	answerDto: IAnswerDto;
 }
 
-export interface IAnswerDto extends IRecordDto {
+export interface IAnswerRowDto extends IRecordDto {
 	PartitionKey: string;
 	Id: string;
 	ParentGroup: string;
@@ -237,9 +264,15 @@ export interface IAnswerDto extends IRecordDto {
 	Title: string;
 	Link: string | null;
 	GroupTitle: string;
+	Included?: boolean;
 	Source: number;
 	Status: number;
 }
+
+export interface IAnswerDto extends IAnswerRowDto {
+}
+
+
 
 export interface IAnswerDtoEx {
 	answerDto: IAnswerDto | null;
@@ -483,7 +516,7 @@ export type GroupsPayload = {
 	// answers
 	[ActionTypes.LOAD_GROUP_ANSWERS]: {
 		parentGroup: string | null,
-		answers: IAnswer[],
+		answerRowDtos: IAnswerRowDto[],
 		hasMoreAnswers: boolean
 	};
 
