@@ -35,14 +35,18 @@ export const initialState: ICategoriesState = {
   mode: Mode.NULL,
   categories: [],
   categoryNodesUpTheTree: [],
-  categoryKeyExpanded: null,
+  categoryKeyExpanded: {
+    "partitionKey": "DALJINSKI",
+    "id": "DALJINSKI"
+  },
   categoryId_questionId_done: undefined,
   categoryId: null,
-  questionId: null,
+  questionId: "4350111111",
   loading: false,
   questionLoading: false,
-  categoryNodeLoaded: true
+  categoryNodeLoaded: false //true  TODO izmeni nakon testa
 }
+
 
 // let state_fromLocalStorage: IState_fromLocalStorage | undefined;
 
@@ -63,7 +67,7 @@ let initialCategoriesState: ICategoriesState = {
 }
 
 if ('localStorage' in window) {
-  console.log('Arghhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh')
+  console.log('Arghhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh CATEGORIES_STATE loaded before signIn')
   const s = localStorage.getItem('CATEGORIES_STATE');
   if (s !== null) {
     const locStorage = JSON.parse(s);

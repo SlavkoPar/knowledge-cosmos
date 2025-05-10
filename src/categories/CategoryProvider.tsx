@@ -352,34 +352,36 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
     }, [dispatch]);
 
 
-  const deleteCategory = useCallback(async (categoryKey: ICategoryKey) => {
+  const deleteCategory = useCallback(async (category: ICategory) => {
     //dispatch({ type: ActionTypes.SET_CATEGORY_LOADING, payload: { id, loading: false } });
     try {
+      const categoryDto = new CategoryDto(category).categoryDto;
+        //questionDto.Archived = new WhoWhen2Dto(question.archived!).whoWhenDto!;
       const url = `${protectedResources.KnowledgeAPI.endpointCategory}` ///${categoryKey.partitionKey}/${categoryKey.id}`;
       console.time()
-      await Execute("DELETE", url, { PartitionKey: categoryKey.partitionKey, Id: categoryKey.id })
-        .then(async (response: any | Response) => {
+      await Execute("DELETE", url, categoryDto)    //Modified: {  Time: new Date(), NickName: globalState.authUser.nickName }
+        .then(async (response: ICategoryDtoEx | Response) => {
           console.timeEnd();
           if (response instanceof Response) {
             console.error({ response });
             if (response.status == 404) {
-              dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error('Category Not Found'), whichRowId: categoryKey.id } });
+              dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error('Category Not Found'), whichRowId: category.id } });
             }
           }
           else {
-            const resp: { msg: string } = response;
-            if (response.msg == "OK") {
-              dispatch({ type: ActionTypes.DELETE, payload: { id: categoryKey.id } });
+            const { categoryDto, msg } = response as ICategoryDtoEx;
+            if (msg == "OK") {
+              dispatch({ type: ActionTypes.DELETE, payload: { id: categoryDto!.Id } });
               await loadCats(); // reload
             }
-            else if (resp.msg === "HasSubCategories") {
-              dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error("First remove sub categories"), whichRowId: categoryKey.id } });
+            else if (msg === "HasSubCategories") {
+              dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error("First remove sub categories"), whichRowId: categoryDto!.Id } });
             }
-            else if (resp.msg === "NumOfQuestions") {
-              dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error("First remove category questions"), whichRowId: categoryKey.id } });
+            else if (msg === "NumOfQuestions") {
+              dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error("First remove category questions"), whichRowId: categoryDto!.Id } });
             }
             else {
-              dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error(response), whichRowId: categoryKey.id } });
+              dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error(msg), whichRowId: categoryDto!.Id } });
             }
           }
         })
@@ -536,7 +538,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
       dispatch({ type: ActionTypes.SET_CATEGORY_LOADING, payload: { id: parentCategory, loading: false } });
       try {
         const questionDto = new QuestionDto(question).questionDto;
-        questionDto.Archived = new WhoWhen2Dto(question.archived!).whoWhenDto!;
+        //questionDto.Archived = new WhoWhen2Dto(question.archived!).whoWhenDto!;
         const url = `${protectedResources.KnowledgeAPI.endpointQuestion}`;
         console.time()
         await Execute("DELETE", url, questionDto)
@@ -702,7 +704,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
   const contextValue: ICategoriesContext = {
     state, reloadCategoryNode,
     getSubCategories, createCategory, viewCategory, editCategory, updateCategory, deleteCategory, deleteCategoryVariation,
-    expandCategory, collapseCategory, 
+    expandCategory, collapseCategory,
     loadCategoryQuestions, createQuestion, viewQuestion, editQuestion, updateQuestion, deleteQuestion,
     assignQuestionAnswer, createAnswer
   }

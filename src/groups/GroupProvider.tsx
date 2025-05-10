@@ -329,34 +329,35 @@ export const GroupProvider: React.FC<Props> = ({ children }) => {
     }, [dispatch]);
 
 
-  const deleteGroup = useCallback(async (groupKey: IGroupKey) => {
+  const deleteGroup = useCallback(async (group: IGroup) => {
     //dispatch({ type: ActionTypes.SET_GROUP_LOADING, payload: { id, loading: false } });
     try {
+      const groupDto = new GroupDto(group).groupDto;
       const url = `${protectedResources.KnowledgeAPI.endpointGroup}` ///${groupKey.partitionKey}/${groupKey.id}`;
       console.time()
-      await Execute("DELETE", url, { PartitionKey: groupKey.partitionKey, Id: groupKey.id })
+      await Execute("DELETE", url, groupDto)
         .then(async (response: any | Response) => {
           console.timeEnd();
           if (response instanceof Response) {
             console.error({ response });
             if (response.status == 404) {
-              dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error('Group Not Found'), whichRowId: groupKey.id } });
+              dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error('Group Not Found'), whichRowId: groupDto!.Id } });
             }
           }
           else {
-            const resp: { msg: string } = response;
-            if (response.msg == "OK") {
-              dispatch({ type: ActionTypes.DELETE, payload: { id: groupKey.id } });
+            const { groupDto, msg } = response as IGroupDtoEx;
+            if (msg == "OK") {
+              dispatch({ type: ActionTypes.DELETE, payload: { id: groupDto!.Id } });
               await loadShortGroups(); // reload
             }
-            else if (resp.msg === "HasSubGroups") {
-              dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error("First remove sub groups"), whichRowId: groupKey.id } });
+            else if (msg === "HasSubGroups") {
+              dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error("First remove sub groups"), whichRowId: groupDto!.Id } });
             }
-            else if (resp.msg === "NumOfAnswers") {
-              dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error("First remove group answers"), whichRowId: groupKey.id } });
+            else if (msg === "NumOfAnswers") {
+              dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error("First remove group answers"), whichRowId: groupDto!.Id } });
             }
             else {
-              dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error(response), whichRowId: groupKey.id } });
+              dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error(response), whichRowId: groupDto!.Id } });
             }
           }
         })
@@ -517,7 +518,7 @@ export const GroupProvider: React.FC<Props> = ({ children }) => {
       dispatch({ type: ActionTypes.SET_GROUP_LOADING, payload: { id: parentGroup, loading: false } });
       try {
         const answerDto = new AnswerDto(answer).answerDto;
-        answerDto.Archived = new WhoWhen2Dto(answer.archived!).whoWhenDto!;
+        //answerDto.Archived = new WhoWhen2Dto(answer.archived!).whoWhenDto!;
         const url = `${protectedResources.KnowledgeAPI.endpointAnswer}`;
         console.time()
         await Execute("DELETE", url, answerDto)

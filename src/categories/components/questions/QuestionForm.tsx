@@ -17,6 +17,7 @@ import Dropdown from 'react-bootstrap/Dropdown';
 import AssignedAnswers from './AssignedAnswers';
 import { useGlobalContext } from 'global/GlobalProvider';
 import VariationList from 'categories/VariationList';
+import RelatedFilters from './RelatedFilters';
 
 const QuestionForm = ({ mode, question, submitForm, children, showCloseButton, source = 0, closeModal }: IQuestionFormProps) => {
 
@@ -29,7 +30,7 @@ const QuestionForm = ({ mode, question, submitForm, children, showCloseButton, s
   const editing = mode === FormMode.editing;
   const adding = mode === FormMode.adding;
 
-  const { partitionKey, parentCategory, title, id, assignedAnswers } = question;
+  const { partitionKey, parentCategory, title, id, assignedAnswers, relatedFilters } = question;
   const questionKey = {parentCategory, partitionKey, id };
   const categoryKey: ICategoryKey = {partitionKey, id: parentCategory};
 
@@ -210,7 +211,6 @@ const QuestionForm = ({ mode, question, submitForm, children, showCloseButton, s
             </Form.Group>
           </Col>
         </Row>
-        <br />
 
         {(viewing || editing) &&
           <>
@@ -219,6 +219,12 @@ const QuestionForm = ({ mode, question, submitForm, children, showCloseButton, s
               questionTitle={title}
               assignedAnswers={assignedAnswers}
               isDisabled={isDisabled}
+            />
+
+            <RelatedFilters
+              questionKey={questionKey}
+              questionTitle={title}
+              relatedFilters={relatedFilters}
             />
 
             <CreatedModifiedForm

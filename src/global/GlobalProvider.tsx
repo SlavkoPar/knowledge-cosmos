@@ -18,8 +18,8 @@ import {
 
 import { globalReducer, initialGlobalState } from "global/globalReducer";
 
-import { Category, ICategory, ICategoryDto, ICategoryKey, IQuest, IQuestDto, IQuestion, IQuestionDto, IQuestionDtoEx, IQuestionEx, IQuestionKey, Question } from "categories/types";
-import { Group, IGroup, IGroupDto, IGroupKey, IAnswer, IAnswerDto, IAnswerKey, IShortAnswer, IShortAnswerDto, Answer, IAssignedAnswer } from "groups/types";
+import { Category, ICategory, ICategoryDto, ICategoryKey, IQuestionRow, IQuestionRowDto, IQuestion, IQuestionDto, IQuestionDtoEx, IQuestionEx, IQuestionKey, Question } from "categories/types";
+import { Group, IGroup, IGroupDto, IGroupKey, IAnswer, IAnswerDto, IAnswerKey, IAnswerRow, IAnswerRowDto, Answer, IAssignedAnswer } from "groups/types";
 import { IUser } from 'global/types';
 
 import { IDBPDatabase, IDBPIndex, openDB } from 'idb' // IDBPTransaction
@@ -181,17 +181,18 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
         console.time();
         const filterEncoded = encodeURIComponent(filter);
         const url = `${protectedResources.KnowledgeAPI.endpointQuestion}/${filterEncoded}/${count}/null`;
-        await Execute("GET", url).then((questDtos: IQuestDto[] | undefined) => {
-          console.log({ questDtos }, protectedResources.KnowledgeAPI.endpointCategory);
+        await Execute("GET", url).then((dtos: IQuestionRowDto[] | undefined) => {
+          console.log({ questDtos: dtos }, protectedResources.KnowledgeAPI.endpointCategory);
           console.timeEnd();
-          if (questDtos) {
-            const listQuest: IQuest[] = questDtos.map((q: IQuestDto) => ({
+          if (dtos) {
+            const list: IQuestionRow[] = dtos.map((q: IQuestionRowDto) => ({
               partitionKey: q.PartitionKey,
               id: q.Id,
               parentCategory: q.ParentCategory,
-              title: q.Title
+              title: q.Title,
+              categoryTitle: ''
             }))
-            resolve(listQuest);
+            resolve(list);
           }
           else {
             // reject()
@@ -298,19 +299,20 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
         console.time();
         const filterEncoded = encodeURIComponent(filter);
         const url = `${protectedResources.KnowledgeAPI.endpointAnswer}/${filterEncoded}/${count}/null`;
-        await Execute("GET", url).then((shortAnswerDtoList: IShortAnswerDto[]) => {
-          console.log({ questDtos: shortAnswerDtoList }, protectedResources.KnowledgeAPI.endpointGroup);
+        await Execute("GET", url).then((answerRowDtos: IAnswerRowDto[]) => {
+          console.log({ answerRowDtos }, protectedResources.KnowledgeAPI.endpointGroup);
           console.timeEnd();
-          if (shortAnswerDtoList) {
-            const shortAnswers: IShortAnswer[] = shortAnswerDtoList.map((shortAnswerDto: IShortAnswerDto) => {
-              const { PartitionKey, Id, ParentGroup, Title } = shortAnswerDto;
+          if (answerRowDtos) {
+            const shortAnswers: IAnswerRow[] = answerRowDtos.map((shortAnswerDto: IAnswerRowDto) => {
+              const { PartitionKey, Id, ParentGroup, Title, Link } = shortAnswerDto;
               //const group = shortGroups.get(ParentGroup);
               return {
                 partitionKey: PartitionKey,
                 id: Id,
                 parentGroup: ParentGroup,
-                title: Title
-                //groupTitle: group ? group.title : 'Not found'
+                title: Title,
+                link: Link,
+                groupTitle: '' // group ? group.title : 'Not found'
               }
             })
             resolve(shortAnswers);

@@ -30,7 +30,7 @@ const AnswerRow = ({ answer, groupInAdding }: { answer: IAnswer, groupInAdding: 
     const alreadyAdding = state.mode === Mode.AddingAnswer;
 
     const del = () => {
-        answer.archived = {
+        answer.modified = {
             time: new Date(),
             nickName: authUser.nickName
         }

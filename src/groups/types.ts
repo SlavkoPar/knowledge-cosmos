@@ -284,22 +284,6 @@ export interface IAnswersMore {
 	hasMoreAnswers: boolean;
 }
 
-export interface IShortAnswerDto {
-	PartitionKey: string;
-	ParentGroup: string;
-	Title: string;
-	Id: string;
-}
-
-export interface IShortAnswer {
-	partitionKey: string;
-	id: string;
-	parentGroup: string;
-	title: string;
-	groupTitle?: string;
-}
-
-
 export interface IGroupDto extends IRecordDto {
 	PartitionKey: string;
 	Id: string;
@@ -369,7 +353,7 @@ export interface IGroupsContext {
 	viewGroup: (groupKey: IGroupKey, includeAnswerId: string) => void,
 	editGroup: (groupKey: IGroupKey, includeAnswerId: string) => void,
 	updateGroup: (group: IGroup, closeForm: boolean) => void,
-	deleteGroup: (groupKey: IGroupKey) => void,
+	deleteGroup: (group: IGroup) => void,
 	deleteGroupVariation: (groupKey: IGroupKey, name: string) => void,
 	expandGroup: (groupKey: IGroupKey, includeAnswerId: string) => void,
 	collapseGroup: (groupKey: IGroupKey) => void,

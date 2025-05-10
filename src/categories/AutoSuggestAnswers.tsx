@@ -6,7 +6,7 @@ import { isMobile } from 'react-device-detect'
 
 import { debounce, escapeRegexCharacters } from 'common/utilities'
 import './AutoSuggestAnswers.css'
-import { IShortAnswer, IAnswerKey, IShortAnswerDto } from 'groups/types';
+import { IAnswerRow, IAnswerKey, IAnswerRowDto } from 'groups/types';
 import { IShortGroup } from 'global/types';
 
 
@@ -15,7 +15,7 @@ interface IGrpMy {
 	parentGroupUp: string,
 	groupParentTitle: string,
 	groupTitle: string,
-	shortAnswers: IShortAnswer[]
+	shortAnswers: IAnswerRow[]
 }
 
 interface IGroupSection {
@@ -23,7 +23,7 @@ interface IGroupSection {
 	groupTitle: string,
 	parentGroupUp: string,
 	groupParentTitle: string, // TODO ???
-	shortAnswers: IShortAnswer[]
+	shortAnswers: IAnswerRow[]
 }
 
 // https://developer.mozilla.org/en/docs/Web/JavaScript/Guide/Regular_Expression
@@ -39,14 +39,14 @@ interface IShortGroupIdTitle {
 	title: string;
 }
 
-const AnswerAutosuggestMulti = Autosuggest as { new(): Autosuggest<IShortAnswer, IGrpMy> };
+const AnswerAutosuggestMulti = Autosuggest as { new(): Autosuggest<IAnswerRow, IGrpMy> };
 
 export class AutoSuggestAnswers extends React.Component<{
 	tekst: string | undefined,
 	onSelectQuestionAnswer: (answerKey: IAnswerKey) => void,
 	alreadyAssigned: string[],
 	shortGroups: Map<string, IShortGroup>,
-	searchAnswers: (filter: string, count: number) => Promise<IShortAnswer[]>
+	searchAnswers: (filter: string, count: number) => Promise<IAnswerRow[]>
 
 }, any> {
 	// region Fields
@@ -54,7 +54,7 @@ export class AutoSuggestAnswers extends React.Component<{
 	state: any;
 	isMob: boolean;
 	shortGroups: Map<string, IShortGroup>;
-	searchAnswers: (filter: string, count: number) => Promise<IShortAnswer[]>;
+	searchAnswers: (filter: string, count: number) => Promise<IAnswerRow[]>;
 	debouncedLoadSuggestions: (value: string) => void;
 	//inputAutosuggest: React.RefObject<HTMLInputElement>;
 	// endregion region Constructor
@@ -170,12 +170,12 @@ export class AutoSuggestAnswers extends React.Component<{
 		if (search.length < 2)
 			return [];
 
-		const groupAnswers = new Map<string, IShortAnswer[]>();
+		const groupAnswers = new Map<string, IAnswerRow[]>();
 		const answerKeys: IAnswerKey[] = [];
 		try {
 			console.log('--------->>>>> getSuggestions')
-			var shortAnswerList: IShortAnswer[] = await this.searchAnswers(escapedValue, 20);
-			shortAnswerList.forEach((shortAnswer: IShortAnswer) => {
+			var shortAnswerList: IAnswerRow[] = await this.searchAnswers(escapedValue, 20);
+			shortAnswerList.forEach((shortAnswer: IAnswerRow) => {
 				const { partitionKey, id, parentGroup, title } = shortAnswer;
 				if (!this.alreadyAssigned.includes(id)) {
 					const answerKey = { partitionKey, id }
@@ -184,7 +184,7 @@ export class AutoSuggestAnswers extends React.Component<{
 					}
 
 					//2) Group answers by parentGroup
-					// const ans2: IShortAnswer = {
+					// const ans2: IAnswerRow = {
 					// 	partitionKey,
 					// 	id,
 					// 	parentGroup,
@@ -277,8 +277,8 @@ export class AutoSuggestAnswers extends React.Component<{
 		});
 	};
 
-	protected onSuggestionSelected(event: React.FormEvent<any>, data: Autosuggest.SuggestionSelectedEventData<IShortAnswer>): void {
-		const answer: IShortAnswer = data.suggestion;
+	protected onSuggestionSelected(event: React.FormEvent<any>, data: Autosuggest.SuggestionSelectedEventData<IAnswerRow>): void {
+		const answer: IAnswerRow = data.suggestion;
 		alert(`Selected answer is ${answer.partitionKey} / ${answer.id}.`);
 		this.props.onSelectQuestionAnswer({ partitionKey: answer.partitionKey, id: answer.id });
 	}
@@ -291,7 +291,7 @@ export class AutoSuggestAnswers extends React.Component<{
 	*/
 
 	// TODO bac ovo u external css   style={{ textAlign: 'left'}}
-	protected renderSuggestion(suggestion: IShortAnswer, params: Autosuggest.RenderSuggestionParams): JSX.Element {
+	protected renderSuggestion(suggestion: IAnswerRow, params: Autosuggest.RenderSuggestionParams): JSX.Element {
 		// const className = params.isHighlighted ? "highlighted" : undefined;
 		//return <span className={className}>{suggestion.name}</span>;
 		const matches = AutosuggestHighlightMatch(suggestion.title, params.query);
@@ -382,7 +382,7 @@ export class AutoSuggestAnswers extends React.Component<{
 	////////////////////////////////////
 	// endregion region Helper methods
 
-	protected getSuggestionValue(suggestion: IShortAnswer) {
+	protected getSuggestionValue(suggestion: IAnswerRow) {
 		return suggestion.title;
 	}
 

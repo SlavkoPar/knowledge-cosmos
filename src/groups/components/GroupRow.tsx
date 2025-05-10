@@ -31,7 +31,7 @@ const GroupRow = ({ group }: { group: IGroup }) => {
         title
     }
 
-    const { canEdit, isDarkMode, variant, bg } = useGlobalState();
+    const { canEdit, isDarkMode, variant, bg, authUser } = useGlobalState();
 
     const { state, viewGroup, editGroup, deleteGroup, expandGroup, collapseGroup } = useGroupContext();
     const { answerId } = state;
@@ -43,7 +43,11 @@ const GroupRow = ({ group }: { group: IGroup }) => {
     const showAnswers = (isExpanded && numOfAnswers > 0) // || answers.find(q => q.inAdding) // && !answers.find(q => q.inAdding); // We don't have answers loaded
 
     const del = () => {
-        deleteGroup(groupKey);
+        group.modified = { 
+            time: new Date(),
+            nickName: authUser.nickName 
+        }
+        deleteGroup(group);
     };
 
     const expand = async () => {

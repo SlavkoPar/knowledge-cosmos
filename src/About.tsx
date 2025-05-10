@@ -1,5 +1,7 @@
 import * as React from "react";
 
+import imageQuestionForm from 'screenshots/QuestionForm.png'
+
 import image5 from 'screenshots/image5.png'
 import image1 from 'screenshots/image1.png'
 import image2 from 'screenshots/image2.png'
@@ -35,7 +37,7 @@ const About: React.FC<IAbout> = (props: IAbout) => {
           </a>
         </li> */}
 
-        <li className="p-1">
+        {/* <li className="p-1">
           <a
             href="https://microsoftedge.microsoft.com/addons/detail/supportext/aapkliafbaemkfdkcnlcbhhpjiodnnpb"
             title="SupportExt"
@@ -44,7 +46,7 @@ const About: React.FC<IAbout> = (props: IAbout) => {
           >
             Microsoft Edge Add-ons
           </a>
-        </li>
+        </li> */}
 
         {/* <li className="p-1">Video<br />
           <iframe
@@ -55,12 +57,17 @@ const About: React.FC<IAbout> = (props: IAbout) => {
           />
         </li> */}
 
-         <li className="p-1">Install SupportExt Chrome Extension, <br />and select Hosting for Web App.<br />Also decide if the Extension forwards 'Email' to the Web App
+        <li className="p-1">Question Form<br/>
+          <img src={imageQuestionForm} alt="Extension" className="p-1 w-75" />
+        </li>
+
+
+         {/* <li className="p-1">Install SupportExt Chrome Extension, <br />and select Hosting for Web App.<br />Also decide if the Extension forwards 'Email' to the Web App
           <img src={image5} alt="Extension" className="p-1 w-75" />
         </li>
         <li className="p-1">Open the EMail that you have received from client
           <img src={image1} alt="Extension" className="p-1 w-75" />
-        </li>
+        </li> */}
         {/*<li className="p-1">Click on <i><b>Support</b></i> icon to forward 'Subject' as the 'Question' to Web app
           <img src={image2} alt="Autocomplete" className="p-1 w-75" />
         </li>

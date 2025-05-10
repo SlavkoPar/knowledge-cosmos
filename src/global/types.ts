@@ -1,6 +1,6 @@
 // Define the Global State
-import { ICategory, ICategoryKey, IQuest, IQuestion, IQuestionEx, IQuestionKey } from 'categories/types';
-import { IGroup, IGroupKey, IShortAnswer, IAnswer, IAnswerKey } from 'groups/types';
+import { ICategory, ICategoryKey, IQuestion, IQuestionEx, IQuestionKey, IQuestionRow } from 'categories/types';
+import { IGroup, IGroupKey, IAnswerRow, IAnswer, IAnswerKey } from 'groups/types';
 //import { IOption } from 'common/types';
 import { IDBPDatabase } from 'idb';
 
@@ -191,12 +191,12 @@ export interface IGlobalContext {
 	loadCats: () => void;
 	getSubCats: (categoryKey: ICategoryKey) => Promise<any>;
 	getCatsByKind: (kind: number) => Promise<ICat[]>;
-	searchQuestions: (filter: string, count: number) => Promise<IQuest[]>;
+	searchQuestions: (filter: string, count: number) => Promise<IQuestionRow[]>;
 	getQuestion: (questionKey: IQuestionKey) => Promise<IQuestionEx>;
 	loadShortGroups: () => void;
 	getSubGroups: (categoryKey: ICategoryKey) => Promise<any>;
 	getGroupsByKind: (kind: number) => Promise<IShortGroup[]>;
-	searchAnswers: (filter: string, count: number) => Promise<IShortAnswer[]>;
+	searchAnswers: (filter: string, count: number) => Promise<IAnswerRow[]>;
 	getAnswer: (answerKey: IAnswerKey) => Promise<IAnswer | null>;
 	addHistory: (history: IHistory) => Promise<void>;
 	getAnswersRated: (questionKey: IQuestionKey) => Promise<any>;

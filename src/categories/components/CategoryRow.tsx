@@ -31,8 +31,8 @@ const CategoryRow = ({ category }: { category: ICategory }) => {
         title
     }
 
-    const { canEdit, isDarkMode, variant, bg } = useGlobalState();
-
+    const { canEdit, isDarkMode, variant, bg, authUser } = useGlobalState();
+    
     const { state, viewCategory, editCategory, deleteCategory, expandCategory, collapseCategory } = useCategoryContext();
     const { questionId } = state;
 
@@ -43,7 +43,11 @@ const CategoryRow = ({ category }: { category: ICategory }) => {
     const showQuestions = (isExpanded && numOfQuestions > 0) // || questions.find(q => q.inAdding) // && !questions.find(q => q.inAdding); // We don't have questions loaded
 
     const del = () => {
-        deleteCategory(categoryKey);
+        category.modified = { 
+            time: new Date(),
+            nickName: authUser.nickName 
+        }
+        deleteCategory(category);
     };
 
     const expand = async () => {

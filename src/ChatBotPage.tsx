@@ -28,7 +28,7 @@ type ChatBotParams = {
 const ChatBotPage: React.FC = () => {
 
 	let { source, tekst, email } = useParams<ChatBotParams>();
-	tekst = 'daljinski'
+	const [autoSuggestionValue, setAutoSuggestionValue] = useState(tekst)
 
 	// TODO do we need this?
 	// const globalState = useGlobalState();
@@ -53,7 +53,6 @@ const ChatBotPage: React.FC = () => {
 	const setParentCategory = (cat: ICategory) => {
 		alert(cat.title)
 	}
-
 	const [showUsage, setShowUsage] = useState(false);
 	const [catsSelected, setCatsSelected] = useState(false);
 	const [showAutoSuggest, setShowAutoSuggest] = useState(false);
@@ -179,8 +178,7 @@ const ChatBotPage: React.FC = () => {
 		}
 		console.log('Breeeeeeeeeeeeeeeeeeeeeeeeeeeeeee:', {question})
 		if (question.numOfRelatedFilters > 0) {
-			tekst =  question.relatedFilters[0].filter
-			alert(tekst);
+			setAutoSuggestionValue(question.relatedFilters[0].filter)
 		}
 		const res: INewQuestion = await (await hook).setNewQuestion(question);
 		let { firstChatBotAnswer: firstAnswer, hasMoreAnswers } = res; // as unknown as INewQuestion;
@@ -392,7 +390,7 @@ const ChatBotPage: React.FC = () => {
 								<>
 									{/* <div>{Date.now().toString()}</div> */}
 									<AutoSuggestQuestions
-										tekst={tekst}
+										tekst={txt}
 										onSelectQuestion={onSelectQuestion}
 										allCategories={cats}
 										searchQuestions={searchQuestions}
@@ -514,7 +512,7 @@ const ChatBotPage: React.FC = () => {
 					}
 
 					{showAutoSuggest &&
-						<AutoSuggestComponent type={ChildType.AUTO_SUGGEST} isDisabled={false} txt={tekst!} link={null} />
+						<AutoSuggestComponent type={ChildType.AUTO_SUGGEST} isDisabled={false} txt={autoSuggestionValue!} link={null} />
 					}
 					{/* </div> */}
 				</Col>

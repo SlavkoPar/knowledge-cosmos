@@ -3,7 +3,7 @@ import { Container, Row, Col, Button } from "react-bootstrap";
 
 import { useParams } from 'react-router-dom';
 
-import { Mode, ActionTypes, ICategoryKey } from "./types";
+import { Mode, ActionTypes, ICategoryKey, IQuestionKey } from "./types";
 
 import { useGlobalContext, useGlobalState } from 'global/GlobalProvider';
 
@@ -18,6 +18,7 @@ import EditQuestion from "categories/components/questions/EditQuestion";
 import { initialQuestion } from "categories/CategoriesReducer";
 import ModalAddQuestion from './ModalAddQuestion';
 import AddCategory from './components/AddCategory';
+import { AutoSuggestQuestions } from './AutoSuggestQuestions';
 
 interface IProps {
     categoryId_questionId: string | undefined
@@ -27,8 +28,8 @@ const Providered = ({ categoryId_questionId }: IProps) => {
     const { state, reloadCategoryNode } = useCategoryContext();
     const { categoryKeyExpanded, categoryId_questionId_done, questionId, categoryNodeLoaded } = state;
 
-    const { setLastRouteVisited } = useGlobalContext();
-    const { isDarkMode, authUser } = useGlobalState();
+    const { setLastRouteVisited, searchQuestions } = useGlobalContext();
+    const { isDarkMode, authUser, cats } = useGlobalState();
 
     const [modalShow, setModalShow] = useState(false);
     const handleClose = () => {
@@ -39,7 +40,14 @@ const Providered = ({ categoryId_questionId }: IProps) => {
     const [createQuestionError, setCreateQuestionError] = useState("");
 
     const dispatch = useCategoryDispatch();
+
+      const onSelectQuestion = async (questionKey: IQuestionKey) => {
+        //navigate(`/categories/${questionKey.partitionKey}_${questionKey.id}`)
+        dispatch({type: ActionTypes.SET_QUESTION_SELECTED, payload: { questionKey }})
+    }
+    
     const [categoryKey] = useState<ICategoryKey>({ partitionKey: 'null', id: 'null' })
+    let tekst = '';
 
     useEffect(() => {
         (async () => {
@@ -88,6 +96,22 @@ const Providered = ({ categoryId_questionId }: IProps) => {
         <>
             <Container>
                 <h6 style={{ color: 'rgb(13, 110, 253)', marginLeft: '30%' }}>Categories / Questions</h6>
+
+<Row className={`${isDarkMode ? "dark" : ""}`}>
+                    <Col>
+                        <div className="d-flex justify-content-start align-items-center">
+                            <div className="w-75 my-1">
+                                <AutoSuggestQuestions
+                                    tekst={tekst}
+                                    onSelectQuestion={onSelectQuestion}
+                                    allCategories={cats}
+                                    searchQuestions={searchQuestions}
+                                />
+                            </div>
+                        </div>
+                    </Col>
+                </Row>
+
                 <Button variant="secondary" size="sm" type="button" style={{ padding: '1px 4px' }}
                     onClick={() => dispatch({
                         type: ActionTypes.ADD_SUB_CATEGORY,

@@ -78,7 +78,7 @@ const AssignedAnswers = ({ questionKey, questionTitle, assignedAnswers, isDisabl
     return (
         <div className={'mx-0 my-1 border rounded-2 px-3 py-1 border border-info'} >
             <div>
-                <label className="text-info">Answers</label>
+                <label className="text-muted"><small>Assigned Answers</small></label>
                 <ListGroup as="ul" variant={variant} className='my-1'>
                     {assignedAnswers.map((assignedAnswer: IAssignedAnswer) =>
                         <AssignedAnswer

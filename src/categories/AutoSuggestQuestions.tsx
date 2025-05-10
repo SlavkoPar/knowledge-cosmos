@@ -6,7 +6,7 @@ import { isMobile } from 'react-device-detect'
 
 import { debounce, escapeRegexCharacters } from 'common/utilities'
 import './AutoSuggestQuestions.css'
-import { IQuest, IQuestionKey } from 'categories/types';
+import { IQuestionKey, IQuestionRow } from 'categories/types';
 import { ICat } from 'global/types';
 
 
@@ -15,7 +15,7 @@ interface ICatMy {
 	parentCategoryUp: string,
 	categoryParentTitle: string,
 	categoryTitle: string,
-	quests: IQuest[]
+	questionRows: IQuestionRow[]
 }
 
 interface ICatSection {
@@ -23,7 +23,7 @@ interface ICatSection {
 	categoryTitle: string,
 	parentCategoryUp: string,
 	categoryParentTitle: string, // TODO ???
-	quests: IQuest[]
+	questionRows: IQuestionRow[]
 }
 
 // https://developer.mozilla.org/en/docs/Web/JavaScript/Guide/Regular_Expression
@@ -39,24 +39,24 @@ interface ICatIdTitle {
 	title: string;
 }
 
-const QuestionAutosuggestMulti = Autosuggest as { new(): Autosuggest<IQuest, ICatMy> };
+const QuestionAutosuggestMulti = Autosuggest as { new(): Autosuggest<IQuestionRow, ICatMy> };
 
 export class AutoSuggestQuestions extends React.Component<{
 	tekst: string | undefined,
 	onSelectQuestion: (questionKey: IQuestionKey) => void,
 	allCategories: Map<string, ICat>,
-	searchQuestions: (filter: string, count: number) => Promise<IQuest[]>
+	searchQuestions: (filter: string, count: number) => Promise<IQuestionRow[]>
 }, any> {
 	// region Fields
 	state: any;
 	isMob: boolean;
 	allCategories: Map<string, ICat>;
-	searchQuestions: (filter: string, count: number) => Promise<IQuest[]>;
+	searchQuestions: (filter: string, count: number) => Promise<IQuestionRow[]>;
 	debouncedLoadSuggestions: (value: string) => void;
 	//inputAutosuggest: React.RefObject<HTMLInputElement>;
 	// endregion region Constructor
 	constructor(props: any) {
-		console.log("CONSTRUCTOR")
+		console.log("AutoSuggestQuestions CONSTRUCTOR")
 		super(props);
 		this.state = {
 			value: props.tekst || '',
@@ -164,21 +164,21 @@ export class AutoSuggestQuestions extends React.Component<{
 		if (search.length < 2)
 			return [];
 
-		const catQuests = new Map<string, IQuest[]>();
+		const catQuests = new Map<string, IQuestionRow[]>();
 
 		const questionKeys: IQuestionKey[] = [];
 		try {
 			console.log('--------->>>>> getSuggestions')
-			var questDtoList: IQuest[] = await this.searchQuestions(escapedValue, 20);
+			var questionRowDtoList: IQuestionRow[] = await this.searchQuestions(escapedValue, 20);
 
-			questDtoList.forEach((quest: IQuest) => {
+			questionRowDtoList.forEach((quest: IQuestionRow) => {
 				const { id, partitionKey, parentCategory, title } = quest;
 				const questionKey = { partitionKey, id }
 				if (!questionKeys.includes(questionKey)) {
 					questionKeys.push(questionKey);
 
 					// 2) Group questions by parentCategory
-					const quest: IQuest = {
+					const quest: IQuestionRow = {
 						partitionKey,
 						id,
 						parentCategory,
@@ -222,7 +222,7 @@ export class AutoSuggestQuestions extends React.Component<{
 
 							//console.log(q);
 							// 2) Group questions by parentCategory
-							const quest: IQuest = {
+							const quest: IQuestionRow = {
 								id,
 								parentCategory,
 								title,
@@ -267,7 +267,7 @@ export class AutoSuggestQuestions extends React.Component<{
 					categoryTitle: title,
 					categoryParentTitle: 'kuro',
 					parentCategoryUp: titlesUpTheTree!,
-					quests: []
+					questionRows: []
 				};
 				quests.forEach(quest => {
 					// console.log(quest);
@@ -284,12 +284,12 @@ export class AutoSuggestQuestions extends React.Component<{
 						if (!wordsIncludesTag) {
 							variations.forEach(variation => {
 								// console.log(quest);
-								catSection.quests.push({ ...quest, title: quest.title + ' ' + variation });
+								catSection.questionRows.push({ ...quest, title: quest.title + ' ' + variation });
 							});
 						}
 					}
 					else {
-						catSection.quests.push(quest);
+						catSection.questionRows.push(quest);
 					}
 				});
 				catSections.push(catSection);
@@ -311,8 +311,8 @@ export class AutoSuggestQuestions extends React.Component<{
 		});
 	};
 
-	protected onSuggestionSelected(event: React.FormEvent<any>, data: Autosuggest.SuggestionSelectedEventData<IQuest>): void {
-		const question: IQuest = data.suggestion;
+	protected onSuggestionSelected(event: React.FormEvent<any>, data: Autosuggest.SuggestionSelectedEventData<IQuestionRow>): void {
+		const question: IQuestionRow = data.suggestion;
 		// alert(`Selected question is ${question.questionId} (${question.text}).`);
 		this.props.onSelectQuestion({ partitionKey: question.parentCategory, id: question.id });
 	}
@@ -325,7 +325,7 @@ export class AutoSuggestQuestions extends React.Component<{
 	*/
 
 	// TODO bac ovo u external css   style={{ textAlign: 'left'}}
-	protected renderSuggestion(suggestion: IQuest, params: Autosuggest.RenderSuggestionParams): JSX.Element {
+	protected renderSuggestion(suggestion: IQuestionRow, params: Autosuggest.RenderSuggestionParams): JSX.Element {
 		// const className = params.isHighlighted ? "highlighted" : undefined;
 		//return <span className={className}>{suggestion.name}</span>;
 		const matches = AutosuggestHighlightMatch(suggestion.title, params.query);
@@ -416,12 +416,12 @@ export class AutoSuggestQuestions extends React.Component<{
 	////////////////////////////////////
 	// endregion region Helper methods
 
-	protected getSuggestionValue(suggestion: IQuest) {
+	protected getSuggestionValue(suggestion: IQuestionRow) {
 		return suggestion.title;
 	}
 
 	protected getSectionSuggestions(section: ICatMy) {
-		return section.quests;
+		return section.questionRows;
 	}
 
 	protected onSuggestionHighlighted(params: Autosuggest.SuggestionHighlightedParams): void {

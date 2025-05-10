@@ -30,7 +30,7 @@ const QuestionRow = ({ question, categoryInAdding }: { question: IQuestion, cate
     const alreadyAdding = state.mode === Mode.AddingQuestion;
 
     const del = () => {
-        question.archived = { 
+        question.modified = { 
             time: new Date(),
             nickName: authUser.nickName 
         }

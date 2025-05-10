@@ -294,22 +294,6 @@ export interface IQuestionsMore {
 	hasMoreQuestions: boolean;
 }
 
-export interface IQuestDto {
-	PartitionKey: string;
-	Id: string;
-	ParentCategory: string;
-	Title: string;
-}
-
-export interface IQuest {
-	partitionKey: string;
-	id: string;
-	parentCategory: string;
-	title: string;
-	categoryTitle?: string;
-}
-
-
 export interface ICategoryDto extends IRecordDto {
 	PartitionKey: string;
 	Id: string;
@@ -385,7 +369,7 @@ export interface ICategoriesContext {
 	viewCategory: (categoryKey: ICategoryKey, includeQuestionId: string) => void,
 	editCategory: (categoryKey: ICategoryKey, includeQuestionId: string) => void,
 	updateCategory: (category: ICategory, closeForm: boolean) => void,
-	deleteCategory: (categoryKey: ICategoryKey) => void,
+	deleteCategory: (category: ICategory) => void,
 	deleteCategoryVariation: (categoryKey: ICategoryKey, name: string) => void,
 	expandCategory: (categoryKey: ICategoryKey, includeQuestionId: string) => void,
 	collapseCategory: (categoryKey: ICategoryKey) => void,
@@ -449,6 +433,7 @@ export enum ActionTypes {
 	VIEW_QUESTION = 'VIEW_QUESTION',
 	EDIT_QUESTION = 'EDIT_QUESTION',
 
+	SET_QUESTION_SELECTED = 'SET_QUESTION_SELECTED',
 	SET_QUESTION = 'SET_QUESTION',
 	SET_QUESTION_AFTER_ASSIGN_ANSWER = 'SET_QUESTION_AFTER_ASSIGN_ANSWER',
 	SET_QUESTION_ANSWERS = 'SET_QUESTION_ANSWERS',
@@ -547,6 +532,10 @@ export type CategoriesPayload = {
 
 	[ActionTypes.EDIT_QUESTION]: {
 		question: IQuestion;
+	};
+
+	[ActionTypes.SET_QUESTION_SELECTED]: {
+		questionKey: IQuestionKey;
 	};
 
 	[ActionTypes.SET_QUESTION]: {
