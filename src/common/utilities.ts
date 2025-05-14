@@ -2,6 +2,11 @@ export const formatDate = (date: Date) => date
   ? new Date(date).toLocaleDateString() + " " + new Date(date).toLocaleTimeString()
   : "";
 
+export const formatDateShort = (date: Date) => date
+  ? (new Date(date).toLocaleDateString() + " " + new Date(date).toLocaleTimeString()).substr(0, 16)
+  : "";
+
+
 export const escapeRegexCharacters = (str: string): string => {
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }

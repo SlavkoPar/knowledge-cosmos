@@ -21,6 +21,7 @@ export const initialCategory: ICategory = {
   id: '',
   kind: 0,
   title: '',
+  header: '',
   level: 0,
   variations: [],
   parentCategory: 'null',

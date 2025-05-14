@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEdit, faRemove, faCaretRight, faCaretDown, faPlus, faQuestion } from '@fortawesome/free-solid-svg-icons'
+import { faEdit, faRemove, faCaretRight, faCaretDown, faPlus, faFolder } from '@fortawesome/free-solid-svg-icons'
 import QPlus from 'assets/QPlus.png';
 
 import { ListGroup, Button, Badge } from "react-bootstrap";
@@ -32,7 +32,7 @@ const CategoryRow = ({ category }: { category: ICategory }) => {
     }
 
     const { canEdit, isDarkMode, variant, bg, authUser } = useGlobalState();
-    
+
     const { state, viewCategory, editCategory, deleteCategory, expandCategory, collapseCategory } = useCategoryContext();
     const { questionId } = state;
 
@@ -43,9 +43,9 @@ const CategoryRow = ({ category }: { category: ICategory }) => {
     const showQuestions = (isExpanded && numOfQuestions > 0) // || questions.find(q => q.inAdding) // && !questions.find(q => q.inAdding); // We don't have questions loaded
 
     const del = () => {
-        category.modified = { 
+        category.modified = {
             time: new Date(),
-            nickName: authUser.nickName 
+            nickName: authUser.nickName
         }
         deleteCategory(category);
     };
@@ -82,6 +82,16 @@ const CategoryRow = ({ category }: { category: ICategory }) => {
                 disabled={alreadyAdding || (!hasSubCategories && numOfQuestions === 0)}
             >
                 <FontAwesomeIcon icon={isExpanded ? faCaretDown : faCaretRight} size='lg' />
+            </Button>
+            <Button
+                variant='link'
+                size="sm"
+                className="py-0 px-1"
+                onClick={expand}
+                title="Expand"
+                disabled={alreadyAdding || (!hasSubCategories && numOfQuestions === 0)}
+            >
+                <FontAwesomeIcon icon={faFolder} size='sm' />
             </Button>
             <Button
                 variant='link'
@@ -131,7 +141,7 @@ const CategoryRow = ({ category }: { category: ICategory }) => {
             }
 
             {/* TODO what about archive questions  numOfQuestions === 0 &&*/}
-            {canEdit && !alreadyAdding && hoverProps.isHovered && !hasSubCategories && 
+            {canEdit && !alreadyAdding && hoverProps.isHovered && !hasSubCategories &&
                 <div className="position-absolute d-flex align-items-center top-0 end-0">
                     <Button
                         variant='link'
@@ -193,7 +203,7 @@ const CategoryRow = ({ category }: { category: ICategory }) => {
                 }
             </ListGroup.Item>
 
-            { state.error && state.whichRowId == id && <div className="text-danger">{state.error.message}</div> }
+            {state.error && state.whichRowId == id && <div className="text-danger">{state.error.message}</div>}
 
             {/* !inAdding && */}
             {(isExpanded || inViewing || inEditing || inAdding) && // Row2
@@ -216,7 +226,7 @@ const CategoryRow = ({ category }: { category: ICategory }) => {
                 </ListGroup.Item>
             }
 
-           
+
         </>
     );
 };

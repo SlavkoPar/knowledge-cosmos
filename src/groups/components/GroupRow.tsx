@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEdit, faRemove, faCaretRight, faCaretDown, faPlus, faThumbsUp } from '@fortawesome/free-solid-svg-icons'
+import { faEdit, faRemove, faCaretRight, faCaretDown, faPlus, faFolder, faThumbsUp } from '@fortawesome/free-solid-svg-icons'
 import APlus from 'assets/APlus.png';
 
 import { ListGroup, Button, Badge } from "react-bootstrap";
@@ -43,9 +43,9 @@ const GroupRow = ({ group }: { group: IGroup }) => {
     const showAnswers = (isExpanded && numOfAnswers > 0) // || answers.find(q => q.inAdding) // && !answers.find(q => q.inAdding); // We don't have answers loaded
 
     const del = () => {
-        group.modified = { 
+        group.modified = {
             time: new Date(),
-            nickName: authUser.nickName 
+            nickName: authUser.nickName
         }
         deleteGroup(group);
     };
@@ -82,6 +82,16 @@ const GroupRow = ({ group }: { group: IGroup }) => {
                 disabled={alreadyAdding || (!hasSubGroups && numOfAnswers === 0)}
             >
                 <FontAwesomeIcon icon={isExpanded ? faCaretDown : faCaretRight} size='lg' />
+            </Button>
+            <Button
+                variant='link'
+                size="sm"
+                className="py-0 px-1"
+                onClick={expand}
+                title="Expand"
+                disabled={alreadyAdding || (!hasSubGroups && numOfAnswers === 0)}
+            >
+                <FontAwesomeIcon icon={faFolder} size='sm' />
             </Button>
             <Button
                 variant='link'
@@ -131,7 +141,7 @@ const GroupRow = ({ group }: { group: IGroup }) => {
             }
 
             {/* TODO what about archive answers  numOfAnswers === 0 &&*/}
-            {canEdit && !alreadyAdding && hoverProps.isHovered && !hasSubGroups && 
+            {canEdit && !alreadyAdding && hoverProps.isHovered && !hasSubGroups &&
                 <div className="position-absolute d-flex align-items-center top-0 end-0">
                     <Button
                         variant='link'
@@ -193,7 +203,7 @@ const GroupRow = ({ group }: { group: IGroup }) => {
                 }
             </ListGroup.Item>
 
-            { state.error && state.whichRowId == id && <div className="text-danger">{state.error.message}</div> }
+            {state.error && state.whichRowId == id && <div className="text-danger">{state.error.message}</div>}
 
             {/* !inAdding && */}
             {(isExpanded || inViewing || inEditing || inAdding) && // Row2
@@ -216,7 +226,7 @@ const GroupRow = ({ group }: { group: IGroup }) => {
                 </ListGroup.Item>
             }
 
-           
+
         </>
     );
 };

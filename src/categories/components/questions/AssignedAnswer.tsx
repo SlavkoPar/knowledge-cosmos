@@ -130,7 +130,7 @@ const AssignedAnswer = ({ questionTitle, assignedAnswer, isDisabled, unAssignAns
         <ListGroup.Item
             key={id}
             variant={"info"}
-            className="py-1 px-1"
+            className="py-0 px-1"
             as="li"
         >
             {/* <div class="d-lg-none">hide on lg and wider screens</div> */}

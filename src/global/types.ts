@@ -75,6 +75,8 @@ export class HistoryDto {
 	historyDto: IHistoryDto;
 }
 
+
+
 // export class History {
 // 	constructor(dto: IHistoryDto) {
 // 		this.history = {
@@ -123,6 +125,7 @@ export interface ICat {
 	titlesUpTheTree: string; // traverse up the tree, until root
 	variations: string[];
 	hasSubCategories: boolean;
+	level: number,
 	kind: number
 }
 
@@ -189,7 +192,7 @@ export interface IGlobalContext {
 	exportToJSON: (category: ICategory, parentCategory: string) => void;
 	health: () => void;
 	loadCats: () => void;
-	getSubCats: (categoryKey: ICategoryKey) => Promise<any>;
+	getSubCats: (categoryId: string | null) => Promise<any>;
 	getCatsByKind: (kind: number) => Promise<ICat[]>;
 	searchQuestions: (filter: string, count: number) => Promise<IQuestionRow[]>;
 	getQuestion: (questionKey: IQuestionKey) => Promise<IQuestionEx>;
@@ -200,6 +203,7 @@ export interface IGlobalContext {
 	getAnswer: (answerKey: IAnswerKey) => Promise<IAnswer | null>;
 	addHistory: (history: IHistory) => Promise<void>;
 	getAnswersRated: (questionKey: IQuestionKey) => Promise<any>;
+	addHistoryFilter: (historyFilterDto: IHistoryFilterDto) => Promise<void>;
 }
 
 export enum GlobalActionTypes {
@@ -467,6 +471,14 @@ export interface IHistoryDto {
 	UserAction: USER_ANSWER_ACTION; // when client didn't click on 'Fixed' or 'Not fixed' buttons
 	Created: IWhoWhenDto
 }
+
+
+export interface IHistoryFilterDto {
+	QuestionKey: IQuestionKey;
+	Filter: string;
+	Created: IWhoWhenDto
+}
+
 
 export interface IHistoryDtoEx {
 	historyDto: IHistoryDto | null;

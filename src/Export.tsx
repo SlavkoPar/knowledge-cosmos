@@ -21,6 +21,7 @@ const Export: React.FC<IExport> = (props: IExport) => {
     kind: 0,
     parentCategory: "",
     title: "",
+    header: "",
     level: 0,
     variations: [],
     questions: [],

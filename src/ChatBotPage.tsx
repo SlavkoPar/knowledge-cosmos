@@ -10,7 +10,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus, faQuestion } from '@fortawesome/free-solid-svg-icons'
 import CatList from 'global/Components/SelectCategory/CatList';
 import { ICategory, IQuestion, IQuestionEx, IQuestionKey } from 'categories/types';
-import { IWhoWhen, ICat, IHistory, USER_ANSWER_ACTION } from 'global/types';
+import { IWhoWhen, ICat, IHistory, USER_ANSWER_ACTION, IHistoryFilterDto } from 'global/types';
 import AssignedAnswersChatBot from 'global/ChatBotPage/AssignedAnswersChatBot';
 import { IChatBotAnswer, INewQuestion, INextAnswer, useAI } from './hooks/useAI'
 import { IAnswer } from 'groups/types';
@@ -28,7 +28,7 @@ type ChatBotParams = {
 const ChatBotPage: React.FC = () => {
 
 	let { source, tekst, email } = useParams<ChatBotParams>();
-	const [autoSuggestionValue, setAutoSuggestionValue] = useState(tekst)
+	const [autoSuggestionValue, setAutoSuggestionValue] = useState(tekst!)
 
 	// TODO do we need this?
 	// const globalState = useGlobalState();
@@ -37,7 +37,7 @@ const ChatBotPage: React.FC = () => {
 	// if (!isAuthenticated)
 	//     return <div>loading...</div>;
 
-	const hook = useAI([]);
+	const [setNewQuestion, getCurrQuestion, getNextChatBotAnswer] = useAI([]);
 
 	const [selectedQuestion, setSelectedQuestion] = useState<IQuestion | null>(null);
 
@@ -47,7 +47,7 @@ const ChatBotPage: React.FC = () => {
 	const [chatBotAnswer, setChatBotAnswer] = useState<IChatBotAnswer | null>(null);
 	const [hasMoreAnswers, setHasMoreAnswers] = useState<boolean>(false);
 
-	const { getCatsByKind, getQuestion, addHistory, getAnswersRated, searchQuestions, setLastRouteVisited } = useGlobalContext();
+	const { getCatsByKind, getQuestion, addHistory, addHistoryFilter, getAnswersRated, searchQuestions, setLastRouteVisited } = useGlobalContext();
 	const { dbp, canEdit, authUser, isDarkMode, variant, bg, cats, catsLoaded, lastRouteVisited } = useGlobalState();
 
 	const setParentCategory = (cat: ICategory) => {
@@ -107,7 +107,7 @@ const ChatBotPage: React.FC = () => {
 	}, []) // [catsLoaded])
 
 	useEffect(() => {
-		setLastRouteVisited(`/ChatBotPage/0/${encodeURIComponent('daljinski')}/xyz`);
+		//setLastRouteVisited(`/ChatBotPage/0/${encodeURIComponent('daljinski')}/xyz`);
 	}, [setLastRouteVisited])
 
 
@@ -139,7 +139,17 @@ const ChatBotPage: React.FC = () => {
 	};
 
 	//categoryId: string, questionId: string
-	const onSelectQuestion = async (questionKey: IQuestionKey) => {
+	const onSelectQuestion = async (questionKey: IQuestionKey, underFilter: string) => {
+		const questionCurr = await getCurrQuestion();
+		if (questionCurr) {
+			console.log({ questionCurr })
+			const historyFilterDto: IHistoryFilterDto = {
+				QuestionKey: new QuestionKey(questionCurr).questionKey,
+				Filter: underFilter,
+				Created: { Time: new Date, NickName: authUser.nickName }
+			}
+			await addHistoryFilter(historyFilterDto);
+		}
 		// navigate(`/categories/${categoryId}_${questionId.toString()}`)
 		// const question = await getQuestion(questionId);
 
@@ -158,8 +168,6 @@ const ChatBotPage: React.FC = () => {
 			addHistory(history);
 		}
 		*/
-
-
 		if (chatBotAnswer) {
 			const props: IChild = {
 				type: ChildType.ANSWER,
@@ -173,14 +181,16 @@ const ChatBotPage: React.FC = () => {
 		const questionEx: IQuestionEx = await getQuestion(questionKey);
 		const { question } = questionEx;
 		if (!question) {
-			alert(questionEx.msg)
+			//alert(questionEx.msg)
 			return;
 		}
-		console.log('Breeeeeeeeeeeeeeeeeeeeeeeeeeeeeee:', {question})
+		console.log('Breeeeeeeeeeeeeeeeeeeeeeeeeeeeeee:', { question })
 		if (question.numOfRelatedFilters > 0) {
 			setAutoSuggestionValue(question.relatedFilters[0].filter)
 		}
-		const res: INewQuestion = await (await hook).setNewQuestion(question);
+
+		//const res: INewQuestion = await (await hook).setNewQuestion(question);
+		const res: INewQuestion = await setNewQuestion(question);
 		let { firstChatBotAnswer: firstAnswer, hasMoreAnswers } = res; // as unknown as INewQuestion;
 
 		// const answersRatedListEx: IAnswerRatedListEx = await getAnswersRated(questionKey);
@@ -263,7 +273,8 @@ const ChatBotPage: React.FC = () => {
 		setPastEvents((prevHistory) => [...prevHistory, props]);
 
 		// next
-		const next: INextAnswer = await (await hook).getNextChatBotAnswer();
+		//const next: INextAnswer = await (await hook).getNextChatBotAnswer();
+		const next: INextAnswer = await getNextChatBotAnswer();
 		const { nextChatBotAnswer, hasMoreAnswers } = next;
 
 		if (chatBotAnswer) {
@@ -330,7 +341,7 @@ const ChatBotPage: React.FC = () => {
 						<img width="22" height="18" src={A} alt="Answer" className='m-2' />
 						{/* contentEditable="true" aria-multiline="true" */}
 						<div>
-							{txt} <br/>
+							{txt} <br />
 							{link ? <a href={link} target="_blank" className="text-reset text-decoration-none fw-lighter fs-6" >{link}</a> : null}
 						</div>
 						{!isDisabled && chatBotAnswer &&
@@ -421,7 +432,7 @@ const ChatBotPage: React.FC = () => {
 
 					<Form key='options' className='text-center border border-1 m-1 rounded-1'>
 						<div className='text-center'>
-							Select Options<br/>
+							Select Options<br />
 							<i className='bg-secondary'> Select 'Demo' for test </i>
 						</div>
 						<div className='text-center'>
@@ -447,7 +458,7 @@ const ChatBotPage: React.FC = () => {
 					{showUsage &&
 						<Form key="usage" className='text-center border border-1 m-1 rounded-1'>
 							<div className='text-center'>
-								Select services for which you need support<br/>
+								Select services for which you need support<br />
 								<i className='bg-secondary'> Select 'Usage' for test </i>
 							</div>
 							<div className='text-center'>

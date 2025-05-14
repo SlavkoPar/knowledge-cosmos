@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 
 import { ICategory, IQuestion, IQuestionKey } from 'categories/types';
 import { useGlobalContext } from "global/GlobalProvider";
@@ -40,7 +40,10 @@ export interface INextAnswer {
   hasMoreAnswers: boolean;
 }
 
-export const useAI = async (categories: ICategory[]) => {
+export const useAI = (categories: ICategory[]): [
+    (question: IQuestion) => Promise<INewQuestion>,
+    () => Promise<IQuestion|null>,
+    () => Promise<INextAnswer>] => {
 
   const { getCatsByKind, getAnswer } = useGlobalContext();
 
@@ -78,6 +81,11 @@ export const useAI = async (categories: ICategory[]) => {
     return { firstChatBotAnswer: firstChatBotAnswer, hasMoreAnswers };
   }
 
+  const getCurrQuestion = async (): Promise<IQuestion|null> => {
+    return question
+  }
+
+
   const getNextChatBotAnswer = async (): Promise<INextAnswer> => {
     const { assignedAnswers } = question!;
     const len = assignedAnswers.length;
@@ -95,5 +103,9 @@ export const useAI = async (categories: ICategory[]) => {
     return { nextChatBotAnswer: null, hasMoreAnswers: false }
   }
 
-  return { setNewQuestion, getNextChatBotAnswer };
+  return [
+    useCallback(setNewQuestion, []), 
+    useCallback(getCurrQuestion, []), 
+    useCallback(getNextChatBotAnswer, [])
+  ];
 }

@@ -132,9 +132,8 @@ export interface ICategory extends IRecord {
 	id: string;
 	kind: number;
 	parentCategory: string | null; // | null is a valid value so you can store data with null value in indexeddb 
-	// but it is not a valid key
 	title: string;
-	// words: string[];
+	header: string;
 	level: number;
 	variations: string[];
 	questions: IQuestion[];
@@ -203,6 +202,7 @@ export class Category {
 			kind: dto.Kind,
 			parentCategory: dto.ParentCategory!,
 			title: dto.Title,
+			header: dto.Header,
 			level: dto.Level!,
 			variations: dto.Variations ?? [],
 			numOfQuestions: dto.NumOfQuestions!,
@@ -222,16 +222,18 @@ export class Category {
 
 export class CategoryDto {
 	constructor(category: ICategory) {
+		const {partitionKey, id, kind, parentCategory, title, header, level, variations, created, modified} = category;
 		this.categoryDto = {
-			PartitionKey: category.partitionKey,
-			Id: category.id,
-			Kind: category.kind,
-			ParentCategory: category.parentCategory,
-			Title: category.title,
-			Level: category.level,
-			Variations: category.variations,
-			Created: new WhoWhen2Dto(category.created).whoWhenDto!,
-			Modified: new WhoWhen2Dto(category.modified).whoWhenDto!
+			PartitionKey: partitionKey,
+			Id: id,
+			Kind: kind,
+			ParentCategory: parentCategory,
+			Title: title,
+			Header: header,
+			Level: level,
+			Variations: variations,
+			Created: new WhoWhen2Dto(created).whoWhenDto!,
+			Modified: new WhoWhen2Dto(modified).whoWhenDto!
 		}
 	}
 	categoryDto: ICategoryDto;
@@ -300,6 +302,7 @@ export interface ICategoryDto extends IRecordDto {
 	Kind: number;
 	ParentCategory: string | null;
 	Title: string;
+	Header: string;
 	Variations: string[];
 	Level?: number;
 	NumOfQuestions?: number;

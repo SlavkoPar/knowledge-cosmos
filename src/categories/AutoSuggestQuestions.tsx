@@ -43,7 +43,7 @@ const QuestionAutosuggestMulti = Autosuggest as { new(): Autosuggest<IQuestionRo
 
 export class AutoSuggestQuestions extends React.Component<{
 	tekst: string | undefined,
-	onSelectQuestion: (questionKey: IQuestionKey) => void,
+	onSelectQuestion: (questionKey: IQuestionKey, underFilter: string) => void,
 	allCategories: Map<string, ICat>,
 	searchQuestions: (filter: string, count: number) => Promise<IQuestionRow[]>
 }, any> {
@@ -282,10 +282,10 @@ export class AutoSuggestQuestions extends React.Component<{
 						// 	})
 						// })
 						if (!wordsIncludesTag) {
-							variations.forEach(variation => {
-								// console.log(quest);
-								catSection.questionRows.push({ ...quest, title: quest.title + ' ' + variation });
-							});
+							// variations.forEach(variation => {
+							// 	// console.log(quest);
+							// 	catSection.questionRows.push({ ...quest, title: quest.title + ' ' + variation });
+							// });
 						}
 					}
 					else {
@@ -314,7 +314,7 @@ export class AutoSuggestQuestions extends React.Component<{
 	protected onSuggestionSelected(event: React.FormEvent<any>, data: Autosuggest.SuggestionSelectedEventData<IQuestionRow>): void {
 		const question: IQuestionRow = data.suggestion;
 		// alert(`Selected question is ${question.questionId} (${question.text}).`);
-		this.props.onSelectQuestion({ partitionKey: question.parentCategory, id: question.id });
+		this.props.onSelectQuestion({ partitionKey: question.parentCategory, id: question.id }, this.state.value);
 	}
 
 	/*

@@ -32,6 +32,7 @@
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
@@ -39,7 +40,7 @@
 
 .glimmer-panel {
   border: 1px dashed #aaa;
-  background: linear-gradient(90deg, rgba(221,221,221,1) 0%, rgba(255,255,255,1) 100%);
+  background: linear-gradient(90deg, rgba(221, 221, 221, 1) 0%, rgba(255, 255, 255, 1) 100%);
   border-radius: 6px;
   margin-top: 20px;
   padding: 10px;
@@ -72,8 +73,8 @@ label {
 }
 
 .form-wrapper {
-   border: 1px solid silver;
-   border-radius: 5px
+  border: 1px solid silver;
+  border-radius: 5px
 }
 
 /* .table-wrapper {
@@ -121,7 +122,7 @@ input[type=number] {
   align-items: 'center';
 }
 
-.fieldsets { 
+.fieldsets {
   border: '1px solid silver';
   border-radius: '5px';
   padding: '5px'
@@ -134,6 +135,48 @@ input[type=number] {
   }
 }
 
-.nav-link  {
+.nav-link {
   margin-left: 10px;
 }
+
+/*
+ * Modal ChatBot
+ */
+
+ .buddy-fixed {
+  position: fixed;
+  bottom: 0;
+  right: 0;
+}
+
+.modal.right .modal-dialog {
+  position: fixed !important;
+  margin: auto !important;
+  width: 30% !important;
+  height: 100% !important;
+  -webkit-transform: translate3d(0%, 0, 0) !important;
+  -ms-transform: translate3d(0%, 0, 0) !important;
+  transform: translate3d(0%, 0, 0) !important;
+}
+
+.modal.right .modal-content {
+  margin-top: 10% !important;
+  height: 100% !important;
+  width: 100% !important;
+  overflow-y: auto !important;
+}
+
+.modal.right.fade .modal-dialog {
+  right: -120px !important;
+  -webkit-transition: opacity 1.5s linear, right 1.5s ease-out !important;
+  -moz-transition: opacity 1.5s linear, right 1.5s ease-out !important;
+  -o-transition: opacity 1.5s linear, right 1.5s ease-out !important;
+  transition: opacity 1.5s linear, right 1.5s ease-out !important;
+}
+
+.modal.right.fade.in .modal-dialog {
+  right: 0 !important;
+}
+
+
+

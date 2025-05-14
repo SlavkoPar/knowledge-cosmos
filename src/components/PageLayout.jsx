@@ -12,9 +12,9 @@ export const PageLayout = (props) => {
         <>
             <NavigationBar />
             <br />
-            <h4>
+            {/* <h4>
                 <center>Share Knowledge</center>
-            </h4>
+            </h4> */}
             <br />
             {props.children}
             <br />

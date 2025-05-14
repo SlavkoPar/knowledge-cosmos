@@ -1,12 +1,12 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCopy, faEnvelope, faRemove } from '@fortawesome/free-solid-svg-icons'
 
-import { ListGroup, Button, Modal } from "react-bootstrap";
+import { ListGroup, Button, Modal, Badge } from "react-bootstrap";
 
 import { useGlobalState } from 'global/GlobalProvider'
 import { useHover } from 'hooks/useHover';
 import { useCategoryContext } from "categories/CategoryProvider";
-import { formatDate } from 'common/utilities'
+import { formatDate, formatDateShort } from 'common/utilities'
 import React, { useState } from "react";
 import { IRelatedFilter } from 'categories/types';
 
@@ -17,7 +17,7 @@ interface IProps {
 
 const RelatedFilter = ({ relatedFilter, unAssignFilter }: IProps) => {
 
-    const { questionKey, filter, created } = relatedFilter;
+    const { filter, numOfUsages, created, lastUsed } = relatedFilter;
 
     const { time, nickName } = created!;
 
@@ -57,6 +57,16 @@ const RelatedFilter = ({ relatedFilter, unAssignFilter }: IProps) => {
                 {filter}
             </Button>
 
+             <Badge pill bg="secondary"  className={`text-info ${numOfUsages === 0 ? 'd-none' : 'd-inline'}`}>
+                {numOfUsages}{numOfUsages == 1 ? ' usage' : ' usages'}
+                {/* <FontAwesomeIcon icon={faReply} size='sm' /> */}
+                {/* <img width="22" height="18" src={A} alt="Answer"></img> */}
+            </Badge>
+
+            <span className="small ms-1">
+                {formatDateShort(lastUsed!.time)}
+            </span>
+
             {/* {canEdit && !alreadyAdding && hoverProps.isHovered && !isDisabled &&
                 <Button variant='link' size="sm" className="ms-1 py-0 mx-1 text-info"
                     onClick={del}
@@ -70,7 +80,7 @@ const RelatedFilter = ({ relatedFilter, unAssignFilter }: IProps) => {
         <ListGroup.Item
             key={filter}
             variant={"info"}
-            className="py-1 px-1"
+            className="py-0 px-1"
             as="li"
         >
             {/* <div class="d-lg-none">hide on lg and wider screens</div> */}

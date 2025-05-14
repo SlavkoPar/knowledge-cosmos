@@ -101,10 +101,11 @@ export const NavigationBar = () => {
     return (
         <>
             <Navbar bg="primary" variant="dark" className="navbarStyle">
-                <a className="navbar-brand" href="/">
-                    Microsoft identity platform
-                </a>
+
                 <AuthenticatedTemplate>
+                    <a className="navbar-brand mx-3" href="/">
+                        <i>Knowledge Share</i>
+                    </a>
                     <NavLink to="/categories" className="nav-link">
                         <img width="22" height="18" src={Q} alt="Add Question" />{' '}Questions
                     </NavLink>
@@ -114,13 +115,13 @@ export const NavigationBar = () => {
                     </NavLink>
 
                     {/* <NavLink to={`/supporter/0/${encodeURIComponent('Does Firefox support Manifest 3?')}/xyz`} className="nav-link" */}
-                    <NavLink to={`/ChatBotPage/0/${encodeURIComponent('daljinski')}/xyz`} className="nav-link"
+                    {/* <NavLink to={`/ChatBotPage/0/${encodeURIComponent('daljinski')}/xyz`} className="nav-link"
                         onClick={() => {
                             //closeQuestionForm();
                         }
                         }>
                         <FontAwesomeIcon icon={faUserFriends} color='lightblue' />{' '}ChatBot
-                    </NavLink>
+                    </NavLink> */}
 
                     <div className="collapse navbar-collapse justify-content-end">
                         <DropdownButton
@@ -134,7 +135,7 @@ export const NavigationBar = () => {
                             <Dropdown.Item as="button" onClick={handleLogoutRedirect}>
                                 Sign out using Redirect
                             </Dropdown.Item>
-                            <NavDropdown.Divider  className='mx-2' />
+                            <NavDropdown.Divider className='mx-2' />
                             <Dropdown.Item as="button" onClick={handleAbout}>
                                 <NavDropdown.Item eventKey="DARK_MODE">
                                     Dark mode
@@ -157,6 +158,9 @@ export const NavigationBar = () => {
                     </div>
                 </AuthenticatedTemplate>
                 <UnauthenticatedTemplate>
+                    <a className="navbar-brand" href="/">
+                        Microsoft identity platform
+                    </a>
                     <div className="collapse navbar-collapse justify-content-end">
                         <DropdownButton variant="secondary" className="ml-auto" drop="start" title="Sign In">
                             <Dropdown.Item as="button" onClick={handleLoginPopup}>

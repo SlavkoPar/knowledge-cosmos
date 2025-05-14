@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { Container, Row, Col } from "react-bootstrap";
+import React, { useEffect, useState } from 'react';
+import { Container, Row, Col, Button } from "react-bootstrap";
 import { Routes, Route, redirect, useLocation, useNavigate } from "react-router-dom";
 
 import { Navigation } from 'Navigation'
@@ -12,12 +12,14 @@ import Groups from "groups/Groups"
 import About from 'About';
 import Health from 'Health';
 import SupportPage from './SupportPage';
-import ChatBotPage from 'ChatBotPage';
+import ChatBotPage from './ChatBotPage';
 import Export from 'Export';
 import { GlobalActionTypes, IUser } from 'global/types';
 import { AccountInfo } from '@azure/msal-browser';
 import { useMsal } from '@azure/msal-react';
 import AboutShort from 'AboutShort';
+import ModalChatBot from 'ModalChatBot';
+import ChatBotDlg from 'ChatBotDlg';
 
 function App() {
   console.log('-----------> App')
@@ -37,6 +39,8 @@ function App() {
   const dispatch = useGlobalDispatch();
 
   const { instance } = useMsal();
+
+  const [modalChatBotShow, setModalChatBotShow] = useState(false);
 
   useEffect(() => {
     //(async () => {
@@ -159,7 +163,7 @@ function App() {
         <Navigation />
       </header> */}
       <Row>
-        <Col md={12}>
+        <Col md={10}>
           <div className="wrapper">
             <Routes>
               <Route path="/" element={(!isAuthenticated && !everLoggedIn) ? <AboutShort /> : <Categories />} />
@@ -183,6 +187,9 @@ function App() {
           </div>
         </Col>
       </Row>
+          {/* {<ModalChatBot show={modalChatBotShow} onHide={()=>{ setModalChatBotShow(false) }} />} */}
+          {<ChatBotDlg show={modalChatBotShow} onHide={() => { setModalChatBotShow(false) }} />}
+          <Button onClick={() => setModalChatBotShow(!modalChatBotShow)} className="border rounded-5 me-1 mb-1 buddy-fixed"><b>Welcome,</b><br/> I am Stamena, and You are not.<br/>I am here to help You!</Button>
     </Container>
   );
 }
