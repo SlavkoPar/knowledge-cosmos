@@ -37,8 +37,8 @@ export const initialState: ICategoriesState = {
   categories: [],
   categoryNodesUpTheTree: [],
   categoryKeyExpanded: {
-    "partitionKey": "DALJINSKI",
-    "id": "DALJINSKI"
+    "partitionKey": "TELEVISIONS",
+    "id": "TELEVISIONS"
   },
   categoryId_questionId_done: undefined,
   categoryId: null,
@@ -158,12 +158,12 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
 
 
     case ActionTypes.SET_CATEGORY_NODES_UP_THE_TREE: {
-      const { categoryNodesUpTheTree, categoryKey, questionId } = action.payload;
+      const { categoryNodesUpTheTree, categoryKey, questionId, fromChatBotDlg } = action.payload;
       console.log('====== >>>>>>> CategoriesReducer ActionTypes.SET_CATEGORY_NODES_UP_THE_TREE payload ', action.payload)
       const categoryId = categoryKey ? categoryKey.id : null;
-
       return {
         ...state,
+        categories: fromChatBotDlg ? [] : [...state.categories],
         categoryNodesUpTheTree,
         categoryId,
         questionId,
@@ -178,34 +178,30 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
     case ActionTypes.SET_SUB_CATEGORIES: {
       const { subCategories } = action.payload;
       const { categoryNodesUpTheTree, categories } = state;
-      let arr: ICategoryKeyExtended[] = [...categoryNodesUpTheTree]
-      const ids = categoryNodesUpTheTree!.map(c => c.id);
-      console.log('===========>>>>>>>>>> ')
-      console.log('===========>>>>>>>>>> CategoriesReducer ActionTypes.SET_SUB_CATEGORIES', ids, { subCategories })
-      console.log('===========>>>>>>>>>> ')
+      const ids = categoryNodesUpTheTree.map(c => c.id);
+      let idRemove: string = '';
+      console.log('===========>>>>>>>>>> CategoriesReducer ActionTypes.SET_SUB_CATEGORIES', { ids, subCategories })
       subCategories.forEach((subCategory: ICategory) => {
         const { id, hasSubCategories, numOfQuestions } = subCategory;
-        if (hasSubCategories || numOfQuestions > 0) {
+        if (ids.length > 0) {
           const expand = ids.includes(id);
           if (expand) {
-            subCategory.isExpanded = true;
-            subCategory.isSelected = false;
-            arr = arr.filter(c => c.id !== id);
-            console.log('===========>>>>>>>>>> set IsExpanded subcategory: ', id);
-            console.log(arr.length === 0 ? '===========>>>>>>>>>> POCISTIO categoryNodesUpTheTree' : '')
-          }
-        }
-        else {
-          if (arr.length === 0) {
-            subCategory.isExpanded = false;
-            subCategory.isSelected = true;
+            idRemove = id;
+            if (hasSubCategories || numOfQuestions > 0) {
+              subCategory.isExpanded = true;
+              subCategory.isSelected = false;
+            }
+            else {
+              subCategory.isExpanded = false;
+              subCategory.isSelected = true;
+            }
           }
         }
       })
       return {
         ...state,
         categories: categories.concat(subCategories),
-        categoryNodesUpTheTree: arr,
+        categoryNodesUpTheTree: categoryNodesUpTheTree.filter(c => c.id !== idRemove),
         loading: false
       };
     }

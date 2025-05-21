@@ -121,7 +121,7 @@ function App() {
               <Route path="/supporter/:source/:tekst" element={<SupportPage />} />
               <Route path="/supporter/:source/:tekst/:email" element={<SupportPage />} />
               <Route path="/ChatBotPage/:source/:tekst/:email" element={<ChatBotPage />} />
-              <Route path="/categories/:categoryId_questionId" element={<Categories />} />
+              <Route path="/categories/:categoryId_questionId/:fromChatBotDlg" element={<Categories />} />
               <Route path="/categories" element={<Categories />} />
               <Route path="/groups/:groupId_AnswerId" element={<Groups />} />
               <Route path="/groups" element={<Groups />} />

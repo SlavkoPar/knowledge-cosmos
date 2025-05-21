@@ -2,7 +2,6 @@ import React, { useEffect, useState, JSX, useRef } from 'react';
 import { Container, Row, Col, Button, Form, ListGroup, Offcanvas } from "react-bootstrap";
 import { NavLink, useNavigate } from "react-router-dom";
 
-
 import { useGlobalContext, useGlobalState } from 'global/GlobalProvider';
 
 import { useParams } from 'react-router-dom' // useRouteMatch
@@ -14,7 +13,6 @@ import { faFolder } from '@fortawesome/free-solid-svg-icons'
 import { ICategory, IQuestion, IQuestionEx, IQuestionKey, ActionTypes } from 'categories/types';
 import { IWhoWhen, ICat, IHistory, USER_ANSWER_ACTION, IHistoryFilterDto } from 'global/types';
 import { IChatBotAnswer, INewQuestion, INextAnswer, useAI } from 'hooks/useAI'
-import { IAnswer } from 'groups/types';
 
 import Q from 'assets/Q.png';
 import A from 'assets/A.png';
@@ -38,35 +36,6 @@ interface IProps {
     show: boolean,
     onHide: () => void;
 }
-
-
-
-<style type='css'>
-    {/* .list-group {
-    --bs-list-group-color: var(--bs-body-color);
-    --bs-list-group-bg: var(--bs-body-bg);
-    --bs-list-group-border-color: var(--bs-border-color);
-    --bs-list-group-border-width: var(--bs-border-width);
-    --bs-list-group-border-radius: var(--bs-border-radius);
-    --bs-list-group-item-padding-x: 1rem;
-    --bs-list-group-item-padding-y: 0.5rem;
-    --bs-list-group-action-color: var(--bs-secondary-color);
-    --bs-list-group-action-hover-color: var(--bs-emphasis-color);
-    --bs-list-group-action-hover-bg: var(--bs-tertiary-bg);
-    --bs-list-group-action-active-color: var(--bs-body-color);
-    --bs-list-group-action-active-bg: var(--bs-secondary-bg);
-    --bs-list-group-disabled-color: var(--bs-secondary-color);
-    --bs-list-group-disabled-bg: var(--bs-body-bg);
-    --bs-list-group-active-color: #fff;
-    --bs-list-group-active-bg: #0d6efd;
-    --bs-list-group-active-border-color: #0d6efd;
-    display: flex;
-    flex-direction: column;
-    padding-left: 0;
-    margin-bottom: 0;
-    border-radius: var(--bs-list-group-border-radius);
-} */}
-</style>
 
 
 const ChatBotDlg = ({ show, onHide }: IProps) => {
@@ -390,11 +359,11 @@ const ChatBotDlg = ({ show, onHide }: IProps) => {
     }
 
     const NavigLink = (link: string) => {
-        dispatch({ type: ActionTypes.RESET_CATEGORY_QUESTION_DONE })
-        dispatch({ type: ActionTypes.CLEAN_SUB_TREE, payload: { categoryKey: null } });
+        //dispatch({ type: ActionTypes.RESET_CATEGORY_QUESTION_DONE })
+        //dispatch({ type: ActionTypes.CLEAN_SUB_TREE, payload: { categoryKey: null } });
             // new CategoryKey(parentCat).categoryKey*/ } });
         setTimeout(() => {
-            navigate(link)
+            navigate(link + "/true")
         }, 100);
     }
 
@@ -427,7 +396,7 @@ const ChatBotDlg = ({ show, onHide }: IProps) => {
                                     // <div key={id} className="px-1 text-start">
                                     // <li className="list-group-item" style={{flexBasis: '33%'}}>
                                     link
-                                        ? <Form key={id} className='border border-0 m-1 rounded-1'>
+                                        ? <Form id={id} key={id} className='border border-0 m-1 rounded-1'>
                                             <ul className="list-unstyled text-start mb-0">
                                                 <li className="list-group-item p-0 m-0">
                                                     {/* <NavLink to={link} className="px-2 text-decoration-none border">{title}</NavLink> */}
@@ -446,7 +415,7 @@ const ChatBotDlg = ({ show, onHide }: IProps) => {
                                                 </li>
                                             </ul>
                                         </Form>
-                                        : <Form key={id} className='border border-0 m-1 rounded-1'>
+                                        : <Form id={id} key={id} className='border border-0 m-1 rounded-1'>
                                             <ul className="d-flex flex-wrap list-unstyled  mb-0">
                                                 <li className="list-group-item border rounded-3 m-0">
                                                     <Button size="sm" variant='link' className='border py-0 text-decoration-none' onClick={() => onOptionChange(id, level, title)}>

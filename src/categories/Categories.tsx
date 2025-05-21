@@ -21,10 +21,11 @@ import AddCategory from './components/AddCategory';
 import { AutoSuggestQuestions } from './AutoSuggestQuestions';
 
 interface IProps {
-    categoryId_questionId: string | undefined
+    categoryId_questionId?: string;
+    fromChatBotDlg?: string;
 }
 
-const Providered = ({ categoryId_questionId }: IProps) => {
+const Providered = ({ categoryId_questionId, fromChatBotDlg }: IProps) => {
     console.log("=============================================")
     console.log("Categories", categoryId_questionId)
     console.log("=============================================")
@@ -74,12 +75,16 @@ const Providered = ({ categoryId_questionId }: IProps) => {
                         const categoryId = arr[0];
                         const questionId = arr[1];
                         console.log('4) =>>>>>>>>>>>>>>>>>>> Categories calling categoryKeyExpanded:', categoryId, questionId );
-                        await reloadCategoryNode({ partitionKey: '', id: categoryId }, questionId === 'null' ? null : questionId)
+                        await reloadCategoryNode({ 
+                            partitionKey: '', id: categoryId }, 
+                            questionId === 'null' ? null : questionId,
+                            fromChatBotDlg ?? 'false'
+                        )
                             .then(() => { return null; });
                     }
                 }
                 else if (categoryKeyExpanded && !categoryNodeLoaded) {
-                    console.log('2) =>>>>>>>>>>>>>> Categories calling reloadCategoryNode:', { categoryId_questionId, categoryKeyExpanded, categoryId_questionId_done });
+                    console.log('999) =>>>>>>>>>>>>>> Categories calling reloadCategoryNode:', { categoryId_questionId, categoryKeyExpanded, categoryId_questionId_done });
                     await reloadCategoryNode(categoryKeyExpanded, questionId).then(() => { return null; });
                 }
             }
@@ -168,10 +173,11 @@ const Providered = ({ categoryId_questionId }: IProps) => {
 
 type Params = {
     categoryId_questionId?: string;
+    fromChatBotDlg?: string;
 };
 
 const Categories = () => {
-    let { categoryId_questionId } = useParams<Params>();
+    let { categoryId_questionId, fromChatBotDlg} = useParams<Params>();
 
     if (categoryId_questionId && categoryId_questionId === 'categories')
         categoryId_questionId = undefined;
@@ -188,7 +194,7 @@ const Categories = () => {
 
     return (
         <CategoryProvider>
-            <Providered categoryId_questionId={categoryId_questionId} />
+            <Providered categoryId_questionId={categoryId_questionId} fromChatBotDlg={fromChatBotDlg} />
         </CategoryProvider>
     )
 }

@@ -23,8 +23,6 @@ import { initialCategoriesState, CategoriesReducer } from 'categories/Categories
 import { IWhoWhen, ICat, Dto2WhoWhen, WhoWhen2Dto } from 'global/types';
 import { IAnswer, IAnswerKey, IGroup, IAssignedAnswer, IAssignedAnswerDto, IAssignedAnswerDtoEx, AssignedAnswer, AssignedAnswerDto } from 'groups/types';
 import { protectedResources } from 'authConfig';
-import { useMsal, useMsalAuthentication } from '@azure/msal-react';
-import { InteractionType } from '@azure/msal-browser';
 
 const CategoriesContext = createContext<ICategoriesContext>({} as any);
 const CategoryDispatchContext = createContext<Dispatch<any>>(() => null);
@@ -117,9 +115,10 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
   // }, [dispatch]);
 
   const reloadCategoryNode = useCallback(
-    async (categoryKey: ICategoryKey | null, questionId: string | null): Promise<any> => {
+    async (categoryKey: ICategoryKey | null, questionId: string | null, fromChatBotDlg: string = 'false'): Promise<any> => {
       return new Promise(async (resolve) => {
         try {
+          
           console.log('CategoryProvider.reloadCategoryNode', categoryKey, questionId)
           if (categoryKey !== null) {
             const { partitionKey, id } = categoryKey;
@@ -152,7 +151,8 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
                 type: ActionTypes.SET_CATEGORY_NODES_UP_THE_TREE, payload: {
                   categoryKey,
                   questionId,
-                  categoryNodesUpTheTree
+                  categoryNodesUpTheTree,
+                  fromChatBotDlg: fromChatBotDlg === 'true'
                 }
               })
               resolve(true)

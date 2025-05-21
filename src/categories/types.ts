@@ -386,7 +386,7 @@ export interface ILocStorage {
 
 export interface ICategoriesContext {
 	state: ICategoriesState,
-	reloadCategoryNode: (categoryKey: ICategoryKey, questionId: string | null) => Promise<any>;
+	reloadCategoryNode: (categoryKey: ICategoryKey, questionId: string | null, fromChatBotDlg?: string) => Promise<any>;
 	getSubCategories: (categoryKey: ICategoryKey) => Promise<any>,
 	createCategory: (category: ICategory) => void,
 	viewCategory: (categoryKey: ICategoryKey, includeQuestionId: string) => void,
@@ -486,9 +486,10 @@ export type CategoriesPayload = {
 	};
 
 	[ActionTypes.SET_CATEGORY_NODES_UP_THE_TREE]: {
-		categoryNodesUpTheTree: ICategoryKeyExtended[];
+		categoryNodesUpTheTree: ICategoryKeyExtended[]; /// we could have used Id only
 		categoryKey: ICategoryKey | null;
 		questionId: string | null;
+		fromChatBotDlg: boolean;
 	};
 
 	[ActionTypes.SET_SUB_CATEGORIES]: {
