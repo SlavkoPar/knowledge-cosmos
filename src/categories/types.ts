@@ -1,4 +1,4 @@
-import { ActionMap, IWhoWhen, IRecord, IRecordDto, Dto2WhoWhen, WhoWhen2Dto, IWhoWhenDto } from 'global/types';
+import { ActionMap, IWhoWhen, IRecord, IRecordDto, Dto2WhoWhen, WhoWhen2Dto, IWhoWhenDto, ICat } from 'global/types';
 import { AssignedAnswer, AssignedAnswerDto, IAnswer, IAnswerKey, IAssignedAnswer, IAssignedAnswerDto } from 'groups/types';
 
 export const Mode = {
@@ -133,6 +133,7 @@ export interface ICategory extends IRecord {
 	kind: number;
 	parentCategory: string | null; // | null is a valid value so you can store data with null value in indexeddb 
 	title: string;
+	link: string | null;
 	header: string;
 	level: number;
 	variations: string[];
@@ -140,6 +141,7 @@ export interface ICategory extends IRecord {
 	numOfQuestions: number;
 	hasMoreQuestions?: boolean;
 	isExpanded?: boolean;
+	isSelected?: boolean; // when category has no subCategories
 	hasSubCategories: boolean;
 	categories?: ICategory[]; // used for export to json
 	titlesUpTheTree?: string;
@@ -172,7 +174,7 @@ export class Question {
 		const relatedFilters = dto.RelatedFilterDtos
 			? dto.RelatedFilterDtos.map((Dto: IRelatedFilterDto) => new RelatedFilter(Dto).relatedFilter)
 			: [];
-			// TODO possible to call base class construtor
+		// TODO possible to call base class construtor
 		this.question = {
 			parentCategory: dto.ParentCategory,
 			partitionKey: dto.PartitionKey,
@@ -194,6 +196,20 @@ export class Question {
 	question: IQuestion
 }
 
+
+export class CategoryKey {
+	constructor(cat: ICat | undefined) {
+		this.categoryKey = cat
+			? {
+				partitionKey: cat.partitionKey,
+				id: cat.id
+			}
+			: null
+	}
+	categoryKey: ICategoryKey | null;
+}
+
+
 export class Category {
 	constructor(dto: ICategoryDto) {
 		this.category = {
@@ -202,6 +218,7 @@ export class Category {
 			kind: dto.Kind,
 			parentCategory: dto.ParentCategory!,
 			title: dto.Title,
+			link: dto.Link,
 			header: dto.Header,
 			level: dto.Level!,
 			variations: dto.Variations ?? [],
@@ -222,13 +239,14 @@ export class Category {
 
 export class CategoryDto {
 	constructor(category: ICategory) {
-		const {partitionKey, id, kind, parentCategory, title, header, level, variations, created, modified} = category;
+		const { partitionKey, id, kind, parentCategory, title, link, header, level, variations, created, modified } = category;
 		this.categoryDto = {
 			PartitionKey: partitionKey,
 			Id: id,
 			Kind: kind,
 			ParentCategory: parentCategory,
 			Title: title,
+			Link: link,
 			Header: header,
 			Level: level,
 			Variations: variations,
@@ -302,6 +320,7 @@ export interface ICategoryDto extends IRecordDto {
 	Kind: number;
 	ParentCategory: string | null;
 	Title: string;
+	Link: string | null;
 	Header: string;
 	Variations: string[];
 	Level?: number;
@@ -330,7 +349,7 @@ export interface ICategoryInfo {
 }
 
 export interface IParentInfo {
-	execute?: (method: string, endpoint: string) => Promise<any>,
+	//execute?: (method: string, endpoint: string) => Promise<any>,
 	// partitionKey: string | null,
 	// parentCategory: string | null,
 	categoryKey: ICategoryKey,
@@ -350,6 +369,7 @@ export interface ICategoriesState {
 	categoryId: string | null;
 	questionId: string | null;
 	categoryId_questionId_done?: string;
+	categoryNodeReLoading: boolean;
 	categoryNodeLoaded: boolean;
 	//reloadCategoryInfo: IParentCategories;
 	loading: boolean;
@@ -422,13 +442,15 @@ export enum ActionTypes {
 	VIEW_CATEGORY = 'VIEW_CATEGORY',
 	EDIT_CATEGORY = 'EDIT_CATEGORY',
 	DELETE = 'DELETE',
+	RESET_CATEGORY_QUESTION_DONE = 'RESET_CATEGORY_QUESTION_DONE',
 
 	CLOSE_CATEGORY_FORM = 'CLOSE_CATEGORY_FORM',
 	CANCEL_CATEGORY_FORM = 'CANCEL_CATEGORY_FORM',
 	SET_EXPANDED = 'SET_EXPANDED',
 	SET_COLLAPSED = 'SET_COLLAPSED',
 
-	RELOAD_CATEGORY_NODE = "RELOAD_CATEGORY_NODE",
+	CATEGORY_NODE_LOADING = "CATEGORY_NODE_LOADING",
+	SET_CATEGORY_NODES_UP_THE_TREE = "SET_CATEGORY_NODES_UP_THE_TREE",
 
 	// questions
 	LOAD_CATEGORY_QUESTIONS = 'LOAD_CATEGORY_QUESTIONS',
@@ -459,9 +481,13 @@ export type CategoriesPayload = {
 	}
 
 
-	[ActionTypes.RELOAD_CATEGORY_NODE]: {
+	[ActionTypes.CATEGORY_NODE_LOADING]: {
+		loading: boolean
+	};
+
+	[ActionTypes.SET_CATEGORY_NODES_UP_THE_TREE]: {
 		categoryNodesUpTheTree: ICategoryKeyExtended[];
-		categoryId: string | null;
+		categoryKey: ICategoryKey | null;
 		questionId: string | null;
 	};
 
@@ -495,7 +521,7 @@ export type CategoriesPayload = {
 	};
 
 	[ActionTypes.CLEAN_SUB_TREE]: {
-		categoryKey: ICategoryKey;
+		categoryKey: ICategoryKey | null;
 	};
 
 	[ActionTypes.CLEAN_TREE]: undefined;
@@ -516,6 +542,9 @@ export type CategoriesPayload = {
 		error: Error;
 		whichRowId?: string;
 	};
+
+	[ActionTypes.RESET_CATEGORY_QUESTION_DONE]: undefined;
+
 
 	/////////////
 	// questions
@@ -564,7 +593,6 @@ export type CategoriesPayload = {
 	[ActionTypes.CANCEL_QUESTION_FORM]: {
 		question: IQuestion;
 	};
-
 };
 
 export type CategoriesActions =

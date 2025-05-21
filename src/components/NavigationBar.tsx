@@ -3,6 +3,7 @@ import { Link, NavLink, useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faQuestion, faSurprise, faUser, faUserFriends, faReply } from '@fortawesome/free-solid-svg-icons'
 import Q from 'assets/Q.png';
+import A from 'assets/A.png';
 
 import { GlobalActionTypes } from 'global/types'
 import { useGlobalDispatch } from 'global/GlobalProvider'
@@ -107,11 +108,11 @@ export const NavigationBar = () => {
                         <i>Knowledge Share</i>
                     </a>
                     <NavLink to="/categories" className="nav-link">
-                        <img width="22" height="18" src={Q} alt="Add Question" />{' '}Questions
+                        <img width="22" height="18" src={Q} alt="Questions" />{' '}Questions
                     </NavLink>
 
                     <NavLink to="/groups" className="nav-link">
-                        <img width="22" height="18" src={Q} alt="Add Answer" />{' '}Answers
+                        <img width="22" height="18" src={A} alt="Answers" />{' '}Answers
                     </NavLink>
 
                     {/* <NavLink to={`/supporter/0/${encodeURIComponent('Does Firefox support Manifest 3?')}/xyz`} className="nav-link" */}

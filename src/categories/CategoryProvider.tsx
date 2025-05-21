@@ -16,6 +16,7 @@ import {
   IQuestionRowDto,
   IQuestionRow,
   QuestionRow,
+  CategoryKey,
 } from 'categories/types';
 
 import { initialCategoriesState, CategoriesReducer } from 'categories/CategoriesReducer';
@@ -53,12 +54,6 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
   //   account: instance.getActiveAccount() ?? undefined,
   //   redirectUri: '/redirect'
   // });
-
-  // if (!result) {
-  //   console.error('=================>>> !result'); //, method, endpoint)
-  //   dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error('getActiveAccount') } });
-  // }
-
 
   const Execute = async (
     method: string,
@@ -125,19 +120,28 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
     async (categoryKey: ICategoryKey | null, questionId: string | null): Promise<any> => {
       return new Promise(async (resolve) => {
         try {
-          console.log('CategoryProvider.reloadCategoryNode')
-          const { id } = categoryKey!;
-          const cat: ICat | undefined = cats.get(id);
-          if (!cat) {
-            alert('reload cats' + id)
-            return
+          console.log('CategoryProvider.reloadCategoryNode', categoryKey, questionId)
+          if (categoryKey !== null) {
+            const { partitionKey, id } = categoryKey;
+            const cat: ICat | undefined = cats.get(id);
+            if (cat) {
+              categoryKey.partitionKey = cat.partitionKey;
+            }
+            else {
+              alert('reload cats' + id)
+              //return
+            }
           }
-          // dispatch({ type: ActionTypes.SET_LOADING })
-          console.time()
-          const url = `${protectedResources.KnowledgeAPI.endpointCat}/${cat.partitionKey}/${id}`;
+          dispatch({ type: ActionTypes.CATEGORY_NODE_LOADING, payload: { loading: true } })
+          //dispatch({ type: ActionTypes.CLEAN_SUB_TREE, payload: { categoryKey: null/*new CategoryKey(parentCat).categoryKey*/ } });
+          // ---------------------------------------------------------------------------
+          console.time();
+          const query = categoryKey ? `${categoryKey.partitionKey}/${categoryKey.id}` : 'null/null';
+          const url = `${protectedResources.KnowledgeAPI.endpointCat}/${query}`;
           console.log('calling CatController.GetCatsUpTheTree', url)
           await Execute("GET", url)
             .then((categoryDtoListEx: ICategoryDtoListEx) => {
+              //dispatch({ type: ActionTypes.CLEAN_SUB_TREE, payload: { categoryKey: categoryKey! } });
               const { categoryDtoList, msg } = categoryDtoListEx;
               console.timeEnd();
               const categoryNodesUpTheTree = categoryDtoList.map((categoryDto: ICategoryDto) => {
@@ -145,8 +149,8 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
                 return { partitionKey: PartitionKey, id: Id, title: Title } as ICategoryKeyExtended
               })
               dispatch({
-                type: ActionTypes.RELOAD_CATEGORY_NODE, payload: {
-                  categoryId: id,
+                type: ActionTypes.SET_CATEGORY_NODES_UP_THE_TREE, payload: {
+                  categoryKey,
                   questionId,
                   categoryNodesUpTheTree
                 }
@@ -356,7 +360,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
     //dispatch({ type: ActionTypes.SET_CATEGORY_LOADING, payload: { id, loading: false } });
     try {
       const categoryDto = new CategoryDto(category).categoryDto;
-        //questionDto.Archived = new WhoWhen2Dto(question.archived!).whoWhenDto!;
+      //questionDto.Archived = new WhoWhen2Dto(question.archived!).whoWhenDto!;
       const url = `${protectedResources.KnowledgeAPI.endpointCategory}` ///${categoryKey.partitionKey}/${categoryKey.id}`;
       console.time()
       await Execute("DELETE", url, categoryDto)    //Modified: {  Time: new Date(), NickName: globalState.authUser.nickName }
@@ -433,7 +437,11 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
         try {
           const url = `${protectedResources.KnowledgeAPI.endpointQuestion}/${partitionKey}/${parentCategory}/${startCursor}/${PAGE_SIZE}/${includeQuestionId}`;
           console.time()
-          console.log('>>>>>>>>>>>>loadCategoryQuestions URL:', { url })
+          console.log('>>>>>>>>>>>>')
+          console.log('>>>>>>>>>>>>')
+          console.log('>>>>>>>>>>>>loadCategoryQuestions URL:', { url }, {includeQuestionId})
+          console.log('>>>>>>>>>>>>')
+          console.log('>>>>>>>>>>>>')
           await Execute!("GET", url).then((categoryDtoEx: ICategoryDtoEx) => {
             console.timeEnd();
             const { categoryDto, msg } = categoryDtoEx;

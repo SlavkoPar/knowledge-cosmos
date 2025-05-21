@@ -121,7 +121,9 @@ export interface ICat {
 	partitionKey: string,
 	id: string;
 	parentCategory: string | null;
+	header: string;
 	title: string;
+	link: string | null;
 	titlesUpTheTree: string; // traverse up the tree, until root
 	variations: string[];
 	hasSubCategories: boolean;

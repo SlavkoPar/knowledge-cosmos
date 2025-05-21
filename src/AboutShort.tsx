@@ -1,11 +1,6 @@
 import * as React from "react";
 
-import image5 from 'screenshots/image5.png'
-import image1 from 'screenshots/image1.png'
-import image2 from 'screenshots/image2.png'
-import image3 from 'screenshots/image3.png'
-import image4 from 'screenshots/image4.png'
-import { useGlobalContext } from "global/GlobalProvider";
+import { Col, Container, Row } from "react-bootstrap";
 
 interface IAboutShort {
 }
@@ -13,14 +8,86 @@ interface IAboutShort {
 const AboutShort: React.FC<IAboutShort> = (props: IAboutShort) => {
 
   // const { setLastRouteVisited } = useGlobalContext();
-  
+
   return (
-    <div className="d-flex flex-column justify-content-center align-items-center bg-secondary text-white w-75 mx-auto p-2 rounded-3">
-      <h5>Questions &amp; Answers</h5>
-      <div>Build your knowledge base for sharing information.</div>
-      <div>When you record your experiences and insights,</div>
-      <div>other members of your team can share info.</div>
-     </div>
+    <Container className="fs-6">
+
+      <div className="d-flex flex-row flex-wrap mx-3">
+
+        <div className="card card-block col-5 m-3" style={{backgroundColor: 'rgb(239, 217, 253)'}}>
+          <div className="card-body">
+            <h5 className="card-title">Questions &amp; Answers</h5>
+            <h6 className="card-subtitle mb-2 text-muted">Build your knowledge base, for sharing information.</h6>
+            <p className="card-text">When you record your experiences and insights,other members of your team can share info.</p>
+          </div>
+        </div>
+
+        <div className="card card-block col-5 m-3">
+          <div className="card-body">
+            <h5 className="card-title">Microsoft Azure Cloud Platform</h5>
+            <h6 className="card-subtitle mb-2 text-muted">We use MS Azure Platform and Cosmos DB for NoSQL</h6>
+            <p className="card-text">
+              Cosmos DB uses Vector Search which is suitable for AI agents.
+            </p>
+
+          </div>
+        </div>
+
+        <div className="card card-block col-5 m-3">
+          <div className="card-body">
+            <h5 className="card-title">Knowledge is asset for each company</h5>
+            <h6 className="card-subtitle mb-2 text-muted">We use MS Azure Platform and Cosmos DB for NoSQL</h6>
+            <p className="card-text">
+              Cosmos DB, with Vector Search is suitable for AI agents.
+            </p>
+          </div>
+        </div>
+
+        <div className="card card-block col-5 m-3">
+          <div className="card-body">
+            <h5 className="card-title">Two ways of Hosting</h5>
+            {/* <h6 className="card-subtitle mb-2 text-muted">xxxx</h6> */}
+            <ul className="card-text">
+              <li>
+                Self Hosting
+                <div>You create your own Azure Account</div>
+                <div> We do some initial administration and you can use the appliction</div>
+                <div> You continue with administration</div>
+              </li>
+              <li className="mt-2">
+                Shared Hosting
+                <div>We create Work Space for your Company</div>
+                <div>We create user groups and user accounts</div>
+                <div>Role based access rights are supported by Azure platform</div>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div className="card card-block col-5 m-3">
+          <div className="card-body">
+            <h5 className="card-title">AI</h5>
+            <h6 className="card-subtitle mb-2 text-muted">Many companies have rounded (limited) Knowledge and want to stay inside of it</h6>
+            <p className="card-text">
+              Although OpenAI relies on  to dynamically scale their ChatGPT service,
+              <br/>in many cases it would be overkill
+            </p>
+          </div>
+        </div>
+
+        <div className="card card-block col-5 m-3">
+          <div className="card-body">
+            <h5 className="card-title">Application is capable of learning</h5>
+            <h6 className="card-subtitle mb-2 text-muted">We use history of users interactions, providing:</h6>
+            <ul className="card-text">
+              <li>Most rated answer for single question</li>
+              <li>Most frequently used Question filter in Question AutoSuggest as the next Question</li>
+            </ul>
+          </div>
+        </div>
+
+      </div>
+    </Container>
   )
 }
 

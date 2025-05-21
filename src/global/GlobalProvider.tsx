@@ -28,10 +28,6 @@ import { escapeRegexCharacters } from 'common/utilities'
 
 //////////////////
 // Initial data
-import groupData from './groups-answers.json';
-import roleData from './roles-users.json';
-import historyData from './history.json';
-import useFetchWithMsal from "hooks/useFetchWithMsal";
 import { protectedResources } from "authConfig";
 
 const GlobalContext = createContext<IGlobalContext>({} as any);
@@ -142,7 +138,7 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
           data.forEach((categoryDto: ICategoryDto) => categories.set(categoryDto.Id, new Category(categoryDto).category));
           //
           categories.forEach(category => {
-            const { partitionKey, id, parentCategory, title, variations, hasSubCategories, level, kind } = category;
+            let { partitionKey, id, parentCategory, header, title, link, variations, hasSubCategories, level, kind } = category;
             let titlesUpTheTree = id;
             let parentCat = parentCategory;
             while (parentCat) {
@@ -155,8 +151,9 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
               partitionKey,
               id,
               parentCategory, //: parentCat,
-              title: title,
-              // words: title.toLowerCase().replaceAll('?', '').split(' ').map((s: string) => s.trim()).filter(w => w.length > 1),
+              header,
+              title,
+              link,
               titlesUpTheTree: '',
               variations: variations,
               hasSubCategories: hasSubCategories,
@@ -271,7 +268,7 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
       try {
         //dispatch({ type: GlobalActionTypes.SET_LOADING, payload: {} });
         const url = `${protectedResources.KnowledgeAPI.endpointGroup}/${partitionKey}/${id}`;
-        console.log('calling getSubCategories:', url)
+        console.log('calling getSubGroups:', url)
         console.time();
         await Execute("GET", url).then((groupDtos: IGroupDto[]) => {
           console.timeEnd();
@@ -399,11 +396,13 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
       const categories: ICat[] = [];
       cats.forEach((c, id) => {
         if (c.kind === kind) {
-          const { partitionKey, id, title, level } = c;
+          const { partitionKey, id, header, title, link, level } = c;
           const cat: ICat = {
             partitionKey,
             id: id,
+            header,
             title,
+            link,
             parentCategory: "",
             titlesUpTheTree: "",
             variations: [],
@@ -430,11 +429,13 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
       const categories: ICat[] = [];
       cats.forEach((c, id) => {
         if (c.kind === kind) {
-          const { partitionKey, id, title, level } = c;
+          const { partitionKey, id, header, title, link, level } = c;
           const cat: ICat = {
             partitionKey,
             id,
+            header,
             title,
+            link,
             parentCategory: "",
             titlesUpTheTree: "",
             variations: [],
@@ -484,15 +485,22 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
 
 
   const getSubCats = useCallback(async (categoryId: string | null) => {
-   try {
+    try {
+      let parentHeader = "";
+      console.log('globalState.cats', globalState.cats)
       const subCats: ICat[] = [];
-      globalState.cats.forEach((cat, id) => {
-        if (cat.parentCategory == categoryId) {
-          const { partitionKey, id, parentCategory, title, level, kind, hasSubCategories } = cat;
+      globalState.cats.forEach((cat, id) => {  // globalState.cats is Map<string, ICat>
+        if (cat.id === categoryId) {
+          parentHeader = cat.header!;
+        }
+        else if (cat.parentCategory === categoryId) {
+          const { partitionKey, id, parentCategory, header, title, link, level, kind, hasSubCategories } = cat;
           const c: ICat = {
             partitionKey,
             id,
+            header,
             title,
+            link,
             parentCategory,
             titlesUpTheTree: "",
             variations: [],
@@ -503,7 +511,7 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
           subCats.push(c);
         }
       })
-      return subCats;
+      return { subCats, parentHeader };
     }
     catch (error: any) {
       console.log(error)

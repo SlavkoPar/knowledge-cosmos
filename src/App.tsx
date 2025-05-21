@@ -62,76 +62,23 @@ function App() {
   }, [isAuthenticated]) // , isAuthenticated
 
   const locationPathname = location.pathname;
+  console.log('App locationPathname ===>>>', locationPathname);
+
   const searchParams = new URLSearchParams(location.search);
 
   useEffect(() => {
     (async () => {
-      console.log('App ===>>>', locationPathname);
       const isAuthRoute = locationPathname.startsWith('/invitation') ||
         locationPathname.startsWith('/register') ||
         locationPathname.startsWith('/sign-in') ||
         locationPathname.startsWith('/about');  // allow about without registration
       if (!isAuthenticated && !isAuthRoute && dbp) {
         if (everLoggedIn) {
-          let signedIn = false;
-          // if (/*dbp &&*/ nickName !== '') {
-          //   console.log(`await signInUser(${nickName} })`);
-          //   const loginUser = {
-          //     nickName
-          //   }
-          //   // signedIn = await signInUser(loginUser);
-          //   // if (!signedIn) {
-          //   //   navigate('/sign-in')
-          //   // }
-          // }
         }
         else {
-          // const regUser: IRegisterUser = { 
-          //   nickName
-          // }
-          // const user = await registerUser(regUser, true, null);
-
-          // if (!user.confirmed) {
-          //   let user: IUser = await getUser('Boss');
-          //   const { nickName, name, password, wsId, email } = user;
-          //   const loginUser: ILoginUser = { nickName  }
-          //   user = await registerUser(loginUser, true);
-          //   if (!user) {
-          //     return null;
-          //   }
-          // }
-
-          // let user = await getUser('Boss');
-          // if (!user) {
-          //   alert('User Boss, as the OWNER, should be in database')
-          //   return;
-          // }
-          // if (!user.confirmed) {
-          //   let user: IUser = await getUser('Boss');
-          //   const { nickName, name, password, wsId, email } = user;
-          //   const loginUser: ILoginUser = { wsId, nickName, name, password, email }
-          //   user = await registerUser(loginUser);
-          //   if (!user) {
-          //     return null;
-          //   }
-          // }
-          /*
-          const returnUrl = encodeURIComponent(locationPathname);
-          console.log('PATH prije navigate(register)', locationPathname)
-          if (!locationPathname.includes('/register')) {
-            navigate('/register/' + returnUrl, { replace: true });
-          }
-          */
         }
       }
       else {
-        // const returnUrl = encodeURIComponent(locationPathname);
-        // console.log('PATH prije navigate(register)', locationPathname)
-        // if (locationPathname.includes('/supporter')) {
-        //   // save params
-        //   // navigate('/' + returnUrl, { replace: true });
-        //   navigate('/', { replace: true });
-        // }     
       }
       const supporter = searchParams.get('supporter');
       if (isAuthenticated && supporter === '1') {
@@ -189,7 +136,7 @@ function App() {
       </Row>
           {/* {<ModalChatBot show={modalChatBotShow} onHide={()=>{ setModalChatBotShow(false) }} />} */}
           {<ChatBotDlg show={modalChatBotShow} onHide={() => { setModalChatBotShow(false) }} />}
-          <Button onClick={() => setModalChatBotShow(!modalChatBotShow)} className="border rounded-5 me-1 mb-1 buddy-fixed"><b>Welcome,</b><br/> I am Stamena, and You are not.<br/>I am here to help You!</Button>
+          <Button onClick={() => setModalChatBotShow(!modalChatBotShow)} className="border rounded-5 me-1 mb-1 buddy-fixed"><b>Welcome,</b><br/> I am Stamena,<br/> and You are not.<br/>I am here to help You!</Button>
     </Container>
   );
 }

@@ -143,12 +143,18 @@ input[type=number] {
  * Modal ChatBot
  */
 
- .buddy-fixed {
+.buddy-fixed {
   position: fixed;
   bottom: 0;
   right: 0;
+  font-size: small;
 }
 
+.chat-bot-dlg {
+  background-color: rgb(107, 137, 182) !important;
+}
+
+/*
 .modal.right .modal-dialog {
   position: fixed !important;
   margin: auto !important;
@@ -177,6 +183,9 @@ input[type=number] {
 .modal.right.fade.in .modal-dialog {
   right: 0 !important;
 }
+*/
 
-
-
+.kkknowledge-row {
+  flex-wrap: nowrap !important;
+  overflow-x: hidden !important;
+}

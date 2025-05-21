@@ -11,7 +11,8 @@ const CatList = ({ categoryKey, level, setParentCategory }: ICatInfo) => {
     const { getSubCats } = useGlobalContext();
     useEffect(() => {
         (async () => {
-            const subCats = await getSubCats(categoryKey.id);
+            const res = await getSubCats(categoryKey.id);
+            const { subCats, parentHeader } = res;
             console.log('getSubCats', categoryKey, subCats);
             dispatch({ type: CatsActionTypes.SET_SUB_CATS, payload: { subCats } });
         })()

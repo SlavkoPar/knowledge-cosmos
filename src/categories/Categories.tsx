@@ -25,8 +25,11 @@ interface IProps {
 }
 
 const Providered = ({ categoryId_questionId }: IProps) => {
+    console.log("=============================================")
+    console.log("Categories", categoryId_questionId)
+    console.log("=============================================")
     const { state, reloadCategoryNode } = useCategoryContext();
-    const { categoryKeyExpanded, categoryId_questionId_done, questionId, categoryNodeLoaded } = state;
+    const { categoryKeyExpanded, categoryId_questionId_done, questionId, categoryNodeReLoading, categoryNodeLoaded } = state;
 
     const { setLastRouteVisited, searchQuestions } = useGlobalContext();
     const { isDarkMode, authUser, cats } = useGlobalState();
@@ -41,41 +44,47 @@ const Providered = ({ categoryId_questionId }: IProps) => {
 
     const dispatch = useCategoryDispatch();
 
-      const onSelectQuestion = async (questionKey: IQuestionKey) => {
+    const onSelectQuestion = async (questionKey: IQuestionKey) => {
         //navigate(`/categories/${questionKey.partitionKey}_${questionKey.id}`)
-        dispatch({type: ActionTypes.SET_QUESTION_SELECTED, payload: { questionKey }})
+        dispatch({ type: ActionTypes.SET_QUESTION_SELECTED, payload: { questionKey } })
     }
-    
+
     const [categoryKey] = useState<ICategoryKey>({ partitionKey: 'null', id: 'null' })
     let tekst = '';
 
     useEffect(() => {
         (async () => {
-            if (categoryId_questionId) {
-                if (categoryId_questionId === 'add_question') {
-                    const sNewQuestion = localStorage.getItem('New_Question');
-                    if (sNewQuestion) {
-                        const q = JSON.parse(sNewQuestion);
-                        setNewQuestion({ ...initialQuestion, categoryTitle: 'Select', ...q })
-                        setModalShow(true);
-                        localStorage.removeItem('New_Question');
-                        return null;
+            if (!categoryNodeReLoading) {
+                if (categoryId_questionId) {
+                    console.log('1) =>>>>>>>>>>>>>>>>>>> Categories calling categoryId_questionId:', categoryId_questionId );
+                    console.log('2) =>>>>>>>>>>>>>>>>>>> Categories calling categoryId_questionId_done:', categoryId_questionId_done );
+                    console.log('3) =>>>>>>>>>>>>>>>>>>> Categories calling categoryKeyExpanded:', categoryKeyExpanded );
+                    if (categoryId_questionId === 'add_question') {
+                        const sNewQuestion = localStorage.getItem('New_Question');
+                        if (sNewQuestion) {
+                            const q = JSON.parse(sNewQuestion);
+                            setNewQuestion({ ...initialQuestion, categoryTitle: 'Select', ...q })
+                            setModalShow(true);
+                            localStorage.removeItem('New_Question');
+                            return null;
+                        }
+                    }
+                    else if (categoryId_questionId !== categoryId_questionId_done) { //} && !categoryNodeLoaded) {
+                        const arr = categoryId_questionId.split('_');
+                        const categoryId = arr[0];
+                        const questionId = arr[1];
+                        console.log('4) =>>>>>>>>>>>>>>>>>>> Categories calling categoryKeyExpanded:', categoryId, questionId );
+                        await reloadCategoryNode({ partitionKey: '', id: categoryId }, questionId === 'null' ? null : questionId)
+                            .then(() => { return null; });
                     }
                 }
-                else if (categoryId_questionId !== categoryId_questionId_done) { //} && !categoryNodeLoaded) {
-                    console.log('1) ===>>> Categories calling reloadCategoryNode:', { categoryId_questionId, categoryKeyExpanded, categoryId_questionId_done });
-                    const arr = categoryId_questionId.split('_');
-                    const categoryId = arr[0];
-                    const questionId = arr[1];
-                    await reloadCategoryNode({ partitionKey: '', id: categoryId }, questionId).then(() => { return null; });
+                else if (categoryKeyExpanded && !categoryNodeLoaded) {
+                    console.log('2) =>>>>>>>>>>>>>> Categories calling reloadCategoryNode:', { categoryId_questionId, categoryKeyExpanded, categoryId_questionId_done });
+                    await reloadCategoryNode(categoryKeyExpanded, questionId).then(() => { return null; });
                 }
             }
-            else if (categoryKeyExpanded && !categoryNodeLoaded) {
-                console.log('2) ===>>> Categories calling reloadCategoryNode:', { categoryId_questionId, categoryKeyExpanded, categoryId_questionId_done });
-                await reloadCategoryNode(categoryKeyExpanded, questionId).then(() => { return null; });
-            }
         })()
-    }, [categoryKeyExpanded, categoryNodeLoaded, reloadCategoryNode, categoryId_questionId, categoryId_questionId_done])
+    }, [categoryKeyExpanded, categoryNodeReLoading, categoryNodeLoaded, reloadCategoryNode, categoryId_questionId, categoryId_questionId_done])
 
     useEffect(() => {
         setLastRouteVisited(`/categories`);
@@ -84,7 +93,8 @@ const Providered = ({ categoryId_questionId }: IProps) => {
     if (categoryId_questionId !== 'add_question') {
         if (/*categoryKeyExpanded ||*/ (categoryId_questionId && categoryId_questionId !== categoryId_questionId_done)) {
             console.log("zzzzzz loading...", { categoryKeyExpanded, categoryId_questionId, categoryId_questionId_done })
-            return <div>`zzzzzz loading... "${categoryId_questionId}" "${categoryId_questionId_done}"`</div>
+            // return <div>`zzzzzz loading... "${categoryId_questionId}" "${categoryId_questionId_done}"`</div>
+             return <div>loading...`</div>
         }
     }
 
@@ -97,7 +107,7 @@ const Providered = ({ categoryId_questionId }: IProps) => {
             <Container>
                 <h6 style={{ color: 'rgb(13, 110, 253)', marginLeft: '30%' }}>Categories / Questions</h6>
 
-<Row className={`${isDarkMode ? "dark" : ""}`}>
+                <Row className={`${isDarkMode ? "dark" : ""}`}>
                     <Col>
                         <div className="d-flex justify-content-start align-items-center">
                             <div className="w-75 my-1">

@@ -70,7 +70,8 @@ const CategoryForm = ({ inLine, mode, category, submitForm, children }: ICategor
 
   // eslint-disable-next-line no-self-compare
   // const nameRef = useRef<HTMLAreaElement | null>(null);
-  const nameRef = useRef<HTMLInputElement>(null);
+  const nameRef = useRef<HTMLTextAreaElement>(null);
+  //const nameRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     nameRef.current!.focus()
@@ -90,7 +91,7 @@ const CategoryForm = ({ inLine, mode, category, submitForm, children }: ICategor
           <Stack direction="horizontal" gap={1}>
             <div className="px-0"><Form.Label>Variations:</Form.Label></div>
             <div className="px-1 border border-1 border-secondary rounded">
-              <VariationList categoryKey={{partitionKey, id}} variations={variations.map(variation => ({ name: variation } as IVariation))} />
+              <VariationList categoryKey={{ partitionKey, id }} variations={variations.map(variation => ({ name: variation } as IVariation))} />
             </div>
             <div className="ps-2"><Form.Label>Kind:</Form.Label></div>
             <div className="px-1 border border-1 border-secondary rounded">
@@ -121,7 +122,7 @@ const CategoryForm = ({ inLine, mode, category, submitForm, children }: ICategor
         <Form.Group controlId="title">
           <Form.Label>Title</Form.Label>
           <Form.Control
-            as="input"
+            as="textarea"
             placeholder="New Category"
             name="title"
             ref={nameRef}
@@ -131,8 +132,9 @@ const CategoryForm = ({ inLine, mode, category, submitForm, children }: ICategor
             //   if (isEdit && formik.initialValues.title !== formik.values.title)
             //     formik.submitForm();
             // }}
+            rows={3}
+            className="text-primary w-100"
             value={formik.values.title}
-            style={{ width: '100%' }}
             disabled={viewing}
           />
           <Form.Text className="text-danger">
@@ -140,6 +142,48 @@ const CategoryForm = ({ inLine, mode, category, submitForm, children }: ICategor
               <div className="text-danger">{formik.errors.title}</div>
             ) : null}
           </Form.Text>
+        </Form.Group>
+
+
+        <Form.Group controlId="link">
+          <Form.Label>Link</Form.Label>
+          {formik.values.hasSubCategories
+            ? <Form.Control
+                as="input"
+                placeholder="/categories/..."
+                name="link"
+                onChange={formik.handleChange}
+                //onBlur={formik.handleBlur}
+                // onBlur={(e: React.FocusEvent<HTMLTextAreaElement>): void => {
+                //   if (isEdit && formik.initialValues.title !== formik.values.title)
+                //     formik.submitForm();
+                // }}
+                className="text-primary w-100"
+                value={"Can't have link (has sub categories)"}
+                disabled={true}
+              />
+            : <>
+              <Form.Control
+                as="input"
+                placeholder="/categories/..."
+                name="link"
+                onChange={formik.handleChange}
+                //onBlur={formik.handleBlur}
+                // onBlur={(e: React.FocusEvent<HTMLTextAreaElement>): void => {
+                //   if (isEdit && formik.initialValues.title !== formik.values.title)
+                //     formik.submitForm();
+                // }}
+                className="text-primary w-100"
+                value={formik.values.link ?? ''}
+                disabled={viewing}
+              />
+              <Form.Text className="text-danger">
+                {formik.touched.link && formik.errors.link ? (
+                  <div className="text-danger">{formik.errors.link}</div>
+                ) : null}
+              </Form.Text>
+            </>
+          }
         </Form.Group>
 
         {/* <Form.Group>
@@ -151,7 +195,7 @@ const CategoryForm = ({ inLine, mode, category, submitForm, children }: ICategor
         <Form.Group>
           <Form.Label className="m-1 mb-0">Questions ({`${formik.values.numOfQuestions}`}) </Form.Label>
           {showQuestions &&
-            <QuestionList level={1} categoryKey={categoryKey} title={title}  />
+            <QuestionList level={1} categoryKey={categoryKey} title={title} />
           }
         </Form.Group>
 

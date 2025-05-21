@@ -82,6 +82,7 @@ const AssignedAnswers = ({ questionKey, questionTitle, assignedAnswers, isDisabl
                 <ListGroup as="ul" variant={variant} className='my-1'>
                     {assignedAnswers.map((assignedAnswer: IAssignedAnswer) =>
                         <AssignedAnswer
+                            key={assignedAnswer.answerKey.id}
                             questionTitle={questionTitle}
                             assignedAnswer={assignedAnswer}
                             groupInAdding={false}

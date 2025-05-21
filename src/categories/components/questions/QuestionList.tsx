@@ -31,7 +31,6 @@ const QuestionList = ({ title, categoryKey, level }: IParentInfo) => {
   async function loadMore() {
     try {
       const parentInfo: IParentInfo = {
-        execute: readExecute,
         categoryKey,
         startCursor: questions.length,
         includeQuestionId: questionId ?? null

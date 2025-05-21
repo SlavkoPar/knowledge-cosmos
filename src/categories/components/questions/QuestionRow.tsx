@@ -54,7 +54,7 @@ const QuestionRow = ({ question, categoryInAdding }: { question: IQuestion, cate
 
     const Row1 =
         // <div ref={hoverRef} className="d-flex justify-content-start align-items-center w-100 text-secondary border border-3  position-relative">
-        <div ref={hoverRef} className="d-flex align-items-center w-100 text-secondary position-relative">
+        <div ref={hoverRef} className="d-flex align-items-center w-100 text-secondary position-relative knowledge-row">
             <Button
                 variant='link'
                 size="sm"

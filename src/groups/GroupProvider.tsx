@@ -107,7 +107,7 @@ export const GroupProvider: React.FC<Props> = ({ children }) => {
           const shortGroup: IShortGroup | undefined = shortGroups.get(id);
           if (!shortGroup) {
             alert('reload grps' + id)
-            return
+            // return
           }
           // dispatch({ type: ActionTypes.SET_LOADING })
           console.time()
