@@ -54,11 +54,11 @@ const AnswerRow = ({ answer, groupInAdding }: { answer: IAnswer, groupInAdding: 
 
     const Row1 =
         // <div ref={hoverRef} className="d-flex justify-content-start align-items-center w-100 text-secondary border border-3  position-relative">
-        <div ref={hoverRef} className="d-flex align-items-center w-100 text-secondary position-relative">
+        <div ref={hoverRef} className="d-flex align-items-center w-100 text-white bg-info  position-relative">
             <Button
                 variant='link'
                 size="sm"
-                className="p-0 px-0 text-secondary"
+                className="d-flex align-items-center p-0 px-1 text-white"
             >
                 <img width="22" height="18" src={A} alt="Answer" />
             </Button>
@@ -66,7 +66,7 @@ const AnswerRow = ({ answer, groupInAdding }: { answer: IAnswer, groupInAdding: 
             <Button
                 variant='link'
                 size="sm"
-                className={`p-0 mx-0 text-decoration-none text-secondary ${(inViewing || inEditing) ? 'fw-bold' : ''}`}
+                className={`p-0 mx-0 text-decoration-none text-white ${(inViewing || inEditing) ? 'fw-bold' : ''}`}
                 title={`id:${id!.toString()}`}
                 onClick={() => onSelectAnswer(id!)}
                 disabled={alreadyAdding}

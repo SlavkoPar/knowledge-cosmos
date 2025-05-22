@@ -60,12 +60,12 @@ export const useAI = (categories: ICategory[]): [
   //   })()
   // }, [])
 
-  const setNewQuestion = async (question: IQuestion): Promise<INewQuestion> => {
-    setQuestion(question);
+  const setNewQuestion = async (q: IQuestion): Promise<INewQuestion> => {
+    setQuestion(q);
     let hasMoreAnswers = false;
     let firstChatBotAnswer: IChatBotAnswer | null = null;
-    if (question) {
-      const { assignedAnswers } = question;
+    if (q) {
+      const { assignedAnswers } = q;
       // const assignedAnswer = (assignedAnswers.length > 0)
       //   ? assignedAnswers[0]
       //   : undefined;
@@ -78,7 +78,7 @@ export const useAI = (categories: ICategory[]): [
         setIndex(0);
       }
     }
-    return { firstChatBotAnswer: firstChatBotAnswer, hasMoreAnswers };
+    return { firstChatBotAnswer, hasMoreAnswers };
   }
 
   const getCurrQuestion = async (): Promise<IQuestion|null> => {
@@ -105,7 +105,7 @@ export const useAI = (categories: ICategory[]): [
 
   return [
     useCallback(setNewQuestion, []), 
-    useCallback(getCurrQuestion, []), 
-    useCallback(getNextChatBotAnswer, [])
+    useCallback(getCurrQuestion, [question]), 
+    useCallback(getNextChatBotAnswer, [question])
   ];
 }

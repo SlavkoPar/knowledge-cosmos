@@ -54,13 +54,15 @@ const QuestionRow = ({ question, categoryInAdding }: { question: IQuestion, cate
 
     const Row1 =
         // <div ref={hoverRef} className="d-flex justify-content-start align-items-center w-100 text-secondary border border-3  position-relative">
-        <div ref={hoverRef} className="d-flex align-items-center w-100 text-secondary position-relative knowledge-row">
+        // <div ref={hoverRef} className="d-flex align-items-center w-100 text-secondary position-relative question-row">
+        <div ref={hoverRef} className="d-flex justify-content-start align-items-center w-100 text-primary bg-warning position-relative question-row">
+
             <Button
                 variant='link'
                 size="sm"
-                className="p-0 px-0 text-secondary"
+                className="d-flex align-items-center px-1 text-secondary"
             >
-                <img width="22" height="18" src={Q} alt="Question" />
+                <img width="22" height="18" src={Q} alt="Question"/>
             </Button>
 
             <Button
@@ -114,7 +116,12 @@ const QuestionRow = ({ question, categoryInAdding }: { question: IQuestion, cate
 
     return (
         // border border-3 border-danger"
-        <div className="py-0 px-1 w-100 list-group-item">
+        // <div className="py-0 px-0 w-100 list-group-item border">
+         <ListGroup.Item
+                        variant={"primary"}
+                        className="py-0 px-1 w-100"
+                        as="li"
+                    >
             {inAdding && categoryInAdding && state.mode === Mode.AddingQuestion ? (
                 <AddQuestion question={question} inLine={true} showCloseButton={true} source={0} />
             )
@@ -135,7 +142,8 @@ const QuestionRow = ({ question, categoryInAdding }: { question: IQuestion, cate
                         Row1
                     )
             }
-        </div>
+        {/* </div> */}
+        </ListGroup.Item>
     );
 };
 

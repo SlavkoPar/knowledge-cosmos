@@ -105,7 +105,7 @@
 
 .dark .react-autosuggest__suggestion {
 	color: #fff;
-	background-color: #343a40;
+	background-color: rgb(255, 193, 7);
  }
 
  .dark .react-autosuggest__suggestion:hover { background-color: #adb5bd; }

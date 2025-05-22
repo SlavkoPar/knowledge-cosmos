@@ -13,16 +13,13 @@ import { useHover } from 'hooks/useHover';
 import { ICategory } from 'categories/types'
 
 import CategoryList from "categories/components/CategoryList";
-import AddCategory from "categories/components/AddCategory";
 import EditCategory from "categories/components/EditCategory";
 import ViewCategory from "categories/components/ViewCategory";
 import QuestionList from './questions/QuestionList';
-import useFetchWithMsal from 'hooks/useFetchWithMsal';
-import { protectedResources } from 'authConfig';
 
 const CategoryRow = ({ category }: { category: ICategory }) => {
-    const { partitionKey, id, title, level, inViewing, inEditing, inAdding, hasSubCategories,
-        questions, numOfQuestions, isExpanded, isSelected } = category;
+    const { partitionKey, id, title, level, inViewing, inEditing, inAdding, 
+        hasSubCategories, numOfQuestions, isExpanded, isSelected } = category;
     const [categoryKey] = useState<ICategoryKey>({ partitionKey, id }); // otherwise reloads
 
     // const parentInfo: IParentInfo = {
@@ -80,7 +77,7 @@ const CategoryRow = ({ category }: { category: ICategory }) => {
 
     {/* <ListGroup horizontal> */ }
     const Row1 =
-        <div ref={hoverRef} className="d-flex justify-content-start align-items-center w-100 text-primary knowledge-row ">
+        <div ref={hoverRef} className="d-flex justify-content-start align-items-center w-100 text-primary category-row ">
             <Button
                 variant='link'
                 size="sm"

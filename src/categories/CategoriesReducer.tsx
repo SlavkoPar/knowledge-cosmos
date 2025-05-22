@@ -171,7 +171,8 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
         categoryNodeLoading: false,
         categoryNodeLoaded: true,
         loading: false,
-        categoryKeyExpanded: categoryKey
+        categoryKeyExpanded: categoryKey,
+        mode: Mode.NULL // reset previosly selcted form
       };
     }
 
@@ -184,8 +185,7 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
       subCategories.forEach((subCategory: ICategory) => {
         const { id, hasSubCategories, numOfQuestions } = subCategory;
         if (ids.length > 0) {
-          const expand = ids.includes(id);
-          if (expand) {
+          if (ids.includes(id)) {
             idRemove = id;
             if (hasSubCategories || numOfQuestions > 0) {
               subCategory.isExpanded = true;

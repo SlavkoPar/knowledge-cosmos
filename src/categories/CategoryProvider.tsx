@@ -118,7 +118,6 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
     async (categoryKey: ICategoryKey | null, questionId: string | null, fromChatBotDlg: string = 'false'): Promise<any> => {
       return new Promise(async (resolve) => {
         try {
-          
           console.log('CategoryProvider.reloadCategoryNode', categoryKey, questionId)
           if (categoryKey !== null) {
             const { partitionKey, id } = categoryKey;
@@ -131,7 +130,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
               //return
             }
           }
-          dispatch({ type: ActionTypes.CATEGORY_NODE_LOADING, payload: { loading: true } })
+          //dispatch({ type: ActionTypes.CATEGORY_NODE_LOADING, payload: { loading: true } })
           //dispatch({ type: ActionTypes.CLEAN_SUB_TREE, payload: { categoryKey: null/*new CategoryKey(parentCat).categoryKey*/ } });
           // ---------------------------------------------------------------------------
           console.time();

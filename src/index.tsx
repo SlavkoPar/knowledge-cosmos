@@ -17,7 +17,7 @@ import Main from 'Main';
 */
 const msalInstance = new PublicClientApplication(msalConfig);
 /* await */
-msalInstance.initialize();
+await msalInstance.initialize();   //  "target": "es2017", instead of "target": "es5", in tsconfig.json
 
 // Default to using the first account if no account is active on page load
 console.log('msalInstance.getAllAccounts().length: ', msalInstance.getAllAccounts().length)

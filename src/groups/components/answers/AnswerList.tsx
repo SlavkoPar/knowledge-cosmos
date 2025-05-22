@@ -87,12 +87,11 @@ const AnswerList = ({ title, groupKey, level }: IParentInfo) => {
         }
         {answers.map((answer: IAnswer) => {
           //answer.partitionKey = partitionKey;
-          return <ListItem key={answer.id}>
-            <AnswerRow
+          return <AnswerRow
+             key={answer.id}
               answer={answer}
               groupInAdding={group!.inAdding}
             />
-          </ListItem>
         })}
         {hasMoreAnswers && (
           <ListItem ref={infiniteRef}>

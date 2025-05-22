@@ -86,12 +86,11 @@ const QuestionList = ({ title, categoryKey, level }: IParentInfo) => {
         }
         {questions.map((question: IQuestion) => {
           //question.partitionKey = partitionKey;
-          return <ListItem key={question.id}>
-            <QuestionRow
+          return <QuestionRow
+              key={question.id}
               question={question}
               categoryInAdding={category!.inAdding}
             />
-          </ListItem>
         })}
         {hasMoreQuestions && (
           <ListItem ref={infiniteRef}>
