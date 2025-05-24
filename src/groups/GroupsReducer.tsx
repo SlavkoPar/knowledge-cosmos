@@ -18,6 +18,8 @@ export const initialGroup: IGroup = {
   id: '',
   kind: 0,
   title: '',
+  link: '',
+  header: '',
   level: 0,
   variations: [],
   parentGroup: 'null',
@@ -32,14 +34,19 @@ export const initialState: IGroupsState = {
   mode: Mode.NULL,
   groups: [],
   groupNodesUpTheTree: [],
-  groupKeyExpanded: null,
+  groupKeyExpanded: {
+    "partitionKey": "TELEVISIONS",
+    "id": "TELEVISIONS"
+  },
   groupId_answerId_done: undefined,
   groupId: null,
-  answerId: null,
+  answerId: "7772294152",
   loading: false,
   answerLoading: false,
-  groupNodeLoaded: true
+  groupNodeReLoading: false,
+  groupNodeLoaded: false
 }
+
 
 // let state_fromLocalStorage: IState_fromLocalStorage | undefined;
 
@@ -142,6 +149,25 @@ const reducer = (state: IGroupsState, action: GroupsActions) => {
         loading: false
       };
     }
+
+    case ActionTypes.SET_GROUP_NODES_UP_THE_TREE: {
+      const { groupNodesUpTheTree, groupKey,  answerId } = action.payload;
+      console.log('====== >>>>>>> CategoriesReducer ActionTypes.SET_CATEGORY_NODES_UP_THE_TREE payload ', action.payload)
+      const groupId = groupKey ? groupKey.id : null;
+      return {
+        ...state,
+        groupNodesUpTheTree,
+        groupId,
+        questionId: answerId,
+        groupId_answerId_done: `${groupId}_${answerId}`,
+        groupNodeLoading: false,
+        groupNodeLoaded: true,
+        loading: false,
+        groupKeyExpanded: groupKey,
+        mode: Mode.NULL // reset previosly selcted form
+      };
+    }
+
 
     case ActionTypes.SET_SUB_GROUPS: {
       const { subGroups } = action.payload;

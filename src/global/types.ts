@@ -127,18 +127,22 @@ export interface ICat {
 	titlesUpTheTree: string; // traverse up the tree, until root
 	variations: string[];
 	hasSubCategories: boolean;
-	level: number,
-	kind: number
+	level: number;
+	kind: number;
 }
 
 export interface IShortGroup {
-	groupKey: IGroupKey,
-	parentGroup: string | null,
+	partitionKey: string
+	id: string;
+	parentGroup: string | null;
+	header: string;
 	title: string;
+	link: string | null;
 	titlesUpTheTree: string; // traverse up the tree, until root
 	variations: string[];
 	hasSubGroups: boolean;
-	kind: number
+	level: number;
+	kind: number;
 }
 
 export interface ICatExport {

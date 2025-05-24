@@ -17,7 +17,7 @@ const AddAnswer = ({ answer, closeModal, onAnswerCreated }: IProps) => {
     const globalState = useGlobalState();
     const { nickName } = globalState.authUser;
 
-    const { createAnswer } = useCategoryContext();
+    //const { createAnswer } = useCategoryContext();
     const [formValues] = useState(answer)
 
     const submitAnswer = async (answerObject: IAnswer) => {
@@ -30,7 +30,8 @@ const AddAnswer = ({ answer, closeModal, onAnswerCreated }: IProps) => {
                 nickName: nickName
             }
         }
-        const answer = await createAnswer(object);
+        //const answer = await createAnswer(object);
+        //TODO vrati ovo
         onAnswerCreated(answer)
     }
 

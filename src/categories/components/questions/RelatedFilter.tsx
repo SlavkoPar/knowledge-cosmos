@@ -45,11 +45,11 @@ const RelatedFilter = ({ relatedFilter, unAssignFilter }: IProps) => {
     const [hoverRef, hoverProps] = useHover();
 
     const Row1 =
-        <div ref={hoverRef} className="d-flex justify-content-start align-items-center w-100 text-info">
+        <div ref={hoverRef} className="d-flex justify-content-start align-items-center w-100 text-light bg-warning">
             <Button
                 variant='link'
                 size="sm"
-                className="py-0 mx-1 text-decoration-none text-info text-wrap"
+                className="py-0 mx-0  text-decoration-none text-light text-wrap bg-warning"
                 title={rowTitle}
                 onClick={() => onSelectAnswer(filter)}
                 disabled={alreadyAdding}
@@ -57,7 +57,7 @@ const RelatedFilter = ({ relatedFilter, unAssignFilter }: IProps) => {
                 {filter}
             </Button>
 
-             <Badge pill bg="secondary"  className={`text-info ${numOfUsages === 0 ? 'd-none' : 'd-inline'}`}>
+             <Badge pill bg="warning"  className={`text-light ${numOfUsages === 0 ? 'd-none' : 'd-inline'}`}>
                 {numOfUsages}{numOfUsages == 1 ? ' usage' : ' usages'}
                 {/* <FontAwesomeIcon icon={faReply} size='sm' /> */}
                 {/* <img width="22" height="18" src={A} alt="Answer"></img> */}
@@ -79,8 +79,8 @@ const RelatedFilter = ({ relatedFilter, unAssignFilter }: IProps) => {
     return (
         <ListGroup.Item
             key={filter}
-            variant={"info"}
-            className="py-0 px-1"
+            variant='warning'
+            className="py-0 px-0"
             as="li"
         >
             {/* <div class="d-lg-none">hide on lg and wider screens</div> */}

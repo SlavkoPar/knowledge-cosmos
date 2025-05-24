@@ -52,10 +52,10 @@ const RelatedFilters = ({ questionKey, questionTitle, relatedFilters }: IProps) 
     }
 
     return (
-        <div className={'mx-0 my-1 border rounded-2 px-3 py-1 border border-info'} >
+        <div className='mx-0 my-1 border rounded-2 px-1 py-1 border border-light fs-6 bg-warning'>
             <div>
-                <label className="text-muted"><small>Most frequently selected Filters (as the next Question in ChatBot)</small></label>
-                <ListGroup as="ul" variant={variant} className='my-1'>
+                <label className="text-muted">Most frequently selected Filters <br/>(as the next Question in ChatBot)</label>
+                <ListGroup as="ul" variant={variant} className='my-1 bg-secondary'>
                     {relatedFilters.map((relatedFilter: IRelatedFilter) =>
                         <RelatedFilter
                             relatedFilter={relatedFilter}

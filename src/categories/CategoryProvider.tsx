@@ -62,7 +62,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
     const accessToken = localStorage.getItem("accessToken");
     if (accessToken) {
       try {
-        console.log({ accessToken })
+        // console.log({ accessToken })
         let response = null;
 
         const headers = new Headers();
@@ -438,7 +438,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
           console.time()
           console.log('>>>>>>>>>>>>')
           console.log('>>>>>>>>>>>>')
-          console.log('>>>>>>>>>>>>loadCategoryQuestions URL:', { url }, {includeQuestionId})
+          console.log('>>>>>>>>>>>>loadCategoryQuestions URL:', { url }, { includeQuestionId })
           console.log('>>>>>>>>>>>>')
           console.log('>>>>>>>>>>>>')
           await Execute!("GET", url).then((categoryDtoEx: ICategoryDtoEx) => {
@@ -513,7 +513,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
         const questionDto = new QuestionDto(question).questionDto;
         const url = `${protectedResources.KnowledgeAPI.endpointQuestion}`;
         console.time()
-        console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> createQuestion', questionDto)
+        console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> updateQuestion', questionDto)
         let questionRet = null;
         await Execute("PUT", url, questionDto)
           .then(async (questionDtoEx: IQuestionDtoEx) => {
@@ -689,23 +689,6 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
     }
   }, []);
 
-  const createAnswer = useCallback(async (answer: IAnswer): Promise<any> => {
-    // try {
-    //   const res = await axios.post(`/api/answers/create-answer`, answer);
-    //   const { status, data } = res;
-    //   if (status === 200) {
-    //     console.log('Answer successfully created')
-    //     return data;
-    //   }
-    //   else {
-    //     console.log('Status is not 200', status)
-    //   }
-    // }
-    // catch (error) {
-    //   console.log(error);
-    // }
-    return null;
-  }, []);
 
 
   const contextValue: ICategoriesContext = {
@@ -713,7 +696,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
     getSubCategories, createCategory, viewCategory, editCategory, updateCategory, deleteCategory, deleteCategoryVariation,
     expandCategory, collapseCategory,
     loadCategoryQuestions, createQuestion, viewQuestion, editQuestion, updateQuestion, deleteQuestion,
-    assignQuestionAnswer, createAnswer
+    assignQuestionAnswer
   }
   return (
     <CategoriesContext.Provider value={contextValue}>

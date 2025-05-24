@@ -1,5 +1,5 @@
 import { IQuestionKey } from 'categories/types';
-import { ActionMap, IWhoWhen, IRecord, IRecordDto, Dto2WhoWhen, WhoWhen2Dto, IWhoWhenDto } from 'global/types';
+import { ActionMap, IWhoWhen, IRecord, IRecordDto, Dto2WhoWhen, WhoWhen2Dto, IWhoWhenDto, IShortGroup } from 'global/types';
 
 export const Mode = {
 	UNDEFINED: undefined,
@@ -134,13 +134,15 @@ export interface IGroup extends IRecord {
 	parentGroup: string | null; // | null is a valid value so you can store data with null value in indexeddb 
 	// but it is not a valid key
 	title: string;
-	// words: string[];
+	link: string | null;
+	header: string;
 	level: number;
 	variations: string[];
 	answers: IAnswer[];
 	numOfAnswers: number;
 	hasMoreAnswers?: boolean;
 	isExpanded?: boolean;
+	isSelected?: boolean;
 	hasSubGroups: boolean;
 	groups?: IGroup[]; // used for export to json
 	titlesUpTheTree?: string;
@@ -155,7 +157,7 @@ export class AnswerRow {
 			id: rowDto.Id,
 			title: rowDto.Title,
 			groupTitle: rowDto.GroupTitle,
-			link: rowDto.Link, 
+			link: rowDto.Link,
 			created: new Dto2WhoWhen(rowDto.Created!).whoWhen,
 			modified: rowDto.Modified
 				? new Dto2WhoWhen(rowDto.Modified).whoWhen
@@ -174,7 +176,7 @@ export class Answer {
 			partitionKey: dto.PartitionKey,
 			id: dto.Id,
 			title: dto.Title,
-			link: dto.Link, 
+			link: dto.Link,
 			groupTitle: dto.GroupTitle,
 			source: dto.Source,
 			status: dto.Status,
@@ -196,6 +198,8 @@ export class Group {
 			id: dto.Id,
 			kind: dto.Kind,
 			parentGroup: dto.ParentGroup!,
+			header: dto.Header,
+			link: dto.Link,
 			title: dto.Title,
 			level: dto.Level!,
 			variations: dto.Variations ?? [],
@@ -221,7 +225,9 @@ export class GroupDto {
 			Id: group.id,
 			Kind: group.kind,
 			ParentGroup: group.parentGroup,
+			Header: group.header,
 			Title: group.title,
+			Link: group.link,
 			Level: group.level,
 			Variations: group.variations,
 			Created: new WhoWhen2Dto(group.created).whoWhenDto!,
@@ -272,7 +278,10 @@ export interface IAnswerRowDto extends IRecordDto {
 export interface IAnswerDto extends IAnswerRowDto {
 }
 
-
+export interface IAnswerEx {
+	answer: IAnswer | null;
+	msg: string;
+}
 
 export interface IAnswerDtoEx {
 	answerDto: IAnswerDto | null;
@@ -289,7 +298,9 @@ export interface IGroupDto extends IRecordDto {
 	Id: string;
 	Kind: number;
 	ParentGroup: string | null;
+	Header: string;
 	Title: string;
+	Link: string | null;
 	Variations: string[];
 	Level?: number;
 	NumOfAnswers?: number;
@@ -301,6 +312,19 @@ export interface IGroupDto extends IRecordDto {
 export interface IGroupDtoListEx {
 	groupDtoList: IGroupDto[];
 	msg: string;
+}
+
+
+export class GroupKey {
+	constructor(shortGroup: IShortGroup | undefined) {
+		this.groupKey = shortGroup
+			? {
+				partitionKey: shortGroup.partitionKey,
+				id: shortGroup.id
+			}
+			: null
+	}
+	groupKey: IGroupKey | null;
 }
 
 
@@ -331,6 +355,7 @@ export interface IGroupsState {
 	groupId: string | null;
 	answerId: string | null;
 	groupId_answerId_done?: string;
+	groupNodeReLoading: boolean;
 	groupNodeLoaded: boolean;
 	//reloadGroupInfo: IParentGroups;
 	loading: boolean;
@@ -409,6 +434,8 @@ export enum ActionTypes {
 	SET_COLLAPSED = 'SET_COLLAPSED',
 
 	RELOAD_GROUP_NODE = "RELOAD_GROUP_NODE",
+	GROUP_NODE_LOADING = "GROUP_NODE_LOADING",
+	SET_GROUP_NODES_UP_THE_TREE = "SET_GROUP_NODES_UP_THE_TREE",
 
 	// answers
 	LOAD_GROUP_ANSWERS = 'LOAD_GROUP_ANSWERS',
@@ -494,6 +521,16 @@ export type GroupsPayload = {
 	[ActionTypes.SET_ERROR]: {
 		error: Error;
 		whichRowId?: string;
+	};
+
+	[ActionTypes.GROUP_NODE_LOADING]: {
+		loading: boolean
+	};
+
+	[ActionTypes.SET_GROUP_NODES_UP_THE_TREE]: {
+		groupNodesUpTheTree: IGroupKeyExtended[]; /// we could have used Id only
+		groupKey: IGroupKey | null;
+		answerId: string | null;
 	};
 
 	/////////////

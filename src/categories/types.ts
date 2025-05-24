@@ -405,7 +405,6 @@ export interface ICategoriesContext {
 	editQuestion: (questionKey: IQuestionKey) => void;
 	updateQuestion: (question: IQuestion) => Promise<any>;
 	assignQuestionAnswer: (action: string, questionKey: IQuestionKey, answerKey: IAnswerKey, assigned: IWhoWhen) => Promise<any>;
-	createAnswer: (answer: IAnswer) => Promise<any>;
 	deleteQuestion: (question: IQuestion) => void;
 }
 

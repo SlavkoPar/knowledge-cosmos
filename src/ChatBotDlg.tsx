@@ -1,5 +1,5 @@
 import React, { useEffect, useState, JSX, useRef } from 'react';
-import { Container, Row, Col, Button, Form, ListGroup, Offcanvas } from "react-bootstrap";
+import { Container, Row, Col, Button, Form, ListGroup, Offcanvas, Stack } from "react-bootstrap";
 import { NavLink, useNavigate } from "react-router-dom";
 
 import { useGlobalContext, useGlobalState } from 'global/GlobalProvider';
@@ -10,8 +10,8 @@ import { AutoSuggestQuestions } from 'categories/AutoSuggestQuestions';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFolder } from '@fortawesome/free-solid-svg-icons'
 
-import { ICategory, IQuestion, IQuestionEx, IQuestionKey, ActionTypes } from 'categories/types';
-import { IWhoWhen, ICat, IHistory, USER_ANSWER_ACTION, IHistoryFilterDto } from 'global/types';
+import { IQuestion, IQuestionEx, IQuestionKey } from 'categories/types';
+import { ICat, IHistory, USER_ANSWER_ACTION, IHistoryFilterDto } from 'global/types';
 import { IChatBotAnswer, INewQuestion, INextAnswer, useAI } from 'hooks/useAI'
 
 import Q from 'assets/Q.png';
@@ -109,31 +109,8 @@ const ChatBotDlg = ({ show, onHide }: IProps) => {
 
     }
 
-    useEffect(() => {
-        (async () => {
-            //setCatOptions(await getCatsByKind(2));
-            // const parentCategory = 'MTS'; // null
-            // const res = await getSubCats(parentCategory);
-            // const { subCats, parentHeader } = res;
-            // console.log('/////////////////////////////////////////////////////', subCats)
-            // setCatLevels((prevState) => ([
-            //     ...prevState,
-            //     {
-            //         level: 1,
-            //         catId: parentCategory,
-            //         header: parentHeader,
-            //         subCats,
-            //         subCatIdSelected: null
-            //     }
-            // ]))
-        })()
-    }, []) // [catsLoaded])
 
     const scrollableRef = useRef<HTMLDivElement>(null);
-
-    // useEffect(() => {
-    //     setLastRouteVisited(`/ChatBotPage/0/${encodeURIComponent('daljinski')}/xyz`);
-    // }, [setLastRouteVisited])
 
     // useEffect(() => {
     //     scrollToBottom();
@@ -156,13 +133,6 @@ const ChatBotDlg = ({ show, onHide }: IProps) => {
             }
             : catLevel
         )
-        // setCatLevels((prevState) => (
-        // 	catLevels
-        // ))
-
-        // const { header } = catLevel;
-        // const catSelected = catLevel.subCats.find(sc => sc.id = id)!;
-        // catLevel.catSelected = catSelected;
 
         const res = await getSubCats(id);
         const { subCats, parentHeader } = res;
@@ -187,17 +157,6 @@ const ChatBotDlg = ({ show, onHide }: IProps) => {
         // });
     }
 
-    const onUsageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const target = event.target;
-        const value = target.type === 'checkbox' ? target.checked : target.value;
-        const name = target.name as any;
-        setCatsSelected(true);
-        setAutoSuggestId(autoSuggestId + 1);
-        setShowAutoSuggest(true);
-        //setPaymentMethod(value);
-    };
-
-    //categoryId: string, questionId: string
     const onSelectQuestion = async (questionKey: IQuestionKey, underFilter: string) => {
         const questionCurr = await getCurrQuestion();
         if (questionCurr) {
@@ -361,7 +320,7 @@ const ChatBotDlg = ({ show, onHide }: IProps) => {
     const NavigLink = (link: string) => {
         //dispatch({ type: ActionTypes.RESET_CATEGORY_QUESTION_DONE })
         //dispatch({ type: ActionTypes.CLEAN_SUB_TREE, payload: { categoryKey: null } });
-            // new CategoryKey(parentCat).categoryKey*/ } });
+        // new CategoryKey(parentCat).categoryKey*/ } });
         setTimeout(() => {
             navigate(link + "/true")
         }, 100);
@@ -440,67 +399,104 @@ const ChatBotDlg = ({ show, onHide }: IProps) => {
     const QuestionComponent = (props: IChild) => {
         const { isDisabled, txt } = props;
         return (
-            <Row
-                className={`my-1 bg-warning text-dark mx-1 border border-1 rounded-1`}
-                id={autoSuggestId.toString()}
-            >
-                <Col xs={0} md={3} className='mb-1'>
-                </Col>
-                <Col xs={12} md={9}>
-                    <div className="d-flex justify-content-start align-items-center">
-                        {/* <div className="w-75"> */}
-                        <img width="22" height="18" src={Q} alt="Question" className='me-1' />
-                        {txt}
-                        {/* </div> */}
-                    </div>
-                </Col>
-            </Row>
+            <div id={autoSuggestId.toString()} className="d-flex flex-row mx-0 justify-content-start align-items-center">
+                <div className="d-flex flex-row mx-0 justify-content-start align-items-center">
+                    <img width="22" height="18" src={Q} alt="Question" className='ms-1' />
+                    <div className="p-1 bg-warning text-light flex-wrap text-wrap border rounded-1">{txt}</div>
+                </div>
+            </div>
         )
     }
 
     const AnswerComponent = (props: IChild) => {
-        console.log('--------------------------------------AnswerComponent', props) 
+        console.log('--------------------------------------AnswerComponent', props)
         const { isDisabled, txt, link } = props;
         return (
             <div
                 // id={answerId.toString()}   PPP
                 id={chatBotAnswer?.answerKey.id}
-                className={`${isDarkMode ? "dark" : "light"} mx-1 border border-0 rounded-1`}
+                className={`${isDarkMode ? "dark" : "light"} mt-1 mx-1 border border-0 rounded-1`}
             >
-                <Row>
-                    <Col xs={12} md={12} className={`${isDisabled ? 'secondary' : 'primary'} d-flex justify-content-start align-items-center`}>
-                        <img width="22" height="18" src={A} alt="Answer" className='m-2' />
-                        {/* contentEditable="true" aria-multiline="true" */}
-                        <div className='bg-info text-light p-1'>
-                            {txt} <br />
-                            {link ? <a href={link} target="_blank" className="text-reset text-decoration-none fw-lighter fs-6" >{link}</a> : null}
+                {/* <Row>
+                    <Col xs={12} md={12} className={`${isDisabled ? 'secondary' : 'primary'} d-flex justify-content-start align-items-center p-0`}> */}
+
+                <div className="d-flex flex-row mx-0 justify-content-start align-items-center">
+                    <div className="d-flex flex-row mx-0 justify-content-start align-items-center">
+                        <img width="22" height="18" src={A} alt="Answer" className='ms-1' />
+                        <div className="p-1 bg-info text-light flex-wrap text-wrap border rounded-1">{txt}</div>
+                    </div>
+
+                    {!isDisabled && chatBotAnswer &&
+                        <div>
+                            <Button
+                                size="sm"
+                                type="button"
+                                onClick={onAnswerFixed}
+                                disabled={!chatBotAnswer}
+                                className='align-middle ms-1 p-0'
+                                variant="success"
+                            >
+                                Fixed
+                            </Button>
+                            <Button
+                                size="sm"
+                                type="button"
+                                onClick={getNextAnswer}
+                                disabled={!chatBotAnswer}
+                                className='align-middle ms-1 border border-1 rounded-1 p-0'
+                                variant="danger"
+                            >
+                                Not fixed
+                            </Button>
                         </div>
-                        {!isDisabled && chatBotAnswer &&
-                            <div>
-                                <Button
-                                    size="sm"
-                                    type="button"
-                                    onClick={onAnswerFixed}
-                                    disabled={!chatBotAnswer}
-                                    className='align-middle ms-3 border border-1 rounded-1 py-0'
-                                    variant="success"
-                                >
-                                    Fixed
-                                </Button>
-                                <Button
-                                    size="sm"
-                                    type="button"
-                                    onClick={getNextAnswer}
-                                    disabled={!chatBotAnswer}
-                                    className='align-middle ms-2 border border-1 rounded-1 py-0'
-                                    variant="primary"
-                                >
-                                    Haven't fixed
-                                </Button>
+                    }
+                </div>
+
+                {/* <div className="d-flex flex-row flex-wrap mx-0"> */}
+                {/* <div className="card card-block  bg-info text-light">
+                                <div className="card-body p-0">
+                                    <div className="card-text d-flex justify-content-start align-items-center">
+                                        
+                                        
+                                        {link ? <a href={link} target="_blank" className="text-reset text-decoration-none fw-lighter fs-6" >{link}</a> : null}
+                                    </div>
+                                </div>
                             </div>
-                        }
-                    </Col>
-                </Row>
+                            <div className="card card-block  border-0">
+                                <div className="card-body p-0 border-0">
+                                    <div className="card-text">
+                                        {!isDisabled && chatBotAnswer &&
+                                            <div>
+                                                <Button
+                                                    size="sm"
+                                                    type="button"
+                                                    onClick={onAnswerFixed}
+                                                    disabled={!chatBotAnswer}
+                                                    className='align-middle ms-1 p-0'
+                                                    variant="success"
+                                                >
+                                                    Fixed
+                                                </Button>
+                                                <Button
+                                                    size="sm"
+                                                    type="button"
+                                                    onClick={getNextAnswer}
+                                                    disabled={!chatBotAnswer}
+                                                    className='align-middle ms-1 border border-1 rounded-1 p-0'
+                                                    variant="danger"
+                                                >
+                                                    Not fixed
+                                                </Button>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            </div> */}
+
+                {/* </div> */}
+
+                {/* </Col>
+                </Row> */}
             </div>
         );
     };
@@ -510,7 +506,7 @@ const ChatBotDlg = ({ show, onHide }: IProps) => {
         return (
             <Row className={`my-1 ${isDarkMode ? "dark" : ""}`} key={autoSuggestId}>
                 <Col xs={12} md={3} className='mb-1 text-start'>
-                    <label className="text-info">Please enter the Question</label>
+                    <label className="text-warning">Please enter the Question</label>
                 </Col>
                 <Col xs={0} md={12}>
                     {isDisabled &&
@@ -545,7 +541,7 @@ const ChatBotDlg = ({ show, onHide }: IProps) => {
     // const scrollToBottom = () => {
     //     scrollableRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
     // };
-
+    console.log("=====================>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> rendering ChatBotDlg")
     return (
         <div className="pe-6 overflow-auto chat-bot-dlg">
             {/* <Button variant="primary" onClick={onHide}>
@@ -556,10 +552,10 @@ const ChatBotDlg = ({ show, onHide }: IProps) => {
             <Offcanvas show={show} onHide={onHide} placement='end' scroll={true} backdrop={true} onEntering={onEntering}> {/* backdropClassName='chat-bot-dlg' */}
                 <Offcanvas.Header closeButton>
                     <Offcanvas.Title>
-                        Buddy
+                        Buddy Bre
                     </Offcanvas.Title>
                 </Offcanvas.Header>
-                <Offcanvas.Body>
+                <Offcanvas.Body className="p-0">
                     <Container id='container' fluid className='text-primary'> {/* align-items-center" */}
                         <Row className="m-0">
                             <Col>
@@ -625,7 +621,12 @@ const ChatBotDlg = ({ show, onHide }: IProps) => {
 
                                 {showAutoSuggest &&
                                     <div className="pb-35">
-                                        <AutoSuggestComponent type={ChildType.AUTO_SUGGEST} isDisabled={false} txt={autoSuggestionValue!} link={null} />
+                                        <AutoSuggestComponent
+                                            type={ChildType.AUTO_SUGGEST}
+                                            isDisabled={false}
+                                            txt={autoSuggestionValue!}
+                                            link={null}
+                                        />
                                     </div>
                                 }
                                 {/* </div> */}

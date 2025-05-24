@@ -231,7 +231,7 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
           data.forEach((groupDto: IGroupDto) => groups.set(groupDto.Id, new Group(groupDto).group));
           //
           groups.forEach(group => {
-            const { partitionKey, id, parentGroup, title, variations, hasSubGroups, kind } = group;
+            const { partitionKey, id, parentGroup, header, title, link, level, variations, hasSubGroups, kind } = group;
             let titlesUpTheTree = id;
             let parentShortGroup = parentGroup;
             while (parentShortGroup) {
@@ -241,9 +241,13 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
             }
             group.titlesUpTheTree = titlesUpTheTree;
             const shortGroup: IShortGroup = {
-              groupKey: { partitionKey, id },
+              partitionKey,
+              id,
               parentGroup: parentShortGroup,
-              title: title,
+              header,
+              title,
+              link,
+              level,
               titlesUpTheTree: '',
               variations,
               hasSubGroups,
@@ -613,22 +617,26 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
     });
   }
 
+
   const getGroupsByKind = async (kind: number): Promise<IShortGroup[]> => {
     try {
       const { shortGroups } = globalState;
       const groups: IShortGroup[] = [];
-      shortGroups.forEach((g, id) => {
-        if (g.kind === kind) {
-          const { groupKey, title } = g;
-          const { partitionKey, id } = groupKey;
+      shortGroups.forEach((c, id) => {
+        if (c.kind === kind) {
+          const { partitionKey, id, header, title, link, level } = c;
           const shortGroup: IShortGroup = {
-            groupKey: { partitionKey, id },
+            partitionKey,
+            id,
+            header,
             title,
+            link,
             parentGroup: "",
             titlesUpTheTree: "",
             variations: [],
             hasSubGroups: false,
-            kind: kind
+            level,
+            kind
           }
           groups.push(shortGroup);
         }

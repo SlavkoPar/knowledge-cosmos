@@ -25,7 +25,7 @@ interface IProps {
 
 const Providered = ({ groupId_answerId }: IProps) => {
     const { state, reloadGroupNode } = useGroupContext();
-    const { groupKeyExpanded, groupId_answerId_done, answerId, groupNodeLoaded } = state;
+    const { groupKeyExpanded, groupId_answerId_done, answerId, groupNodeLoaded, groupNodeReLoading } = state;
     console.log('Providered', { groupKeyExpanded, groupNodeLoaded })
 
     const { setLastRouteVisited } = useGlobalContext();
@@ -44,31 +44,37 @@ const Providered = ({ groupId_answerId }: IProps) => {
 
     useEffect(() => {
         (async () => {
-            if (groupId_answerId) {
-                if (groupId_answerId === 'add_answer') {
-                    const sNewAnswer = localStorage.getItem('New_Answer');
-                    if (sNewAnswer) {
-                        const q = JSON.parse(sNewAnswer);
-                        setNewAnswer({ ...initialAnswer, groupTitle: 'Select', ...q })
-                        setModalShow(true);
-                        localStorage.removeItem('New_Answer');
-                        return null;
+            if (!groupNodeReLoading) {
+                if (groupId_answerId) {
+                    console.log('1) =>>>>>>>>>>>>>>>>>>> Groups calling groupId_answerId:', groupId_answerId );
+                    console.log('2) =>>>>>>>>>>>>>>>>>>> Groups calling groupId_answerId_done:', groupId_answerId_done );
+                    console.log('3) =>>>>>>>>>>>>>>>>>>> Groups calling groupKeyExpanded:', groupKeyExpanded );
+                    if (groupId_answerId === 'add_answer') {
+                        const sNewAnswer = localStorage.getItem('New_Answer');
+                        if (sNewAnswer) {
+                            const q = JSON.parse(sNewAnswer);
+                            setNewAnswer({ ...initialAnswer, groupTitle: 'Select', ...q })
+                            setModalShow(true);
+                            localStorage.removeItem('New_Answer');
+                            return null;
+                        }
+                    }
+                    else if (groupId_answerId !== groupId_answerId_done) { //} && !groupNodeLoaded) {
+                        const arr = groupId_answerId.split('_');
+                        const groupId = arr[0];
+                        const answerId = arr[1];
+                        console.log('4) =>>>>>>>>>>>>>>>>>>> Groups calling groupKeyExpanded:', groupId, answerId );
+                        await reloadGroupNode({ partitionKey: '', id: groupId }, answerId === 'null' ? null : answerId )
+                            .then(() => { return null; });
                     }
                 }
-                else if (groupId_answerId !== groupId_answerId_done) { //} && !groupNodeLoaded) {
-                    console.log('1) ===>>> Groups calling reloadGroupNode:', { groupId_answerId, groupKeyExpanded, groupId_answerId_done });
-                    const arr = groupId_answerId.split('_');
-                    const groupId = arr[0];
-                    const answerId = arr[1];
-                    await reloadGroupNode({ partitionKey: '', id: groupId }, answerId).then(() => { return null; });
+                else if (groupKeyExpanded && !groupNodeLoaded) {
+                    console.log('999) =>>>>>>>>>>>>>> Groups calling reloadGroupNode:', { groupId_answerId, groupKeyExpanded, groupId_answerId_done });
+                    await reloadGroupNode(groupKeyExpanded, answerId).then(() => { return null; });
                 }
             }
-            else if (groupKeyExpanded && !groupNodeLoaded) {
-                console.log('2) ===>>> Groups calling reloadGroupNode:', { groupId_answerId, groupKeyExpanded, groupId_answerId_done });
-                await reloadGroupNode(groupKeyExpanded, answerId).then(() => { return null; });
-            }
         })()
-    }, [groupKeyExpanded, groupNodeLoaded, reloadGroupNode, groupId_answerId, groupId_answerId_done])
+    }, [groupKeyExpanded, groupNodeReLoading, groupNodeLoaded, reloadGroupNode, groupId_answerId, groupId_answerId_done])
 
     useEffect(() => {
         setLastRouteVisited(`/groups`);

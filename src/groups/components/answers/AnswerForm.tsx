@@ -86,21 +86,20 @@ const AnswerForm = ({ mode, answer, submitForm, children, showCloseButton, sourc
   }
 
   return (
-    <div className="form-wrapper px-3 py-1 my-0 my-1 w-100" >
+    <div className="form-wrapper px-3 py-1 my-0 my-1 w-100 bg-info answer" >
       {/* data-bs-theme={`${isDarkMode ? 'dark' : 'light'}`} */}
       {showCloseButton && <CloseButton onClick={closeForm} className="float-end" />}
       <Row className='text-center'>
-        <Form.Label>Answer</Form.Label>
+        <Form.Label className="answer">Answer</Form.Label>
       </Row>
       <Form onSubmit={formik.handleSubmit}>
-
         <Stack direction="horizontal" gap={0}>
           <div className="p-0"><Form.Label>Group:</Form.Label></div>
           <div className="p-1">
             <Form.Group controlId="parentGroup" className="group-select form-select-sm">
               <Dropdown>
-                <Dropdown.Toggle variant="light" id="dropdown-basic" className="px-2 py-0 text-primary" disabled={isDisabled}>
-                  {formik.values.groupTitle}
+                <Dropdown.Toggle variant="light" id="dropdown-basic" className="px-2 py-0 text-primary wrap" disabled={isDisabled}>
+                  <div className="text-wrap">{formik.values.groupTitle}</div>
                 </Dropdown.Toggle>
                 <Dropdown.Menu className="p-0">
                   <Dropdown.Item className="p-0 m-0 rounded-3">

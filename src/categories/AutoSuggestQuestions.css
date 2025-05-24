@@ -105,8 +105,13 @@
 
 .dark .react-autosuggest__suggestion {
 	color: #fff;
-	background-color: rgb(255, 193, 7);
+	background-color: rgb(255, 193, 7)	;
  }
+
+.no-suggestions {
+	background-color: rgb(255, 193, 7);
+	padding: 3px;
+}
 
  .dark .react-autosuggest__suggestion:hover { background-color: #adb5bd; }
 

@@ -156,7 +156,6 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
       };
     }
 
-
     case ActionTypes.SET_CATEGORY_NODES_UP_THE_TREE: {
       const { categoryNodesUpTheTree, categoryKey, questionId, fromChatBotDlg } = action.payload;
       console.log('====== >>>>>>> CategoriesReducer ActionTypes.SET_CATEGORY_NODES_UP_THE_TREE payload ', action.payload)

@@ -21,7 +21,7 @@ import useFetchWithMsal from 'hooks/useFetchWithMsal';
 import { protectedResources } from 'authConfig';
 
 const GroupRow = ({ group }: { group: IGroup }) => {
-    const { partitionKey, id, title, level, inViewing, inEditing, inAdding, hasSubGroups, answers, numOfAnswers, isExpanded } = group;
+    const { partitionKey, id, title, level, inViewing, inEditing, inAdding, hasSubGroups, numOfAnswers, isExpanded, isSelected } = group;
     const [groupKey] = useState<IGroupKey>({ partitionKey, id }); // otherwise reloads
 
     const parentInfo: IParentInfo = {
@@ -68,6 +68,12 @@ const GroupRow = ({ group }: { group: IGroup }) => {
         else
             viewGroup(groupKey, answerId ?? 'null');
     }
+
+    useEffect(() => {
+        if (!isExpanded && isSelected) {
+            onSelectGroup()
+        }
+    }, [])
 
     const [hoverRef, hoverProps] = useHover();
 

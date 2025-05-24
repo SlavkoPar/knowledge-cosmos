@@ -149,7 +149,8 @@ export class AutoSuggestAnswers extends React.Component<{
 		const arr: IShortGroupIdTitle[] = [];
 		searchWords.filter(w => w.length >= 3).forEach(w => {
 			this.shortGroups.forEach(async group => {
-				const parentGroup = group.groupKey.id;
+				//const parentGroup = group.groupKey.id;
+				const parentGroup = group.parentGroup;
 				let j = 0;
 				// grp.words.forEach(grpw => {
 				// 	if (grpw.includes(w)) {

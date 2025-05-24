@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit, faRemove, faThumbsUp, faPlus, faReply } from '@fortawesome/free-solid-svg-icons'
 
@@ -49,7 +49,7 @@ const AnswerRow = ({ answer, groupInAdding }: { answer: IAnswer, groupInAdding: 
         else
             viewAnswer({ partitionKey, id });
     }
-
+   
     const [hoverRef, hoverProps] = useHover();
 
     const Row1 =
@@ -76,8 +76,8 @@ const AnswerRow = ({ answer, groupInAdding }: { answer: IAnswer, groupInAdding: 
 
             {/* <Badge pill bg="secondary" className={`text-info ${numOfAssignedAnswers === 0 ? 'd-none' : 'd-inline'}`}>
                 {numOfAssignedAnswers}a */}
-                {/* <FontAwesomeIcon icon={faReply} size='sm' /> */}
-                {/* <img width="22" height="18" src={A} alt="Answer"></img> */}
+            {/* <FontAwesomeIcon icon={faReply} size='sm' /> */}
+            {/* <img width="22" height="18" src={A} alt="Answer"></img> */}
             {/* </Badge> */}
 
             {/* {canEdit && !alreadyAdding && hoverProps.isHovered &&

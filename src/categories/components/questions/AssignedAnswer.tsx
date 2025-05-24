@@ -93,11 +93,11 @@ const AssignedAnswer = ({ questionTitle, assignedAnswer, isDisabled, unAssignAns
     const [hoverRef, hoverProps] = useHover();
 
     const Row1 =
-        <div ref={hoverRef} className="d-flex justify-content-start align-items-center w-100 text-info">
+        <div ref={hoverRef} className="d-flex justify-content-start align-items-center w-100 text-light bg-info">
             <Button
                 variant='link'
                 size="sm"
-                className="py-0 px-1 text-info"
+                className="py-0 px-0 text-info"
                 onClick={() => emailFromClient ? setShowReply(true) : copyToClipboard(title!)}
             >
                 <FontAwesomeIcon
@@ -109,7 +109,7 @@ const AssignedAnswer = ({ questionTitle, assignedAnswer, isDisabled, unAssignAns
             <Button
                 variant='link'
                 size="sm"
-                className="py-0 mx-1 text-decoration-none text-info text-wrap"
+                className="py-0 mx-1 text-decoration-none text-white text-wrap"
                 title={rowTitle}
                 onClick={() => onSelectAnswer(id)}
                 disabled={alreadyAdding}
@@ -130,7 +130,7 @@ const AssignedAnswer = ({ questionTitle, assignedAnswer, isDisabled, unAssignAns
         <ListGroup.Item
             key={id}
             variant={"info"}
-            className="py-0 px-1"
+            className="py-0 px-0"
             as="li"
         >
             {/* <div class="d-lg-none">hide on lg and wider screens</div> */}
