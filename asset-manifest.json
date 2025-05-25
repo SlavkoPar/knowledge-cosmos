@@ -1,18 +1,18 @@
 {
   "files": {
-    "main.css": "/knowledge-cosmos/static/css/main.8a426ac3.css",
-    "main.js": "/knowledge-cosmos/static/js/main.2cfc4722.js",
+    "main.css": "/knowledge-cosmos/static/css/main.1ff4e526.css",
+    "main.js": "/knowledge-cosmos/static/js/main.2ca733ab.js",
     "static/media/QuestionForm.png": "/knowledge-cosmos/static/media/QuestionForm.5286a182127dd64e7904.png",
     "static/media/Q.png": "/knowledge-cosmos/static/media/Q.4209512a2ea1935c338f.png",
     "static/media/QPlus.png": "/knowledge-cosmos/static/media/QPlus.a9d1719c7a50e21d3475.png",
     "static/media/A.png": "/knowledge-cosmos/static/media/A.69d84f9a4d04ea1e54d4.png",
     "static/media/APlus.png": "/knowledge-cosmos/static/media/APlus.4175ba6e7cd5b00fff39.png",
     "index.html": "/knowledge-cosmos/index.html",
-    "main.8a426ac3.css.map": "/knowledge-cosmos/static/css/main.8a426ac3.css.map",
-    "main.2cfc4722.js.map": "/knowledge-cosmos/static/js/main.2cfc4722.js.map"
+    "main.1ff4e526.css.map": "/knowledge-cosmos/static/css/main.1ff4e526.css.map",
+    "main.2ca733ab.js.map": "/knowledge-cosmos/static/js/main.2ca733ab.js.map"
   },
   "entrypoints": [
-    "static/css/main.8a426ac3.css",
-    "static/js/main.2cfc4722.js"
+    "static/css/main.1ff4e526.css",
+    "static/js/main.2ca733ab.js"
   ]
 }
