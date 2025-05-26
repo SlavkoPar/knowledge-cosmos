@@ -118,6 +118,7 @@ export interface IGroupKeyExtended extends IGroupKey {
 
 
 export interface IAnswerKey {
+	parentGroup?: string;
 	partitionKey: string;
 	id: string;
 }
@@ -362,6 +363,8 @@ export interface IGroupsState {
 	answerLoading: boolean,
 	error?: Error;
 	whichRowId?: string; // group.id or answer.id
+	groupInViewingOrEditing: IGroupKey |null
+	answerInViewingOrEditing: IAnswerKey |null
 }
 
 export interface ILocStorage {

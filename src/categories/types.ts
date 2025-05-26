@@ -376,6 +376,8 @@ export interface ICategoriesState {
 	questionLoading: boolean,
 	error?: Error;
 	whichRowId?: string; // category.id or question.id
+	categoryInViewingOrEditing: ICategoryKey | null;
+	questionInViewingOrEditing: IQuestionKey | null;
 }
 
 export interface ILocStorage {
@@ -454,6 +456,7 @@ export enum ActionTypes {
 	// questions
 	LOAD_CATEGORY_QUESTIONS = 'LOAD_CATEGORY_QUESTIONS',
 	ADD_QUESTION = 'ADD_QUESTION',
+	SET_VIEWING_EDITING_QUESTION = 'SET_VIEWING_EDITING_QUESTION',
 	VIEW_QUESTION = 'VIEW_QUESTION',
 	EDIT_QUESTION = 'EDIT_QUESTION',
 
@@ -557,6 +560,8 @@ export type CategoriesPayload = {
 	[ActionTypes.ADD_QUESTION]: {
 		categoryInfo: ICategoryInfo;
 	}
+
+	[ActionTypes.SET_VIEWING_EDITING_QUESTION]: undefined;
 
 	[ActionTypes.VIEW_QUESTION]: {
 		question: IQuestion;

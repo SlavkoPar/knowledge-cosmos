@@ -5,7 +5,7 @@ import { useCategoryContext } from "categories/CategoryProvider";
 import { useGlobalContext } from "global/GlobalProvider";
 import { IWhoWhen } from "global/types";
 import { IRelatedFilter } from "categories/types";
-import  RelatedFilter  from 'categories/components/questions/RelatedFilter'
+import RelatedFilter from 'categories/components/questions/RelatedFilter'
 
 interface IProps {
     questionKey: IQuestionKey,
@@ -36,7 +36,7 @@ const RelatedFilters = ({ questionKey, questionTitle, relatedFilters }: IProps) 
     //     })()
     // }, [relatedFilters])
 
-    const { state } = useCategoryContext(); 
+    const { state } = useCategoryContext();
     const [showAssign, setShowAssign] = useState(false);
 
     const unAssignFilter = async (relatedFilter: IRelatedFilter) => {
@@ -54,16 +54,20 @@ const RelatedFilters = ({ questionKey, questionTitle, relatedFilters }: IProps) 
     return (
         <div className='mx-0 my-1 border rounded-2 px-1 py-1 border border-light fs-6 bg-warning'>
             <div>
-                <label className="text-muted">Most frequently selected Filters <br/>(as the next Question in ChatBot)</label>
-                <ListGroup as="ul" variant={variant} className='my-1 bg-secondary'>
-                    {relatedFilters.map((relatedFilter: IRelatedFilter) =>
-                        <RelatedFilter
-                            relatedFilter={relatedFilter}
-                            unAssignFilter={unAssignFilter}
-                        />)
-                        // key={relatedFilter.answer.id.toString()}
-                    }
-                </ListGroup>
+                <label className="text-muted">Most frequently selected Filters <br />(as the next Question in ChatBot)</label>
+                {relatedFilters.length > 0
+                    ? <ListGroup as="ul" variant={variant} className='my-1 bg-secondary'>
+                        {relatedFilters.map((relatedFilter: IRelatedFilter) =>
+                            <RelatedFilter
+                                key={relatedFilter.filter}
+                                relatedFilter={relatedFilter}
+                                unAssignFilter={unAssignFilter}
+                            />)
+                            
+                        }
+                    </ListGroup>
+                    : <div className='border text-light'>No filters</div>
+                }
                 {state.error && <div>state.error</div>}
                 {/* {state.loading && <div>...loading</div>} */}
             </div>

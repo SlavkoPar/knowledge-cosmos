@@ -13,7 +13,7 @@ const QuestionList = ({ title, categoryKey, level }: IParentInfo) => {
   const { canEdit } = useGlobalState();
 
   const { state, loadCategoryQuestions, editQuestion, viewQuestion } = useCategoryContext();
-  const { categories, questionLoading, error, questionId } = state;
+  const { categories,  questionId, questionLoading, error } = state;
 
   const category = categories.find(c => c.id === categoryKey.id)!
   const { partitionKey, questions, numOfQuestions, hasMoreQuestions } = category;
@@ -35,6 +35,7 @@ const QuestionList = ({ title, categoryKey, level }: IParentInfo) => {
         startCursor: questions.length,
         includeQuestionId: questionId ?? null
       }
+      console.log('loadMore', {parentInfo})
       await loadCategoryQuestions(parentInfo);
     }
     catch (error) {
@@ -57,21 +58,24 @@ const QuestionList = ({ title, categoryKey, level }: IParentInfo) => {
   });
 
   useEffect(() => {
-    if (categoryKey != null) {
-      //if (categoryId === categoryKey.id && questionId) {
-      if (categoryKey && questionId) {
-        if (canEdit)
-          editQuestion({ partitionKey: categoryKey.id, id: questionId })
-        else
-          viewQuestion({ partitionKey: categoryKey.id, id: questionId })
+    (async () => {
+      if (categoryKey != null) {
+        //if (categoryId === categoryKey.id && questionId) {
+        if (categoryKey && questionId) {
+          if (canEdit) {
+            await editQuestion({ partitionKey: categoryKey.id, id: questionId })
+          }
+          else
+            await viewQuestion({ partitionKey: categoryKey.id, id: questionId })
+        }
       }
-    }
-  }, [viewQuestion, categoryKey, questionId, canEdit]);
+		})()
+  }, [editQuestion, viewQuestion, categoryKey, questionId, canEdit]); //, questionLoading
 
   // console.log('QuestionList render', questions, questions.length)
 
-  if (questionLoading)
-    return <div> ... loading</div>
+  // if (questionLoading)
+  //   return <div> ... loading</div>
 
   return (
     <div

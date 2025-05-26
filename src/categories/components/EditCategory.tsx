@@ -10,7 +10,10 @@ const EditCategory = ({ inLine }: { inLine: boolean }) => {
     const { nickName } = globalState.authUser;
 
     const { state, updateCategory } = useCategoryContext();
-    const category = state.categories.find(c => c.inEditing);
+
+    const { categories, categoryInViewingOrEditing} = state;
+    const { id } = categoryInViewingOrEditing!;
+    const category = categories.find(c => c.id === id);
 
     const submitForm = async (categoryObject: ICategory) => {
         const object: ICategory = {

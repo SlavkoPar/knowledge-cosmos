@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useCategoryContext, useCategoryDispatch } from 'categories/CategoryProvider'
 import { useGlobalContext, useGlobalState } from 'global/GlobalProvider'
 
@@ -12,13 +12,27 @@ const EditQuestion = ({ inLine }: { inLine: boolean }) => {
 
     const dispatch = useCategoryDispatch();
     const { state, updateQuestion, reloadCategoryNode } = useCategoryContext();
-    const { questionLoading, categories } = state;
+    const { questionLoading, categories, questionInViewingOrEditing } = state;
+    const { partitionKey, id, parentCategory } = questionInViewingOrEditing!;
+    const category = categories.find(c => c.id === parentCategory);
+    const [question, setQuestion] = useState<IQuestion | undefined>(undefined);
+    useEffect(() => {
+        //const q = category!.questions.find(q => q.inEditing)
+        if (category) {
+            const q = category!.questions.find(q => q.id === id)
+            console.log("#################################### EditQuestion setQuestion ...", { q })
+            if (q) {
+                setQuestion(q);
+            }
+        }
+    }, [questionInViewingOrEditing]) // questionLoading
 
-    if (questionLoading)
-        return <div>Loading question..</div>
+    // if (questionLoading) {
+    //     console.log("#################################### EditQuestion loading ...")
+    //     return <div>Loading question..</div>
+    // }
 
-    const category = categories.find(c => c.inEditing);
-    const question = category!.questions.find(q => q.inEditing)
+    console.log("#################################### EditQuestion inLine:", { inLine }, { question })
 
     const submitForm = async (questionObject: IQuestion) => {
         const object: IQuestion = {

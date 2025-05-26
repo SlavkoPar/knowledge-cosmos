@@ -21,33 +21,36 @@ import { IWhoWhen } from 'global/types';
 
 //const QuestionRow = ({ question, categoryInAdding }: { ref: React.ForwardedRef<HTMLLIElement>, question: IQuestion, categoryInAdding: boolean | undefined }) => {
 const QuestionRow = ({ question, categoryInAdding }: { question: IQuestion, categoryInAdding: boolean | undefined }) => {
-    const { id, partitionKey, parentCategory, title, inViewing, inEditing, inAdding, numOfAssignedAnswers } = question;
+    const { id, partitionKey, parentCategory, title, inAdding, numOfAssignedAnswers } = question;
 
     const { canEdit, isDarkMode, variant, bg, authUser } = useGlobalState();
     const { state, viewQuestion, editQuestion, deleteQuestion } = useCategoryContext();
     const dispatch = useCategoryDispatch();
 
+    const { questionInViewingOrEditing } = state;
+    const bold = questionInViewingOrEditing && questionInViewingOrEditing.id === id;
+
     const alreadyAdding = state.mode === Mode.AddingQuestion;
 
     const del = () => {
-        question.modified = { 
+        question.modified = {
             time: new Date(),
-            nickName: authUser.nickName 
+            nickName: authUser.nickName
         }
         deleteQuestion(question);
     };
 
-    const edit = (Id: string) => {
+    const edit = async (Id: string) => {
         // Load data from server and reinitialize question
-        editQuestion({ partitionKey, id });
+        await editQuestion({ partitionKey, id });
     }
 
-    const onSelectQuestion = (id: string) => {
+    const onSelectQuestion = async (id: string) => {
         // Load data from server and reinitialize question
         if (canEdit)
-            editQuestion({ partitionKey, id });
+            await editQuestion({ partitionKey, id });
         else
-            viewQuestion( { partitionKey, id });
+            await viewQuestion({ partitionKey, id });
     }
 
     const [hoverRef, hoverProps] = useHover();
@@ -62,13 +65,13 @@ const QuestionRow = ({ question, categoryInAdding }: { question: IQuestion, cate
                 size="sm"
                 className="d-flex align-items-center px-1 text-secondary"
             >
-                <img width="22" height="18" src={Q} alt="Question"/>
+                <img width="22" height="18" src={Q} alt="Question" />
             </Button>
 
             <Button
                 variant='link'
                 size="sm"
-                className={`p-0 mx-0 text-decoration-none text-secondary ${(inViewing || inEditing) ? 'fw-bold' : ''}`}
+                className={`p-0 mx-0 text-decoration-none text-secondary ${bold ? 'fw-bold' : ''}`}
                 title={`id:${id!.toString()}`}
                 onClick={() => onSelectQuestion(id!)}
                 disabled={alreadyAdding}
@@ -117,21 +120,20 @@ const QuestionRow = ({ question, categoryInAdding }: { question: IQuestion, cate
     return (
         // border border-3 border-danger"
         // <div className="py-0 px-0 w-100 list-group-item border">
-         <ListGroup.Item
-                        variant={"primary"}
-                        className="py-0 px-1 w-100"
-                        as="li"
-                    >
+        <ListGroup.Item
+            variant={"primary"}
+            className="py-0 px-1 w-100"
+            as="li"
+        >
             {inAdding && categoryInAdding && state.mode === Mode.AddingQuestion ? (
                 <AddQuestion question={question} inLine={true} showCloseButton={true} source={0} />
             )
-                : ((inEditing && state.mode === Mode.EditingQuestion) ||
-                    (inViewing && state.mode === Mode.ViewingQuestion)) ? (
+                : (state.mode === Mode.EditingQuestion || state.mode === Mode.ViewingQuestion) ? (
                     <>
                         {/* <div class="d-lg-none">hide on lg and wider screens</div> */}
                         <div id='div-question' className="ms-0 d-md-none w-100">
-                            {inEditing && <EditQuestion inLine={true} />}
-                            {inViewing && <ViewQuestion inLine={true} />}
+                            {state.mode === Mode.EditingQuestion && <EditQuestion inLine={true} />}
+                            {state.mode === Mode.ViewingQuestion && <ViewQuestion inLine={true} />}
                         </div>
                         <div className="d-none d-md-block">
                             {Row1}
@@ -142,7 +144,7 @@ const QuestionRow = ({ question, categoryInAdding }: { question: IQuestion, cate
                         Row1
                     )
             }
-        {/* </div> */}
+            {/* </div> */}
         </ListGroup.Item>
     );
 };

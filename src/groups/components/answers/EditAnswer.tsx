@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useGroupContext, useGroupDispatch } from 'groups/GroupProvider'
 import { useGlobalContext, useGlobalState } from 'global/GlobalProvider'
 
@@ -13,13 +13,25 @@ const EditAnswer = ({ inLine }: { inLine: boolean }) => {
 
     const dispatch = useGroupDispatch();
     const { state, updateAnswer, reloadGroupNode } = useGroupContext();
-    const { answerLoading, groups } = state;
+    const { answerLoading, groups, answerInViewingOrEditing } = state;
+    const { partitionKey, id, parentGroup } = answerInViewingOrEditing!;
 
-    if (answerLoading)
-        return <div>Loading answer..</div>
 
-    const group = groups.find(c => c.inEditing);
-    const answer = group!.answers.find(q => q.inEditing)
+    // if (answerLoading)
+    //     return <div>Loading answer..</div>
+
+    const group = groups.find(g => g.id === parentGroup);
+    const [answer, setAnswer] = useState<IAnswer | undefined>(undefined);
+
+    useEffect(() => {
+        //const q = category!.questions.find(q => q.inEditing)
+        if (group) {
+            const q = group!.answers.find(a => a.id === id)
+            if (q) {
+                setAnswer(q);
+            }
+        }
+    }, [answerInViewingOrEditing]) // questionLoading
 
     const submitForm = async (answerObject: IAnswer) => {
         const object: IAnswer = {

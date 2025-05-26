@@ -18,7 +18,7 @@ import ViewCategory from "categories/components/ViewCategory";
 import QuestionList from './questions/QuestionList';
 
 const CategoryRow = ({ category }: { category: ICategory }) => {
-    const { partitionKey, id, title, level, inViewing, inEditing, inAdding, 
+    const { partitionKey, id, title, level, inAdding, 
         hasSubCategories, numOfQuestions, isExpanded, isSelected } = category;
     const [categoryKey] = useState<ICategoryKey>({ partitionKey, id }); // otherwise reloads
 
@@ -32,11 +32,13 @@ const CategoryRow = ({ category }: { category: ICategory }) => {
     const { canEdit, isDarkMode, variant, bg, authUser } = useGlobalState();
 
     const { state, viewCategory, editCategory, deleteCategory, expandCategory, collapseCategory } = useCategoryContext();
-    const { questionId } = state;
+    const { questionId, mode, categoryInViewingOrEditing } = state;
 
+    const bold = categoryInViewingOrEditing && categoryInViewingOrEditing.id === id;
+    
     const dispatch = useCategoryDispatch();
 
-    const alreadyAdding = state.mode === Mode.AddingCategory;
+    const alreadyAdding = mode === Mode.AddingCategory;
     // TODO proveri ovo
     const showQuestions = (isExpanded && numOfQuestions > 0) // || questions.find(q => q.inAdding) // && !questions.find(q => q.inAdding); // We don't have questions loaded
 
@@ -101,7 +103,7 @@ const CategoryRow = ({ category }: { category: ICategory }) => {
             <Button
                 variant='link'
                 size="sm"
-                className={`py-0 mx-0 text-decoration-none ${(inViewing || inEditing) ? 'fw-bold' : ''}`}
+                className={`py-0 mx-0 text-decoration-none ${bold ? 'fw-bold' : ''}`}
                 title={id!.toString()}
                 onClick={onSelectCategory}
                 disabled={alreadyAdding}
@@ -185,17 +187,16 @@ const CategoryRow = ({ category }: { category: ICategory }) => {
                 className="py-0 px-1 w-100"
                 as="li"
             >
-                {inAdding && state.mode === Mode.AddingCategory ? (
+                {inAdding && mode === Mode.AddingCategory ? (
                     // <AddCategory categoryKey={categoryKey} inLine={true} />
                     <div />
                 )
-                    : ((inEditing && state.mode === Mode.EditingCategory) ||
-                        (inViewing && state.mode === Mode.ViewingCategory)) ? (
+                    : (mode === Mode.EditingCategory || mode === Mode.ViewingCategory) ? (
                         <>
                             {/* <div class="d-lg-none">hide on lg and wider screens</div> */}
                             <div id='divInLine' className="ms-0 d-md-none w-100">
-                                {inEditing && <EditCategory inLine={false} />}
-                                {inViewing && <ViewCategory inLine={false} />}
+                                {mode === Mode.EditingCategory && <EditCategory inLine={false} />}
+                                {mode === Mode.ViewingCategory && <ViewCategory inLine={false} />}
                             </div>
                             <div className="d-none d-md-block">
                                 {Row1}
@@ -211,7 +212,7 @@ const CategoryRow = ({ category }: { category: ICategory }) => {
             {state.error && state.whichRowId == id && <div className="text-danger">{state.error.message}</div>}
 
             {/* !inAdding && */}
-            {(isExpanded || inViewing || inEditing || inAdding) && // Row2
+            {(isExpanded || inAdding) && // Row2
                 <ListGroup.Item
                     className="py-0 px-0 border-0 border-warning border-bottom-0" // border border-3 "
                     variant={"primary"}

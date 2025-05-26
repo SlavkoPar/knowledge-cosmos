@@ -101,13 +101,13 @@ const QuestionForm = ({ mode, question, submitForm, children, showCloseButton, s
           <div className="p-1">
             <Form.Group controlId="parentCategory" className="category-select form-select-sm">
               <Dropdown>
-                <Dropdown.Toggle variant="light" id="dropdown-basic" className="px-2 py-0 text-primary" disabled={isDisabled}>
-                  <div className="text-wrap">{formik.values.categoryTitle}</div>
+                <Dropdown.Toggle variant="light" id="dropdown-basic" className="px-2 py-0 text-primary border" disabled={isDisabled}>
+                  <span className="text-wrap me-1">{formik.values.categoryTitle}</span>
                 </Dropdown.Toggle>
                 <Dropdown.Menu className="p-0">
                   <Dropdown.Item className="p-0 m-0 rounded-3">
                     <CatList
-                      categoryKey={categoryKey}
+                      categoryKey={null}
                       level={1}
                       setParentCategory={setParentCategory}
                     />
@@ -146,7 +146,7 @@ const QuestionForm = ({ mode, question, submitForm, children, showCloseButton, s
             name="title"
             ref={nameRef}
             onChange={formik.handleChange}
-            //onBlur={formik.handleBlur}
+            // onBlur={formik.handleBlur}
             // onBlur={(e: React.FocusEvent<HTMLTextAreaElement>): void => {
             //   if (isEdit && formik.initialValues.title !== formik.values.title)
             //     formik.submitForm();

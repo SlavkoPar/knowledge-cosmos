@@ -15,8 +15,6 @@ export interface IRecord {
 	modified?: IWhoWhen,
 	modifiedBy?: string,
 	archived?: IWhoWhen,
-	inViewing?: boolean,
-	inEditing?: boolean,
 	inAdding?: boolean
 }
 
@@ -314,7 +312,7 @@ export interface ICatsState {
 }
 
 export interface ICatInfo {
-	categoryKey: ICategoryKey,
+	categoryKey: ICategoryKey | null,
 	level: number,
 	setParentCategory: (category: ICategory) => void;
 }

@@ -21,11 +21,14 @@ import { IWhoWhen } from 'global/types';
 
 //const AnswerRow = ({ answer, groupInAdding }: { ref: React.ForwardedRef<HTMLLIElement>, answer: IAnswer, groupInAdding: boolean | undefined }) => {
 const AnswerRow = ({ answer, groupInAdding }: { answer: IAnswer, groupInAdding: boolean | undefined }) => {
-    const { id, partitionKey, parentGroup, title, inViewing, inEditing, inAdding } = answer;
+    const { id, partitionKey, parentGroup, title, inAdding } = answer;
 
     const { canEdit, isDarkMode, variant, bg, authUser } = useGlobalState();
     const { state, viewAnswer, editAnswer, deleteAnswer } = useGroupContext();
+    const { answerId, groupInViewingOrEditing } = state;
     const dispatch = useGroupDispatch();
+    const bold = groupInViewingOrEditing &&  groupInViewingOrEditing.id === id;
+
 
     const alreadyAdding = state.mode === Mode.AddingAnswer;
 
@@ -66,7 +69,7 @@ const AnswerRow = ({ answer, groupInAdding }: { answer: IAnswer, groupInAdding: 
             <Button
                 variant='link'
                 size="sm"
-                className={`p-0 mx-0 text-decoration-none text-white ${(inViewing || inEditing) ? 'fw-bold' : ''}`}
+                className={`p-0 mx-0 text-decoration-none text-white ${bold ? 'fw-bold' : ''}`}
                 title={`id:${id!.toString()}`}
                 onClick={() => onSelectAnswer(id!)}
                 disabled={alreadyAdding}
@@ -118,13 +121,12 @@ const AnswerRow = ({ answer, groupInAdding }: { answer: IAnswer, groupInAdding: 
             {inAdding && groupInAdding && state.mode === Mode.AddingAnswer ? (
                 <AddAnswer answer={answer} inLine={true} showCloseButton={true} source={0} />
             )
-                : ((inEditing && state.mode === Mode.EditingAnswer) ||
-                    (inViewing && state.mode === Mode.ViewingAnswer)) ? (
+                : (state.mode === Mode.EditingAnswer || state.mode === Mode.ViewingAnswer) ? (
                     <>
                         {/* <div class="d-lg-none">hide on lg and wider screens</div> */}
                         <div id='div-answer' className="ms-0 d-md-none w-100">
-                            {inEditing && <EditAnswer inLine={true} />}
-                            {inViewing && <ViewAnswer inLine={true} />}
+                            {state.mode === Mode.EditingAnswer && <EditAnswer inLine={true} />}
+                            {state.mode === Mode.ViewingAnswer && <ViewAnswer inLine={true} />}
                         </div>
                         <div className="d-none d-md-block">
                             {Row1}

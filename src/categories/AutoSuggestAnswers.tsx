@@ -259,7 +259,7 @@ export class AutoSuggestAnswers extends React.Component<{
 					}
 				});
 				groupSections.push(groupSection);
-				console.log('77777777777777777777777777777777777', {groupSection});
+				console.log('AutoSuggestAnswers', {groupSection});
 			});
 			console.log({groupSections})
 			return groupSections;

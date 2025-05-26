@@ -1,15 +1,28 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useCategoryContext } from 'categories/CategoryProvider'
-import { FormMode } from "categories/types";
+import { FormMode, IQuestion } from "categories/types";
 import QuestionForm from "categories/components/questions/QuestionForm";
 
 const ViewQuestion = ({ inLine }: { inLine: boolean }) => {
     const { state } = useCategoryContext();
-    const { questionLoading } = state;
-    const category = state.categories.find(c => c.inViewing);
-    const question = category!.questions.find(q => q.inViewing)
-    if (questionLoading)
-        return <div>Loading question...</div>
+    const { questionLoading, categories, questionInViewingOrEditing } = state;
+    const { partitionKey, id, parentCategory } = questionInViewingOrEditing!;
+
+    const category = categories.find(c => c.id === parentCategory);
+    const [question, setQuestion] = useState<IQuestion | undefined>(undefined);
+
+    useEffect(() => {
+            if (category) {
+                const q = category!.questions.find(q => q.id === id)
+                console.log("#################################### ViewQuestion setQuestion ...", { q })
+                if (q) {
+                    setQuestion(q);
+                }
+            }
+        }, [questionInViewingOrEditing]) 
+
+    // if (questionLoading)
+    //     return <div>Loading question...</div>
     return (
         <QuestionForm
             question={question!}

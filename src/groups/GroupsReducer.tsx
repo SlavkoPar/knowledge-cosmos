@@ -1,5 +1,5 @@
 import { Reducer } from 'react'
-import { Mode, ActionTypes, IGroupsState, IGroup, IAnswer, GroupsActions, ILocStorage, IGroupKey, IGroupKeyExtended, Answer } from "groups/types";
+import { Mode, ActionTypes, IGroupsState, IGroup, IAnswer, GroupsActions, ILocStorage, IGroupKey, IGroupKeyExtended, Answer, IAnswerKey } from "groups/types";
 
 export const initialAnswer: IAnswer = {
   partitionKey: '',
@@ -44,7 +44,9 @@ export const initialState: IGroupsState = {
   loading: false,
   answerLoading: false,
   groupNodeReLoading: false,
-  groupNodeLoaded: false
+  groupNodeLoaded: false,
+  groupInViewingOrEditing: null,
+  answerInViewingOrEditing: null
 }
 
 
@@ -271,8 +273,6 @@ const reducer = (state: IGroupsState, action: GroupsActions) => {
         groups: state.groups.map(c => c.id === id
           ? {
             ...group,
-            inViewing: c.inViewing,
-            inEditing: c.inEditing,
             inAdding: c.inAdding,
             isExpanded: c.isExpanded
           }
@@ -304,11 +304,11 @@ const reducer = (state: IGroupsState, action: GroupsActions) => {
       console.log('===>>> ActionTypes.EDIT_GROUP', group)
       return {
         ...state,
-        groups: state.groups.map(c => c.id === group.id
-          //? { ...group, answers: c.answers, inEditing: true, isExpanded: false } //c.isExpanded }
-          ? { ...group, inEditing: true, isExpanded: false } //c.isExpanded }
-          : { ...c, inEditing: false }
-        ),
+        // groups: state.groups.map(c => c.id === group.id
+        //   //? { ...group, answers: c.answers, inEditing: true, isExpanded: false } //c.isExpanded }
+        //   ? { ...group } //c.isExpanded }
+        //   : { ...c, inEditing: false }
+        // ),
         mode: Mode.EditingGroup,
         loading: false,
         groupId: group.id,
@@ -343,14 +343,10 @@ const reducer = (state: IGroupsState, action: GroupsActions) => {
             ...c,
             answers: c.answers.concat(answers.map(answer => (answer.included
               ? {
-                ...answer,
-                inViewing: state.mode === Mode.ViewingAnswer,
-                inEditing: state.mode === Mode.EditingAnswer
+                ...answer
               }
               : answer))),
             hasMoreAnswers,
-            inViewing: c.inViewing,
-            inEditing: c.inEditing,
             inAdding: c.inAdding,
             isExpanded: c.isExpanded
           }
@@ -379,7 +375,7 @@ const reducer = (state: IGroupsState, action: GroupsActions) => {
       return {
         ...state,
         mode: Mode.NULL,
-        groups: groups.map(c => ({ ...c, inViewing: false, inEditing: false, inAdding: false }))
+        groups: groups.map(c => ({ ...c, inAdding: false }))
       };
     }
 
@@ -389,7 +385,7 @@ const reducer = (state: IGroupsState, action: GroupsActions) => {
       return {
         ...state,
         groups: groups.map(c => c.id === groupKey.id
-          ? { ...c, isExpanded: true, inViewing: c.inViewing, inEditing: c.inEditing }
+          ? { ...c, isExpanded: true  }
           : c
         ),
         loading: false,
@@ -414,7 +410,7 @@ const reducer = (state: IGroupsState, action: GroupsActions) => {
       return {
         ...state,
         groups: groups.map(c => c.id === id
-          ? { ...c, isExpanded: false, inViewing: c.inViewing, inEditing: c.inEditing }
+          ? { ...c, isExpanded: false }
           : c
         ),
         loading: false,
@@ -462,9 +458,7 @@ const reducer = (state: IGroupsState, action: GroupsActions) => {
           ...g,
           answers: inAdding
             ? g.answers.map(a => a.inAdding ? { ...answer, inAdding: false } : a)
-            : g.answers.map(a => a.id === id ? { ...answer, inEditing: a.inEditing, inViewing: a.inViewing } : a),
-          inViewing: false,
-          inEditing: false,
+            : g.answers.map(a => a.id === id ? { ...answer } : a),
           inAdding: false
         }
         : g
@@ -490,8 +484,7 @@ const reducer = (state: IGroupsState, action: GroupsActions) => {
           ...c,
           answers: inAdding
             ? c.answers.map(q => q.inAdding ? { ...answer, inAdding: q.inAdding } : q)
-            : c.answers.map(q => q.id === id ? { ...answer, inEditing: q.inEditing } : q), // TODO sta, ako je inViewing
-          inEditing: c.inEditing,
+            : c.answers.map(q => q.id === id ? { ...answer } : q), // TODO sta, ako je inViewing
           inAdding: c.inAdding
         }
         : c
@@ -506,61 +499,65 @@ const reducer = (state: IGroupsState, action: GroupsActions) => {
 
     case ActionTypes.VIEW_ANSWER: {
       const { answer } = action.payload;
+      const { partitionKey, id, parentGroup } = answer;
       return {
         ...state,
-        groups: state.groups.map(c => c.id === answer.parentGroup
-          ? {
-            ...c,
-            answers: c.answers.map(q => q.id === answer.id
-              ? {
-                ...answer,
-                inViewing: true
-              }
-              : {
-                ...q,
-                inViewing: false
-              }),
-            inViewing: true
-          }
-          : {
-            ...c,
-            inViewing: false
-          }
-        ),
+        // groups: state.groups.map(c => c.id === answer.parentGroup
+        //   ? {
+        //     ...c,
+        //     answers: c.answers.map(q => q.id === answer.id
+        //       ? {
+        //         ...answer,
+        //         inViewing: true
+        //       }
+        //       : {
+        //         ...q,
+        //         inViewing: false
+        //       }),
+        //     inViewing: true
+        //   }
+        //   : {
+        //     ...c,
+        //     inViewing: false
+        //   }
+        // ),
         mode: Mode.ViewingAnswer,
         loading: false,
         groupId: answer.parentGroup,
         answerId: answer.id,
+        answerInViewingOrEditing: { partitionKey, id, parentGroup }
       }
     }
 
     case ActionTypes.EDIT_ANSWER: {
       const { answer } = action.payload;
+      const { partitionKey, id, parentGroup } = answer;
       const obj = {
         ...state,
-        groups: state.groups.map(g => g.id === answer.parentGroup
-          ? {
-            ...g,
-            answers: g.answers.map((q: IAnswer) => q.id === answer.id
-              ? {
-                ...answer,
-                inEditing: true
-              }
-              : {
-                ...q,
-                inEditing: false
-              }),
-            inEditing: true
-          }
-          : {
-            ...g,
-            inEditing: false
-          }
-        ),
+        // groups: state.groups.map(g => g.id === answer.parentGroup
+        //   ? {
+        //     ...g,
+        //     answers: g.answers.map((q: IAnswer) => q.id === answer.id
+        //       ? {
+        //         ...answer,
+        //         inEditing: true
+        //       }
+        //       : {
+        //         ...q,
+        //         inEditing: false
+        //       }),
+        //     inEditing: true
+        //   }
+        //   : {
+        //     ...g,
+        //     inEditing: false
+        //   }
+        // ),
         mode: Mode.EditingAnswer,
         loading: false,
         groupId: answer.parentGroup,
         answerId: answer.id,
+        answerInViewingOrEditing: { partitionKey, id, parentGroup }
       }
       return obj;
     }
@@ -583,9 +580,12 @@ const reducer = (state: IGroupsState, action: GroupsActions) => {
 
     case ActionTypes.CANCEL_ANSWER_FORM:
     case ActionTypes.CLOSE_ANSWER_FORM: {
-      console.log('PAYYYYYYYYYYYYYYYY', action.payload)
       const { answer } = action.payload;
-      const group = state.groups.find(c => c.id === answer.parentGroup)
+      const { partitionKey, id, parentGroup } = answer;
+
+      const group = state.groups.find(c => c.id === parentGroup)
+      let answerInViewingOrEditing: IAnswerKey|null = { partitionKey, id, parentGroup };
+
       let answers: IAnswer[] = [];
       switch (state.mode) {
         case Mode.AddingAnswer: {
@@ -594,15 +594,9 @@ const reducer = (state: IGroupsState, action: GroupsActions) => {
           break;
         }
 
-        case Mode.ViewingAnswer: {
-          console.assert(group!.inViewing, "expected group.inViewing");
-          answers = group!.answers.map(q => ({ ...q, inViewing: false }))
-          break;
-        }
-
+        case Mode.ViewingAnswer:
         case Mode.EditingAnswer: {
-          console.assert(group!.inEditing, "expected group.inEditing");
-          answers = group!.answers.map(q => ({ ...q, inEditing: false }))
+          answerInViewingOrEditing = null;
           break;
         }
 
@@ -612,11 +606,12 @@ const reducer = (state: IGroupsState, action: GroupsActions) => {
 
       return {
         ...state,
-        groups: state.groups.map(c => c.id === answer.parentGroup
-          ? { ...c, answers, numOfAnswers: answers.length, inAdding: false, inEditing: false, inViewing: false }
+        groups: state.groups.map(c => c.id === parentGroup
+          ? { ...c, answers, numOfAnswers: answers.length, inAdding: false }
           : c
         ),
-        mode: Mode.NULL
+        mode: Mode.NULL,
+        answerInViewingOrEditing
       };
     }
 

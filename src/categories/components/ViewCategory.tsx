@@ -7,8 +7,9 @@ import CategoryForm from "categories/components/CategoryForm";
 
 const ViewCategory = ({ inLine }: { inLine: boolean }) => {
     const { state } = useCategoryContext();
-    const category = state.categories.find(c => c.inViewing);
-    
+    const { categories, categoryInViewingOrEditing} = state;
+    const { id } = categoryInViewingOrEditing!;
+    const category = categories.find(c => c.id === id);
     return (
         <CategoryForm
             inLine={inLine}

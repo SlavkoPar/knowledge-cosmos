@@ -99,7 +99,7 @@ const AnswerForm = ({ mode, answer, submitForm, children, showCloseButton, sourc
             <Form.Group controlId="parentGroup" className="group-select form-select-sm">
               <Dropdown>
                 <Dropdown.Toggle variant="light" id="dropdown-basic" className="px-2 py-0 text-primary wrap" disabled={isDisabled}>
-                  <div className="text-wrap">{formik.values.groupTitle}</div>
+                  <span className="text-wrap">{formik.values.groupTitle}</span>
                 </Dropdown.Toggle>
                 <Dropdown.Menu className="p-0">
                   <Dropdown.Item className="p-0 m-0 rounded-3">

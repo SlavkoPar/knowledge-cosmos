@@ -10,7 +10,9 @@ const EditGroup = ({ inLine }: { inLine: boolean }) => {
     const { nickName } = globalState.authUser;
 
     const { state, updateGroup } = useGroupContext();
-    const group = state.groups.find(c => c.inEditing);
+    const { groups, groupInViewingOrEditing} = state;
+    const { id } = groupInViewingOrEditing!;
+    const group = groups.find(g => g.id === id);
 
     const submitForm = async (groupObject: IGroup) => {
         const object: IGroup = {

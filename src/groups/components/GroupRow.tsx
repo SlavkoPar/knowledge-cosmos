@@ -21,7 +21,7 @@ import useFetchWithMsal from 'hooks/useFetchWithMsal';
 import { protectedResources } from 'authConfig';
 
 const GroupRow = ({ group }: { group: IGroup }) => {
-    const { partitionKey, id, title, level, inViewing, inEditing, inAdding, hasSubGroups, numOfAnswers, isExpanded, isSelected } = group;
+    const { partitionKey, id, title, level, inAdding, hasSubGroups, numOfAnswers, isExpanded, isSelected } = group;
     const [groupKey] = useState<IGroupKey>({ partitionKey, id }); // otherwise reloads
 
     const parentInfo: IParentInfo = {
@@ -34,7 +34,8 @@ const GroupRow = ({ group }: { group: IGroup }) => {
     const { canEdit, isDarkMode, variant, bg, authUser } = useGlobalState();
 
     const { state, viewGroup, editGroup, deleteGroup, expandGroup, collapseGroup } = useGroupContext();
-    const { answerId } = state;
+    const { answerId, groupInViewingOrEditing } = state;
+    const bold =  groupInViewingOrEditing && groupInViewingOrEditing.id === id
 
     const dispatch = useGroupDispatch();
 
@@ -102,7 +103,7 @@ const GroupRow = ({ group }: { group: IGroup }) => {
             <Button
                 variant='link'
                 size="sm"
-                className={`py-0 mx-0 text-decoration-none ${(inViewing || inEditing) ? 'fw-bold' : ''}`}
+                className={`py-0 mx-0 text-decoration-none ${bold ? 'fw-bold' : ''}`}
                 title={id!.toString()}
                 onClick={onSelectGroup}
                 disabled={alreadyAdding}
@@ -190,13 +191,12 @@ const GroupRow = ({ group }: { group: IGroup }) => {
                     // <AddGroup groupKey={groupKey} inLine={true} />
                     <div />
                 )
-                    : ((inEditing && state.mode === Mode.EditingGroup) ||
-                        (inViewing && state.mode === Mode.ViewingGroup)) ? (
+                    : (state.mode === Mode.EditingGroup || state.mode === Mode.ViewingGroup) ? (
                         <>
                             {/* <div class="d-lg-none">hide on lg and wider screens</div> */}
                             <div id='divInLine' className="ms-0 d-md-none w-100">
-                                {inEditing && <EditGroup inLine={false} />}
-                                {inViewing && <ViewGroup inLine={false} />}
+                                {state.mode === Mode.EditingGroup && <EditGroup inLine={false} />}
+                                {state.mode === Mode.ViewingGroup && <ViewGroup inLine={false} />}
                             </div>
                             <div className="d-none d-md-block">
                                 {Row1}
@@ -212,7 +212,8 @@ const GroupRow = ({ group }: { group: IGroup }) => {
             {state.error && state.whichRowId == id && <div className="text-danger">{state.error.message}</div>}
 
             {/* !inAdding && */}
-            {(isExpanded || inViewing || inEditing || inAdding) && // Row2
+            {/* {(isExpanded || inViewing || inEditing || inAdding) && // Row2 */}
+            {(isExpanded || inAdding) && // Row2
                 <ListGroup.Item
                     className="py-0 px-0" // border border-3 border-warning"
                     variant={"primary"}

@@ -36,9 +36,8 @@ export const CatsReducer: Reducer<ICatsState, CatsActions> = (state, action) => 
       const { id, expanding } = action.payload;
       let { cats } = state;
       if (!expanding) {
-        const arr = markForClean(cats, id!)
-        console.log('clean:', arr)
-        const ids = arr.map(c => c.id)
+        const ids = markForClean(cats, id!)
+        console.log('clean:', ids)
         if (ids.length > 0) {
           cats = cats.filter(c => !ids.includes(c.id))
         }
@@ -67,13 +66,14 @@ export const CatsReducer: Reducer<ICatsState, CatsActions> = (state, action) => 
   }
 };
 
-function markForClean(categories: ICategory[], parentCategory: string) {
+function markForClean(categories: ICategory[], id: string) {
   let deca = categories
-    .filter(c => c.parentCategory === parentCategory)
-    .map(c => ({ id: c.id, parentCategory: c.parentCategory }))
+    .filter(c => c.parentCategory === id)
+    .map(c => c.id)
 
-  deca.forEach(c => {
-    deca = deca.concat(markForClean(categories, c.id!))
+  deca.forEach(id => {
+    const unuci = id ? markForClean(categories, id) : [];
+    deca = deca.concat(unuci);
   })
   return deca
 }

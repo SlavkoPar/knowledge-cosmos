@@ -460,40 +460,13 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
   }
 
 
-  const getSubCatsWAS = useCallback(async (categoryKey: ICategoryKey) => {
-    return new Promise(async (resolve) => {
-      const { partitionKey, id } = categoryKey;
-      try {
-        //dispatch({ type: GlobalActionTypes.SET_LOADING, payload: {} });
-        const url = `${protectedResources.KnowledgeAPI.endpointCategory}/${partitionKey}/${id}`;
-        console.log('calling getSubCategories:', url)
-        console.time();
-        await Execute("GET", url).then((categoryDtos: ICategoryDto[]) => {
-          console.timeEnd();
-          const subCategories = categoryDtos!.map((categoryDto: ICategoryDto) => new Category(categoryDto).category);
-          const subCats = subCategories.map((c: ICategory) => ({
-            ...c,
-            questions: [],
-            isExpanded: false
-          }))
-          resolve(subCats);
-        });
-      }
-      catch (error: any) {
-        console.log(error)
-        resolve([]);
-        //dispatch({ type: GlobalActionTypes.SET_ERROR, payload: { error } });
-      }
-    })
-  }, []);
-
-
   const getSubCats = useCallback(async (categoryId: string | null) => {
     try {
+      const { cats } = globalState;
       let parentHeader = "";
-      console.log('globalState.cats', globalState.cats)
+      console.log('globalState.cats', {cats}, categoryId)
       const subCats: ICat[] = [];
-      globalState.cats.forEach((cat, id) => {  // globalState.cats is Map<string, ICat>
+      cats.forEach((cat, id) => {  // globalState.cats is Map<string, ICat>
         if (cat.id === categoryId) {
           parentHeader = cat.header!;
         }

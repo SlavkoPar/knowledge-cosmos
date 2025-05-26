@@ -437,28 +437,26 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
           const url = `${protectedResources.KnowledgeAPI.endpointQuestion}/${partitionKey}/${parentCategory}/${startCursor}/${PAGE_SIZE}/${includeQuestionId}`;
           console.time()
           console.log('>>>>>>>>>>>>')
-          console.log('>>>>>>>>>>>>')
           console.log('>>>>>>>>>>>>loadCategoryQuestions URL:', { url }, { includeQuestionId })
-          console.log('>>>>>>>>>>>>')
           console.log('>>>>>>>>>>>>')
           await Execute!("GET", url).then((categoryDtoEx: ICategoryDtoEx) => {
             console.timeEnd();
             const { categoryDto, msg } = categoryDtoEx;
             console.log('>>>>>>>>>>>>loadCategoryQuestions categoryDto:', { categoryDto })
-            if (categoryDto === null)
-              return null;
-            const { Title, Questions, HasMoreQuestions } = categoryDto;
-            Questions!.forEach((questionRowDto: IQuestionRowDto) => {
-              if (includeQuestionId && questionRowDto.Id === includeQuestionId) {
-                questionRowDto.Included = true;
-              }
-              questionRowDto.CategoryTitle = Title; // TODO treba li
-              questionRowDtos.push(questionRowDto);
-            })
-            dispatch({
-              type: ActionTypes.LOAD_CATEGORY_QUESTIONS,
-              payload: { parentCategory, questionRowDtos, hasMoreQuestions: HasMoreQuestions! }
-            });
+            if (categoryDto !== null) {
+              const { Title, Questions, HasMoreQuestions } = categoryDto;
+              Questions!.forEach((questionRowDto: IQuestionRowDto) => {
+                if (includeQuestionId && questionRowDto.Id === includeQuestionId) {
+                  questionRowDto.Included = true;
+                }
+                questionRowDto.CategoryTitle = Title; // TODO treba li
+                questionRowDtos.push(questionRowDto);
+              })
+              dispatch({
+                type: ActionTypes.LOAD_CATEGORY_QUESTIONS,
+                payload: { parentCategory, questionRowDtos, hasMoreQuestions: HasMoreQuestions! }
+              });
+            }
           });
         }
         catch (error: any) {
@@ -470,7 +468,6 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
         console.log(error);
         dispatch({ type: ActionTypes.SET_ERROR, payload: error });
       }
-      return true;
     }, [dispatch]);
 
 
@@ -625,6 +622,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
   }, []);
 
   const editQuestion = useCallback(async (questionKey: IQuestionKey) => {
+    //dispatch({ type: ActionTypes.SET_VIEWING_EDITING_QUESTION });
     const questionEx: IQuestionEx = await getQuestion(questionKey);
     const { question, msg } = questionEx;
     if (question)

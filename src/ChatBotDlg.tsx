@@ -514,7 +514,7 @@ const ChatBotDlg = ({ show, onHide }: IProps) => {
                     }
                     {/* <div className="d-flex justify-content-start align-items-center"> */}
                     <div className="text-start">
-                        <div className="w-75">
+                        <div className="w-90">
                             {isDisabled &&
                                 <div>
                                     {txt}
