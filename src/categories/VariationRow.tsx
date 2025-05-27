@@ -16,7 +16,7 @@ import { IVariation } from 'categories/types'
 
 //const TagRow = ({ tag, categoryInAdding }: { ref: React.ForwardedRef<HTMLLIElement>, tag: IVariation, categoryInAdding: boolean | undefined }) => {
 const VariationRow = ({ categoryKey, tag, categoryInAdding }: { categoryKey: ICategoryKey, tag: IVariation, categoryInAdding: boolean | undefined }) => {
-    const { partitionKey, id} = categoryKey;
+    const { partitionKey, id } = categoryKey;
     const { name } = tag;
     const { parentCategory, level, inViewing, inEditing, inAdding, numOfTags } = {
         parentCategory: '',
@@ -99,7 +99,7 @@ const VariationRow = ({ categoryKey, tag, categoryInAdding }: { categoryKey: ICa
                     title="Add Tag"
                     onClick={() => {
                         console.log('click q')
-                        const categoryInfo: ICategoryInfo = { partitionKey, id, level }
+                        const categoryInfo: ICategoryInfo = { categoryKey: partitionKey, id, level }
                         //dispatch({ type: ActionTypes.ADD_ANSWER, payload: { categoryInfo } })
                     }}
                 >

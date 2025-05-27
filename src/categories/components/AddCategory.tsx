@@ -36,7 +36,7 @@ const AddCategory = ({ categoryKey, inLine }: { categoryKey: ICategoryKey, inLin
 
     return (
         <>
-            {inLine ?
+            {/* {inLine ?
                 <InLineCategoryForm
                     inLine={true}
                     category={formValues}
@@ -45,16 +45,17 @@ const AddCategory = ({ categoryKey, inLine }: { categoryKey: ICategoryKey, inLin
                 >
                     Create
                 </InLineCategoryForm>
-                :
+                : */}
                 <CategoryForm
                     inLine={false}
                     category={formValues}
+                    questionId={null}
                     mode={FormMode.adding}
                     submitForm={submitForm}
                 >
                     Create Category
                 </CategoryForm >
-            }
+            {/* } */}
         </>
     )
 }

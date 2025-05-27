@@ -7,7 +7,7 @@ import QPlus from 'assets/QPlus.png';
 import { ListGroup, Button, Badge } from "react-bootstrap";
 
 import { useGlobalState } from 'global/GlobalProvider'
-import { ActionTypes, ICategoryInfo, ICategoryKey, IParentInfo, Mode } from "categories/types";
+import { ActionTypes, ICategoryInfo, ICategoryKey, ICategoryKeyExpanded, IParentInfo, Mode } from "categories/types";
 import { useCategoryContext, useCategoryDispatch } from 'categories/CategoryProvider'
 import { useHover } from 'hooks/useHover';
 import { ICategory } from 'categories/types'
@@ -17,25 +17,19 @@ import EditCategory from "categories/components/EditCategory";
 import ViewCategory from "categories/components/ViewCategory";
 import QuestionList from './questions/QuestionList';
 
-const CategoryRow = ({ category }: { category: ICategory }) => {
-    const { partitionKey, id, title, level, inAdding, 
-        hasSubCategories, numOfQuestions, isExpanded, isSelected } = category;
-    const [categoryKey] = useState<ICategoryKey>({ partitionKey, id }); // otherwise reloads
-
-    // const parentInfo: IParentInfo = {
-    //     categoryKey,
-    //     includeQuestionId: null,
-    //     level,
-    //     title
-    // }
+const CategoryRow = ({ category, questionId }: { category: ICategory, questionId: string | null }) => {
+    const { partitionKey, id: categoryId, title, level, inAdding, hasSubCategories, numOfQuestions, isExpanded, isSelected } = category;
+    const [categoryKey] = useState<ICategoryKey>({ partitionKey, id: categoryId }); // otherwise reloads
+    const [categoryKeyExpanded] = useState<ICategoryKeyExpanded>({ partitionKey, id: categoryId, questionId }); // otherwise reloads
 
     const { canEdit, isDarkMode, variant, bg, authUser } = useGlobalState();
 
     const { state, viewCategory, editCategory, deleteCategory, expandCategory, collapseCategory } = useCategoryContext();
-    const { questionId, mode, categoryInViewingOrEditing } = state;
+    //const { mode, categoryInViewingOrEditing } = state;
+    const { mode } = state;
 
-    const bold = categoryInViewingOrEditing && categoryInViewingOrEditing.id === id;
-    
+    //const bold = categoryInViewingOrEditing && categoryInViewingOrEditing.id === id;
+
     const dispatch = useCategoryDispatch();
 
     const alreadyAdding = mode === Mode.AddingCategory;
@@ -57,7 +51,7 @@ const CategoryRow = ({ category }: { category: ICategory }) => {
             await expandCategory(categoryKey, questionId ?? 'null');
     }
 
-    const edit = async() => {
+    const edit = async () => {
         // Load data from server and reinitialize category
         await editCategory(categoryKey, questionId ?? 'null');
     }
@@ -103,8 +97,8 @@ const CategoryRow = ({ category }: { category: ICategory }) => {
             <Button
                 variant='link'
                 size="sm"
-                className={`py-0 mx-0 text-decoration-none ${bold ? 'fw-bold' : ''}`}
-                title={id!.toString()}
+                className={`py-0 mx-0 text-decoration-none ${isSelected ? 'fw-bold' : ''}`}
+                title={categoryId.toString()}
                 onClick={onSelectCategory}
                 disabled={alreadyAdding}
             >
@@ -156,7 +150,7 @@ const CategoryRow = ({ category }: { category: ICategory }) => {
                         className="py-0 mx-1 text-secondary float-end"
                         title="Add Question"
                         onClick={async () => {
-                            const categoryInfo: ICategoryInfo = { partitionKey, id: category.id, level: category.level }
+                            const categoryInfo: ICategoryInfo = { categoryKey: partitionKey, id: category.id, level: category.level }
                             if (!isExpanded) {
                                 await dispatch({ type: ActionTypes.SET_EXPANDED, payload: { categoryKey } });
                             }
@@ -209,7 +203,7 @@ const CategoryRow = ({ category }: { category: ICategory }) => {
                 }
             </ListGroup.Item>
 
-            {state.error && state.whichRowId == id && <div className="text-danger">{state.error.message}</div>}
+            {state.error && state.whichRowId == categoryId && <div className="text-danger">{state.error.message}</div>}
 
             {/* !inAdding && */}
             {(isExpanded || inAdding) && // Row2
@@ -221,10 +215,10 @@ const CategoryRow = ({ category }: { category: ICategory }) => {
                     {isExpanded &&
                         <>
                             {hasSubCategories &&
-                                <CategoryList level={level + 1} categoryKey={categoryKey} title={title} />
+                                <CategoryList level={level + 1} categoryKeyExpanded={categoryKeyExpanded} title={title} />
                             }
                             {showQuestions &&
-                                <QuestionList level={level + 1} categoryKey={categoryKey} title={title} />
+                                <QuestionList level={level + 1} categoryKeyExpanded={categoryKeyExpanded} title={title} />
                             }
                         </>
                     }

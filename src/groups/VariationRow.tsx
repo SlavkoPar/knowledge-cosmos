@@ -99,7 +99,7 @@ const VariationRow = ({ groupKey, tag, groupInAdding }: { groupKey: IGroupKey, t
                     title="Add Tag"
                     onClick={() => {
                         console.log('click q')
-                        const groupInfo: IGroupInfo = { partitionKey, id, level }
+                        const groupInfo: IGroupInfo = { groupKey : {partitionKey, id}, level }
                         //dispatch({ type: ActionTypes.ADD_ANSWER, payload: { groupInfo } })
                     }}
                 >

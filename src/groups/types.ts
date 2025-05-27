@@ -108,8 +108,8 @@ export interface IAnswer extends IAnswerRow {
 }
 
 export interface IGroupKey {
-	partitionKey: string;
-	id: string;
+	partitionKey: string | null;
+	id: string | null;
 }
 
 export interface IGroupKeyExtended extends IGroupKey {
@@ -330,8 +330,7 @@ export class GroupKey {
 
 
 export interface IGroupInfo {
-	partitionKey: string;
-	id: string,
+	groupKey: IGroupKey,
 	level: number
 }
 

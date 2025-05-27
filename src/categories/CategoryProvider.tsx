@@ -17,6 +17,7 @@ import {
   IQuestionRow,
   QuestionRow,
   CategoryKey,
+  ICategoryKeyExpanded,
 } from 'categories/types';
 
 import { initialCategoriesState, CategoriesReducer } from 'categories/CategoriesReducer';
@@ -41,17 +42,6 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
   const { categoryNodesUpTheTree } = state;
   console.log('----->>> CategoryProvider', { initialCategoriesState, categoryNodesUpTheTree })
 
-
-  // const { instance } = useMsal();
-  // const msalRequest = {
-  //   scopes: protectedResources.KnowledgeAPI.scopes.write
-  // }
-
-  // const { result, error: msalError } = useMsalAuthentication(InteractionType.Popup, {
-  //   ...msalRequest,
-  //   account: instance.getActiveAccount() ?? undefined,
-  //   redirectUri: '/redirect'
-  // });
 
   const Execute = async (
     method: string,
@@ -115,15 +105,15 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
   // }, [dispatch]);
 
   const reloadCategoryNode = useCallback(
-    async (categoryKey: ICategoryKey | null, questionId: string | null, fromChatBotDlg: string = 'false'): Promise<any> => {
+    async (categoryKeyExpanded: ICategoryKeyExpanded, fromChatBotDlg: string = 'false'): Promise<any> => {
       return new Promise(async (resolve) => {
         try {
-          console.log('CategoryProvider.reloadCategoryNode', categoryKey, questionId)
-          if (categoryKey !== null) {
-            const { partitionKey, id } = categoryKey;
+          console.log('CategoryProvider.reloadCategoryNode', categoryKeyExpanded)
+          const { id, partitionKey } = categoryKeyExpanded;
+          if (id) {
             const cat: ICat | undefined = cats.get(id);
             if (cat) {
-              categoryKey.partitionKey = cat.partitionKey;
+              categoryKeyExpanded.partitionKey = cat.partitionKey;
             }
             else {
               alert('reload cats' + id)
@@ -134,8 +124,9 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
           //dispatch({ type: ActionTypes.CLEAN_SUB_TREE, payload: { categoryKey: null/*new CategoryKey(parentCat).categoryKey*/ } });
           // ---------------------------------------------------------------------------
           console.time();
-          const query = categoryKey ? `${categoryKey.partitionKey}/${categoryKey.id}` : 'null/null';
-          const url = `${protectedResources.KnowledgeAPI.endpointCat}/${query}`;
+          //const query = categoryKey ? `${categoryKey.partitionKey}/${categoryKey.id}` : 'null/null';
+          //const query = `${partitionKey}/${id}`;
+          const url = `${protectedResources.KnowledgeAPI.endpointCat}/${partitionKey}/${id}`;
           console.log('calling CatController.GetCatsUpTheTree', url)
           await Execute("GET", url)
             .then((categoryDtoListEx: ICategoryDtoListEx) => {
@@ -148,8 +139,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
               })
               dispatch({
                 type: ActionTypes.SET_CATEGORY_NODES_UP_THE_TREE, payload: {
-                  categoryKey,
-                  questionId,
+                  categoryKeyExpanded,
                   categoryNodesUpTheTree,
                   fromChatBotDlg: fromChatBotDlg === 'true'
                 }
@@ -426,7 +416,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
 
   const PAGE_SIZE = 12;
   const loadCategoryQuestions = useCallback(
-    async ({ categoryKey, startCursor, includeQuestionId }: IParentInfo)
+    async ({ categoryKeyExpanded: categoryKey, startCursor, includeQuestionId }: IParentInfo)
       : Promise<any> => {
       const questionRowDtos: IQuestionRowDto[] = [];
       try {

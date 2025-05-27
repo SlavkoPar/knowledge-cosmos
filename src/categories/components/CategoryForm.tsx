@@ -4,7 +4,7 @@ import { useFormik } from "formik";
 import { Form, CloseButton, Row, Stack, Dropdown } from "react-bootstrap";
 import { CreatedModifiedForm } from "common/CreateModifiedForm"
 import { FormButtons } from "common/FormButtons"
-import { FormMode, ActionTypes, ICategoryFormProps, ICategory, IVariation, ICategoryKey } from "categories/types";
+import { FormMode, ActionTypes, ICategoryFormProps, ICategory, IVariation, ICategoryKey, ICategoryKeyExpanded } from "categories/types";
 
 import { useCategoryDispatch } from "categories/CategoryProvider";
 import QuestionList from "categories/components/questions/QuestionList";
@@ -13,7 +13,7 @@ import VariationList from "categories/VariationList";
 import { Select } from "common/components/Select";
 import { kindOptions } from "common/kindOptions ";
 
-const CategoryForm = ({ inLine, mode, category, submitForm, children }: ICategoryFormProps) => {
+const CategoryForm = ({ inLine, mode, category, questionId, submitForm, children }: ICategoryFormProps) => {
 
   const { globalState } = useGlobalContext();
   const { isDarkMode, variant, bg } = globalState;
@@ -23,7 +23,8 @@ const CategoryForm = ({ inLine, mode, category, submitForm, children }: ICategor
   const adding = mode === FormMode.adding;
 
   const { partitionKey, id, title, variations, questions, kind } = category;
-  const categoryKey: ICategoryKey = { partitionKey, id }
+  const categoryKey: ICategoryKey = { partitionKey, id };
+  const categoryKeyExpanded: ICategoryKeyExpanded =  { partitionKey, id, questionId };
 
   if (!document.getElementById('div-details')) {
 
@@ -149,19 +150,19 @@ const CategoryForm = ({ inLine, mode, category, submitForm, children }: ICategor
           <Form.Label>Link</Form.Label>
           {formik.values.hasSubCategories
             ? <Form.Control
-                as="input"
-                placeholder="/categories/..."
-                name="link"
-                onChange={formik.handleChange}
-                //onBlur={formik.handleBlur}
-                // onBlur={(e: React.FocusEvent<HTMLTextAreaElement>): void => {
-                //   if (isEdit && formik.initialValues.title !== formik.values.title)
-                //     formik.submitForm();
-                // }}
-                className="text-primary w-100"
-                value={"Can't have link (has sub categories)"}
-                disabled={true}
-              />
+              as="input"
+              placeholder="/categories/..."
+              name="link"
+              onChange={formik.handleChange}
+              //onBlur={formik.handleBlur}
+              // onBlur={(e: React.FocusEvent<HTMLTextAreaElement>): void => {
+              //   if (isEdit && formik.initialValues.title !== formik.values.title)
+              //     formik.submitForm();
+              // }}
+              className="text-primary w-100"
+              value={"Can't have link (has sub categories)"}
+              disabled={true}
+            />
             : <>
               <Form.Control
                 as="input"
@@ -195,7 +196,7 @@ const CategoryForm = ({ inLine, mode, category, submitForm, children }: ICategor
         <Form.Group>
           <Form.Label className="m-1 mb-0">Questions ({`${formik.values.numOfQuestions}`}) </Form.Label>
           {showQuestions &&
-            <QuestionList level={1} categoryKey={categoryKey} title={title} />
+            <QuestionList level={1} categoryKeyExpanded={categoryKeyExpanded} title={title} />
           }
         </Form.Group>
 

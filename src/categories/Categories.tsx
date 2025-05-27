@@ -3,7 +3,7 @@ import { Container, Row, Col, Button } from "react-bootstrap";
 
 import { useParams } from 'react-router-dom';
 
-import { Mode, ActionTypes, ICategoryKey, IQuestionKey } from "./types";
+import { Mode, ActionTypes, ICategoryKey, IQuestionKey, ICategoryKeyExpanded } from "./types";
 
 import { useGlobalContext, useGlobalState } from 'global/GlobalProvider';
 
@@ -30,7 +30,7 @@ const Providered = ({ categoryId_questionId, fromChatBotDlg }: IProps) => {
     console.log("Categories", categoryId_questionId)
     console.log("=============================================")
     const { state, reloadCategoryNode } = useCategoryContext();
-    const { categoryKeyExpanded, categoryId_questionId_done, questionId, categoryNodeReLoading, categoryNodeLoaded } = state;
+    const { categoryKeyExpanded, categoryId_questionId_done, categoryNodeReLoading, categoryNodeLoaded } = state;
 
     const { setLastRouteVisited, searchQuestions } = useGlobalContext();
     const { isDarkMode, authUser, cats } = useGlobalState();
@@ -50,16 +50,21 @@ const Providered = ({ categoryId_questionId, fromChatBotDlg }: IProps) => {
         dispatch({ type: ActionTypes.SET_QUESTION_SELECTED, payload: { questionKey } })
     }
 
-    const [categoryKey] = useState<ICategoryKey>({ partitionKey: 'null', id: 'null' })
+    const [keyExpanded, setKeyExpanded] = useState<ICategoryKeyExpanded>({
+        partitionKey: null,
+        id: null,
+        questionId: categoryKeyExpanded ? categoryKeyExpanded.questionId : null
+    })
+
     let tekst = '';
 
     useEffect(() => {
         (async () => {
             if (!categoryNodeReLoading) {
                 if (categoryId_questionId) {
-                    console.log('1) =>>>>>>>>>>>>>>>>>>> Categories calling categoryId_questionId:', categoryId_questionId );
-                    console.log('2) =>>>>>>>>>>>>>>>>>>> Categories calling categoryId_questionId_done:', categoryId_questionId_done );
-                    console.log('3) =>>>>>>>>>>>>>>>>>>> Categories calling categoryKeyExpanded:', categoryKeyExpanded );
+                    console.log('1) =>>>>>>>>>>>>>>>>>>> Categories calling categoryId_questionId:', categoryId_questionId);
+                    console.log('2) =>>>>>>>>>>>>>>>>>>> Categories calling categoryId_questionId_done:', categoryId_questionId_done);
+                    console.log('3) =>>>>>>>>>>>>>>>>>>> Categories calling categoryKeyExpanded:', categoryKeyExpanded);
                     if (categoryId_questionId === 'add_question') {
                         const sNewQuestion = localStorage.getItem('New_Question');
                         if (sNewQuestion) {
@@ -74,18 +79,16 @@ const Providered = ({ categoryId_questionId, fromChatBotDlg }: IProps) => {
                         const arr = categoryId_questionId.split('_');
                         const categoryId = arr[0];
                         const questionId = arr[1];
-                        console.log('4) =>>>>>>>>>>>>>>>>>>> Categories calling categoryKeyExpanded:', categoryId, questionId );
-                        await reloadCategoryNode({ 
-                            partitionKey: '', id: categoryId }, 
-                            questionId === 'null' ? null : questionId,
-                            fromChatBotDlg ?? 'false'
-                        )
+                        const keyExp = { partitionKey: null, id: categoryId, questionId }
+                        setKeyExpanded(keyExp);
+                        console.log('4) =>>>>>>>>>>>>>>>>>>> Categories calling keyExp:', keyExp);
+                        await reloadCategoryNode(keyExp, fromChatBotDlg ?? 'false')
                             .then(() => { return null; });
                     }
                 }
                 else if (categoryKeyExpanded && !categoryNodeLoaded) {
                     console.log('999) =>>>>>>>>>>>>>> Categories calling reloadCategoryNode:', { categoryId_questionId, categoryKeyExpanded, categoryId_questionId_done });
-                    await reloadCategoryNode(categoryKeyExpanded, questionId).then(() => { return null; });
+                    await reloadCategoryNode(categoryKeyExpanded).then(() => { return null; });
                 }
             }
         })()
@@ -99,7 +102,7 @@ const Providered = ({ categoryId_questionId, fromChatBotDlg }: IProps) => {
         if (/*categoryKeyExpanded ||*/ (categoryId_questionId && categoryId_questionId !== categoryId_questionId_done)) {
             console.log("zzzzzz loading...", { categoryKeyExpanded, categoryId_questionId, categoryId_questionId_done })
             // return <div>`zzzzzz loading... "${categoryId_questionId}" "${categoryId_questionId_done}"`</div>
-             return <div>loading...`</div>
+            return <div>loading...`</div>
         }
     }
 
@@ -131,7 +134,7 @@ const Providered = ({ categoryId_questionId, fromChatBotDlg }: IProps) => {
                     onClick={() => dispatch({
                         type: ActionTypes.ADD_SUB_CATEGORY,
                         payload: {
-                            categoryKey,
+                            categoryKey: categoryKeyExpanded,
                             level: 1
                         }
                     })
@@ -142,20 +145,20 @@ const Providered = ({ categoryId_questionId, fromChatBotDlg }: IProps) => {
                 <Row className="my-1">
                     <Col xs={12} md={5}>
                         <div>
-                            <CategoryList categoryKey={categoryKey} level={0} title="root" />
+                            <CategoryList categoryKeyExpanded={categoryKeyExpanded!} level={0} title="root" />
                         </div>
                     </Col>
                     <Col xs={0} md={7}>
                         {/* {store.mode === FORM_MODES.ADD && <Add category={category??initialCategory} />} */}
                         {/* <div class="d-none d-lg-block">hide on screens smaller than lg</div> */}
                         <div id='div-details' className="d-none d-md-block">
-                            {state.mode === Mode.AddingCategory && <AddCategory categoryKey={categoryKey} inLine={false} />}
+                            {state.mode === Mode.AddingCategory && <AddCategory categoryKey={keyExpanded} inLine={false} />}
                             {state.mode === Mode.ViewingCategory && <ViewCategory inLine={false} />}
                             {state.mode === Mode.EditingCategory && <EditCategory inLine={false} />}
                             {/* {state.mode === FORM_MODES.ADD_QUESTION && <AddQuestion category={null} />} */}
                             {/* TODO check if we set questionId everywhere */}
-                            {questionId && state.mode === Mode.ViewingQuestion && <ViewQuestion inLine={false} />}
-                            {questionId && state.mode === Mode.EditingQuestion && <EditQuestion inLine={false} />}
+                            {keyExpanded.questionId && state.mode === Mode.ViewingQuestion && <ViewQuestion inLine={false} />}
+                            {keyExpanded.questionId && state.mode === Mode.EditingQuestion && <EditQuestion inLine={false} />}
                         </div>
                     </Col>
                 </Row>
@@ -177,7 +180,7 @@ type Params = {
 };
 
 const Categories = () => {
-    let { categoryId_questionId, fromChatBotDlg} = useParams<Params>();
+    let { categoryId_questionId, fromChatBotDlg } = useParams<Params>();
 
     if (categoryId_questionId && categoryId_questionId === 'categories')
         categoryId_questionId = undefined;

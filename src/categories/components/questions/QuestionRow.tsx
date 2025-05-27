@@ -27,7 +27,7 @@ const QuestionRow = ({ question, categoryInAdding }: { question: IQuestion, cate
     const { state, viewQuestion, editQuestion, deleteQuestion } = useCategoryContext();
     const dispatch = useCategoryDispatch();
 
-    const { questionInViewingOrEditing } = state;
+    const { questionKeyInViewingOrEditing: questionInViewingOrEditing } = state;
     const bold = questionInViewingOrEditing && questionInViewingOrEditing.id === id;
 
     const alreadyAdding = state.mode === Mode.AddingQuestion;
@@ -107,7 +107,7 @@ const QuestionRow = ({ question, categoryInAdding }: { question: IQuestion, cate
                         className="ms-1 p-0 text-secondary d-flex align-items-center"
                         title="Add Question"
                         onClick={() => {
-                            const categoryInfo: ICategoryInfo = { partitionKey, id: parentCategory, level: 0 }
+                            const categoryInfo: ICategoryInfo = { categoryKey: partitionKey, id: parentCategory, level: 0 }
                             dispatch({ type: ActionTypes.ADD_QUESTION, payload: { categoryInfo } })
                         }}
                     >

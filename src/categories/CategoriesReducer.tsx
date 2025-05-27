@@ -1,5 +1,5 @@
 import { Reducer } from 'react'
-import { Mode, ActionTypes, ICategoriesState, ICategory, IQuestion, CategoriesActions, ILocStorage, ICategoryKey, ICategoryKeyExtended, IQuestionRow, Question, IQuestionRowDto, IQuestionKey } from "categories/types";
+import { Mode, ActionTypes, ICategoriesState, ICategory, IQuestion, CategoriesActions, ILocStorage, ICategoryKey, ICategoryKeyExtended, IQuestionRow, Question, IQuestionRowDto, IQuestionKey, CategoryKey, QuestionKey } from "categories/types";
 
 export const initialQuestion: IQuestion = {
   partitionKey: '',
@@ -37,18 +37,18 @@ export const initialState: ICategoriesState = {
   categories: [],
   categoryNodesUpTheTree: [],
   categoryKeyExpanded: {
-    "partitionKey": "REMOTECTRLS",
-    "id": "REMOTECTRLS"
+    partitionKey: "REMOTECTRLS",
+    id: "REMOTECTRLS",
+    questionId: "qqqqqq111",
   },
   categoryId_questionId_done: undefined,
-  categoryId: null,
-  questionId: "qqqqqq111",
+  //categoryId: null,
   loading: false,
   questionLoading: false,
   categoryNodeReLoading: false,
   categoryNodeLoaded: false, //true  TODO izmeni nakon testa
-  categoryInViewingOrEditing: null, 
-  questionInViewingOrEditing: null
+  categoryKeyInViewingOrEditing: null,
+  questionKeyInViewingOrEditing: null
 }
 
 
@@ -75,14 +75,12 @@ if ('localStorage' in window) {
   const s = localStorage.getItem('CATEGORIES_STATE');
   if (s !== null) {
     const locStorage = JSON.parse(s);
-    const { lastCategoryKeyExpanded, questionId } = locStorage!;
+    const { lastCategoryKeyExpanded } = locStorage!;
     const categoryNodeLoaded = lastCategoryKeyExpanded ? false : true;
-
     initialCategoriesState = {
       ...initialCategoriesState,
-      categoryKeyExpanded: lastCategoryKeyExpanded,
-      categoryNodeLoaded: lastCategoryKeyExpanded ? false : true,
-      questionId
+      categoryKeyExpanded: { ...lastCategoryKeyExpanded },
+      categoryNodeLoaded
     }
     console.log('initialCategoriesState nakon citanja iz memorije', initialCategoriesState);
   }
@@ -104,10 +102,9 @@ export const CategoriesReducer: Reducer<ICategoriesState, CategoriesActions> = (
     ActionTypes.SET_CATEGORY_NODES_UP_THE_TREE
   ];
 
-  const { categoryKeyExpanded, questionId } = newState;
+  const { categoryKeyExpanded } = newState;
   const locStorage: ILocStorage = {
-    lastCategoryKeyExpanded: categoryKeyExpanded,
-    questionId
+    lastCategoryKeyExpanded: categoryKeyExpanded
   }
   if (aTypesToStore.includes(action.type)) {
     localStorage.setItem('CATEGORIES_STATE', JSON.stringify(locStorage));
@@ -125,17 +122,14 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
       }
 
     case ActionTypes.SET_CATEGORY_LOADING:
-      const { id, loading } = action.payload; // category doesn't contain inViewing, inEditing, inAdding 
+      const { id, loading } = action.payload; // category doesn't contain inAdding 
       return {
         ...state,
-        // categories: state.categories.map(c => c.id === id
-        //   ? { ...c, isLoading }
-        //   : c)
         loading
       }
 
     case ActionTypes.SET_CATEGORY_QUESTIONS_LOADING:
-      const { questionLoading } = action.payload; // category doesn't contain inViewing, inEditing, inAdding 
+      const { questionLoading } = action.payload; // category doesn't contain inAdding 
       return {
         ...state,
         questionLoading
@@ -159,20 +153,18 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
     }
 
     case ActionTypes.SET_CATEGORY_NODES_UP_THE_TREE: {
-      const { categoryNodesUpTheTree, categoryKey, questionId, fromChatBotDlg } = action.payload;
+      const { categoryNodesUpTheTree, categoryKeyExpanded, fromChatBotDlg } = action.payload;
+      const { id, questionId } = categoryKeyExpanded;
       console.log('====== >>>>>>> CategoriesReducer ActionTypes.SET_CATEGORY_NODES_UP_THE_TREE payload ', action.payload)
-      const categoryId = categoryKey ? categoryKey.id : null;
       return {
         ...state,
         categories: fromChatBotDlg ? [] : [...state.categories],
         categoryNodesUpTheTree,
-        categoryId,
-        questionId,
-        categoryId_questionId_done: `${categoryId}_${questionId}`,
+        categoryId_questionId_done: `${id}_${questionId}`,
         categoryNodeLoading: false,
         categoryNodeLoaded: true,
         loading: false,
-        categoryKeyExpanded: categoryKey,
+        categoryKeyExpanded,
         mode: Mode.NULL // reset previosly selected form
       };
     }
@@ -272,7 +264,6 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
 
     case ActionTypes.SET_ADDED_CATEGORY: {
       const { category } = action.payload;
-      // category doesn't contain inViewving, inEditing, inAdding 
       return {
         ...state,
         categories: state.categories.map(c => c.inAdding ? category : c),
@@ -282,7 +273,7 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
     }
 
     case ActionTypes.SET_CATEGORY: {
-      const { category } = action.payload; // category doesn't contain inViewing, inEditing, inAdding 
+      const { category } = action.payload; // category doesn't contain  inAdding 
       console.log('SET_CATEGORY', { category })
       const { id } = category;
       /* TODO sredi kasnije 
@@ -321,8 +312,8 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
         mode: Mode.ViewingCategory,
         loading: false,
         categoryId: category.id,
-        questionId: null,
-        categoryInViewingOrEditing: { partitionKey, id }
+        //questionId: null,
+        categoryInViewingOrEditing: new CategoryKey(category).categoryKey
       };
     }
 
@@ -332,21 +323,16 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
       console.log('===>>> ActionTypes.EDIT_CATEGORY', category)
       return {
         ...state,
-        // categories: state.categories.map(c => c.id === category.id
-        //   //? { ...category, questions: c.questions, inEditing: true, isExpanded: false } //c.isExpanded }
-        //   ? { ...category, isExpanded: false } //c.isExpanded }
-        //   : { ...c }
-        // ),
         mode: Mode.EditingCategory,
         loading: false,
         categoryId: category.id,
-        questionId: null,
-        categoryInViewingOrEditing: { partitionKey, id }
+        //questionId: null,
+        categoryInViewingOrEditing: new CategoryKey(category).categoryKey
       };
     }
 
     case ActionTypes.LOAD_CATEGORY_QUESTIONS: {
-      const { parentCategory, questionRowDtos, hasMoreQuestions } = action.payload; // category doesn't contain inViewing, inEditing, inAdding 
+      const { parentCategory, questionRowDtos, hasMoreQuestions } = action.payload; // category doesn't contain inAdding 
       console.log('>>>>>>>>>>>>LOAD_CATEGORY_QUESTIONS', { parentCategory, questionRowDtos, hasMoreQuestions })
       const category = state.categories.find(c => c.id === parentCategory);
       const questions: IQuestion[] = questionRowDtos.map(questionRow => new Question(questionRow).question);
@@ -420,10 +406,10 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
         ),
         loading: false,
         mode: Mode.NULL, // : state.mode,// expanding ? state.mode : Mode.NULL,  // TODO  close form only if inside of colapsed node
-        categoryKeyExpanded: categoryKey,
+        categoryKeyExpanded: { ...categoryKey, questionId: null },
         //categoryId: undefined,
         categoryNodeLoaded: true, // prevent reloadCategoryNode
-        questionId: null
+        //questionId: null
       };
     }
 
@@ -445,8 +431,7 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
         ),
         loading: false,
         //mode: state.mode,// expanding ? state.mode : Mode.NULL,  // TODO  close form only if inside of colapsed node
-        categoryKeyExpanded: categoryKey,
-        questionId: null
+        categoryKeyExpanded: { ...categoryKey, questionId: null }
         // mode: Mode.NULL, // : state.mode,// expanding ? state.mode : Mode.NULL,  // TODO  close form only if inside of colapsed node
 
         //categoryNodeLoaded: true // prevent reloadCategoryNode
@@ -532,30 +517,11 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
       const { partitionKey, id, parentCategory } = question;
       return {
         ...state,
-        // categories: state.categories.map(c => c.id === question.parentCategory
-        //   ? {
-        //     ...c,
-        //     questions: c.questions.map(q => q.id === question.id
-        //       ? {
-        //         ...question,
-        //         inViewing: true
-        //       }
-        //       : {
-        //         ...q,
-        //         inViewing: false
-        //       }),
-        //     inViewing: true
-        //   }
-        //   : {
-        //     ...c,
-        //     inViewing: false
-        //   }
-        // ),
         mode: Mode.ViewingQuestion,
         loading: false,
         categoryId: question.parentCategory,
-        questionId: question.id,
-        questionInViewingOrEditing: { partitionKey, id, parentCategory }
+        //questionId: question.id,
+        questionInViewingOrEditing: new QuestionKey(question).questionKey
       }
     }
 
@@ -576,27 +542,11 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
       console.log("ActionTypes.EDIT_QUESTION", { question })
       const obj = {
         ...state,
-        // categories: state.categories.map(c => c.id === parentCategory
-        //   ? {
-        //     ...c,
-        //     questions: c.questions.map((q: IQuestion) => q.id === id
-        //       ? {
-        //         ...question,
-        //       }
-        //       : {
-        //         ...q,
-        //       }),
-        //   }
-        //   : {
-        //     ...c,
-        //     //inEditing: false
-        //   }
-        // ),
         mode: Mode.EditingQuestion,
         loading: false,
         categoryId: parentCategory,
-        questionId: id,
-        questionInViewingOrEditing: { partitionKey, id, parentCategory }
+        //questionId: id,
+        questionInViewingOrEditing: new QuestionKey(question).questionKey
       }
       return obj;
     }
@@ -621,8 +571,8 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
     case ActionTypes.CLOSE_QUESTION_FORM: {
       const { question } = action.payload;
       const { partitionKey, id, parentCategory } = question;
-      let questionInViewingOrEditing: IQuestionKey | null = { partitionKey, id, parentCategory };
-      const category = state.categories.find(c => c.id === parentCategory)
+      let questionInViewingOrEditing: IQuestionKey | null = new QuestionKey(question).questionKey;
+      ; const category = state.categories.find(c => c.id === parentCategory)
       let questions: IQuestion[] = [];
       switch (state.mode) {
         case Mode.AddingQuestion: {
@@ -632,7 +582,7 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
           break;
         }
 
-        case Mode.ViewingQuestion: 
+        case Mode.ViewingQuestion:
         case Mode.EditingQuestion: {
           questionInViewingOrEditing = null;
           break;
@@ -658,18 +608,6 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
   }
 };
 
-// function markForClean(categories: ICategory[], categoryKey: ICategoryKey) {
-//   const { id } = categoryKey;
-//   let deca = categories
-//     .filter(c => c.parentCategory === id)
-//     .map(c => ({ partitionKey: '', id: c.id }))
-
-//   deca.forEach(c => {
-//     const categoryKey = { partitionKey: '', id: c.id }
-//     deca = deca.concat(markForClean(categories, categoryKey))
-//   })
-//   return deca
-// }
 
 function markForClean(categories: ICategory[], id: string) {
   let deca = categories

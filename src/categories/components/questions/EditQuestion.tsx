@@ -12,7 +12,7 @@ const EditQuestion = ({ inLine }: { inLine: boolean }) => {
 
     const dispatch = useCategoryDispatch();
     const { state, updateQuestion, reloadCategoryNode } = useCategoryContext();
-    const { questionLoading, categories, questionInViewingOrEditing } = state;
+    const { questionLoading, categories, questionKeyInViewingOrEditing: questionInViewingOrEditing } = state;
     const { partitionKey, id, parentCategory } = questionInViewingOrEditing!;
     const category = categories.find(c => c.id === parentCategory);
     const [question, setQuestion] = useState<IQuestion | undefined>(undefined);
@@ -47,7 +47,7 @@ const EditQuestion = ({ inLine }: { inLine: boolean }) => {
         if (question!.parentCategory !== q.parentCategory) {
             await loadCats(); // reload, group could have been changed
             dispatch({ type: ActionTypes.CLEAN_TREE, payload: { id: q.parentCategory } })
-            await reloadCategoryNode({ partitionKey: '', id: q.parentCategory }, q.id);
+            await reloadCategoryNode({ partitionKey: '', id: q.parentCategory, questionId: q.id });
         }
         setTimeout(() => dispatch({ type: ActionTypes.CLOSE_QUESTION_FORM, payload: { question: q } }), 1000);
     };

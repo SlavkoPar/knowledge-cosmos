@@ -107,9 +107,14 @@ export interface IQuestion extends IQuestionRow {
 }
 
 export interface ICategoryKey {
-	partitionKey: string;
-	id: string;
+	partitionKey: string | null;
+	id: string | null;
 }
+
+export interface ICategoryKeyExpanded extends ICategoryKey {
+	questionId: string | null;
+}
+
 
 export interface ICategoryKeyExtended extends ICategoryKey {
 	title: string;
@@ -198,7 +203,7 @@ export class Question {
 
 
 export class CategoryKey {
-	constructor(cat: ICat | undefined) {
+	constructor(cat: ICat | ICategory | undefined) {
 		this.categoryKey = cat
 			? {
 				partitionKey: cat.partitionKey,
@@ -255,6 +260,20 @@ export class CategoryDto {
 		}
 	}
 	categoryDto: ICategoryDto;
+}
+
+
+export class QuestionKey {
+	constructor(question: IQuestion | undefined) {
+		this.questionKey = question
+			? {
+				partitionKey: question.partitionKey,
+				id: question.id,
+				parentCategory: question.parentCategory
+			}
+			: null
+	}
+	questionKey: IQuestionKey | null;
 }
 
 
@@ -343,8 +362,7 @@ export interface ICategoryDtoListEx {
 
 
 export interface ICategoryInfo {
-	partitionKey: string;
-	id: string,
+	categoryKey: ICategoryKey;
 	level: number
 }
 
@@ -352,7 +370,7 @@ export interface IParentInfo {
 	//execute?: (method: string, endpoint: string) => Promise<any>,
 	// partitionKey: string | null,
 	// parentCategory: string | null,
-	categoryKey: ICategoryKey,
+	categoryKeyExpanded: ICategoryKeyExpanded,
 	startCursor?: number,
 	includeQuestionId?: string | null
 	level?: number,
@@ -365,9 +383,8 @@ export interface ICategoriesState {
 	mode: string | null;
 	categories: ICategory[];
 	categoryNodesUpTheTree: ICategoryKeyExtended[];
-	categoryKeyExpanded: ICategoryKey | null;
-	categoryId: string | null;
-	questionId: string | null;
+	categoryKeyExpanded: ICategoryKeyExpanded | null;
+	//categoryId: string | null;
 	categoryId_questionId_done?: string;
 	categoryNodeReLoading: boolean;
 	categoryNodeLoaded: boolean;
@@ -376,19 +393,18 @@ export interface ICategoriesState {
 	questionLoading: boolean,
 	error?: Error;
 	whichRowId?: string; // category.id or question.id
-	categoryInViewingOrEditing: ICategoryKey | null;
-	questionInViewingOrEditing: IQuestionKey | null;
+	categoryKeyInViewingOrEditing: ICategoryKey | null;
+	questionKeyInViewingOrEditing: IQuestionKey | null;
 }
 
 export interface ILocStorage {
 	lastCategoryKeyExpanded: ICategoryKey | null;
-	questionId: string | null;
 }
 
 
 export interface ICategoriesContext {
 	state: ICategoriesState,
-	reloadCategoryNode: (categoryKey: ICategoryKey, questionId: string | null, fromChatBotDlg?: string) => Promise<any>;
+	reloadCategoryNode: (categoryKey: ICategoryKeyExpanded, fromChatBotDlg?: string) => Promise<any>;
 	getSubCategories: (categoryKey: ICategoryKey) => Promise<any>,
 	createCategory: (category: ICategory) => void,
 	viewCategory: (categoryKey: ICategoryKey, includeQuestionId: string) => void,
@@ -413,6 +429,7 @@ export interface ICategoriesContext {
 export interface ICategoryFormProps {
 	inLine: boolean;
 	category: ICategory;
+	questionId: string | null;
 	mode: FormMode;
 	submitForm: (category: ICategory) => void,
 	children: string
@@ -489,8 +506,7 @@ export type CategoriesPayload = {
 
 	[ActionTypes.SET_CATEGORY_NODES_UP_THE_TREE]: {
 		categoryNodesUpTheTree: ICategoryKeyExtended[]; /// we could have used Id only
-		categoryKey: ICategoryKey | null;
-		questionId: string | null;
+		categoryKeyExpanded: ICategoryKeyExpanded;
 		fromChatBotDlg: boolean;
 	};
 

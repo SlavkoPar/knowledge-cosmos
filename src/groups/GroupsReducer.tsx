@@ -154,7 +154,7 @@ const reducer = (state: IGroupsState, action: GroupsActions) => {
 
     case ActionTypes.SET_GROUP_NODES_UP_THE_TREE: {
       const { groupNodesUpTheTree, groupKey,  answerId } = action.payload;
-      console.log('====== >>>>>>> CategoriesReducer ActionTypes.SET_CATEGORY_NODES_UP_THE_TREE payload ', action.payload)
+      console.log('====== >>>>>>> CategoriesReducer ActionTypes.SET_GROUP_NODES_UP_THE_TREE payload ', action.payload)
       const groupId = groupKey ? groupKey.id : null;
       return {
         ...state,
@@ -427,11 +427,12 @@ const reducer = (state: IGroupsState, action: GroupsActions) => {
     // After user clicks Save, we call createAnswer 
     case ActionTypes.ADD_ANSWER: {
       const { groupInfo } = action.payload;
-      const { id, level } = groupInfo;
+      const { groupKey, level } = groupInfo;
+      const { partitionKey, id } = groupKey;
       const answer: IAnswer = {
         ...initialAnswer,
-        partitionKey: id,
-        parentGroup: id,
+        partitionKey: id ?? 'null',
+        parentGroup: id ?? 'nul',
         inAdding: true
       }
       return {

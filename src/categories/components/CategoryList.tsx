@@ -1,39 +1,44 @@
 import React, { useEffect } from "react";
 import { ListGroup } from "react-bootstrap";
 import CategoryRow from "categories/components/CategoryRow";
-import { IParentInfo } from "categories/types";
+import { ICategory, IParentInfo } from "categories/types";
 import { useCategoryContext } from "categories/CategoryProvider";
 
 
-const CategoryList = ({ title, categoryKey, level }: IParentInfo) => {
+const CategoryList = ({ title, categoryKeyExpanded: categoryKey, level }: IParentInfo) => {
     const { state, getSubCategories } = useCategoryContext();
-    const { categories } = state;
+    const { categories, categoryKeyExpanded } = state;
     // { error, }
-
+    const { partitionKey, id: categoryId } = categoryKey;
+    const { questionId } = categoryKeyExpanded!;
 
     useEffect(() => {
         //getSubCategories(execute, categoryKey);
         (async () => {
-            console.log('zovem getSubCategories', {categoryKey})
+            console.log('zovem getSubCategories', { useCategoryContext })
             await getSubCategories(categoryKey)
-                .then((response: boolean)=> {
+                .then((response: boolean) => {
                 });
         })()
     }, [getSubCategories, categoryKey]);
 
-   
+
     const mySubCategories = categoryKey.id === 'null'
         ? categories.filter(c => c.parentCategory === null)
-        : categories.filter(c => c.parentCategory === categoryKey.id);
-    console.log("+++++++>>>>>>> CategoryList ", { categoryKey, categories, mySubCategories});
+        : categories.filter(c => c.parentCategory === categoryId);
+    console.log("+++++++>>>>>>> CategoryList ", { categoryKey, mySubCategories });
 
     return (
         <div className={level! > 1 ? 'ms-2' : ''}>
             <>
                 <ListGroup as="ul" variant='dark' className="mb-0">
-                    { mySubCategories.map(category =>
-                        <CategoryRow category={category} key={category.id} />)
-                    }
+                    {mySubCategories.map((c: ICategory) =>
+                        <CategoryRow
+                            category={{ ...c, isSelected: c.id === categoryId }}
+                            questionId={questionId}
+                            key={c.id}
+                        />
+                    )}
                 </ListGroup>
                 {/* {state.error && state.error} */}
                 {/* {state.loading && <div>...loading</div>} */}

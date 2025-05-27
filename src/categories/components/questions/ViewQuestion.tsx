@@ -5,21 +5,21 @@ import QuestionForm from "categories/components/questions/QuestionForm";
 
 const ViewQuestion = ({ inLine }: { inLine: boolean }) => {
     const { state } = useCategoryContext();
-    const { questionLoading, categories, questionInViewingOrEditing } = state;
+    const { questionLoading, categories, questionKeyInViewingOrEditing: questionInViewingOrEditing } = state;
     const { partitionKey, id, parentCategory } = questionInViewingOrEditing!;
 
     const category = categories.find(c => c.id === parentCategory);
     const [question, setQuestion] = useState<IQuestion | undefined>(undefined);
 
     useEffect(() => {
-            if (category) {
-                const q = category!.questions.find(q => q.id === id)
-                console.log("#################################### ViewQuestion setQuestion ...", { q })
-                if (q) {
-                    setQuestion(q);
-                }
+        if (category) {
+            const q = category!.questions.find(q => q.id === id)
+            console.log("#################################### ViewQuestion setQuestion ...", { q })
+            if (q) {
+                setQuestion(q);
             }
-        }, [questionInViewingOrEditing]) 
+        }
+    }, [questionInViewingOrEditing])
 
     // if (questionLoading)
     //     return <div>Loading question...</div>
