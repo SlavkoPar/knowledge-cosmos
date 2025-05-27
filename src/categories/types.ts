@@ -90,7 +90,7 @@ export interface IQuestionRow extends IRecord {
 	partitionKey: string;
 	id: string;
 	title: string;
-	parentCategory: string;
+	parentCategory: string | null;
 	categoryTitle: string;
 	included?: boolean;
 }
@@ -123,7 +123,7 @@ export interface ICategoryKeyExtended extends ICategoryKey {
 
 export interface IQuestionKey {
 	parentCategory?: string;
-	partitionKey: string;
+	partitionKey: string | null;   // ona day we are going to enable question
 	id: string;
 }
 
@@ -269,7 +269,7 @@ export class QuestionKey {
 			? {
 				partitionKey: question.partitionKey,
 				id: question.id,
-				parentCategory: question.parentCategory
+				parentCategory: question.parentCategory ?? undefined
 			}
 			: null
 	}
@@ -283,7 +283,7 @@ export class QuestionDto {
 		this.questionDto = {
 			PartitionKey: question.partitionKey,
 			Id: question.id,
-			ParentCategory: question.parentCategory,
+			ParentCategory: question.parentCategory ?? 'null',  // TODO proveri
 			Title: question.title,
 			CategoryTitle: "",
 			//AssignedAnswerDtos: question.assignedAnswers.map((a: IAssignedAnswer) => new AssignedAnswerDto(a).assignedAnswerDto),
@@ -370,7 +370,7 @@ export interface IParentInfo {
 	//execute?: (method: string, endpoint: string) => Promise<any>,
 	// partitionKey: string | null,
 	// parentCategory: string | null,
-	categoryKeyExpanded: ICategoryKeyExpanded,
+	categoryKey: ICategoryKey,
 	startCursor?: number,
 	includeQuestionId?: string | null
 	level?: number,
@@ -384,7 +384,6 @@ export interface ICategoriesState {
 	categories: ICategory[];
 	categoryNodesUpTheTree: ICategoryKeyExtended[];
 	categoryKeyExpanded: ICategoryKeyExpanded | null;
-	//categoryId: string | null;
 	categoryId_questionId_done?: string;
 	categoryNodeReLoading: boolean;
 	categoryNodeLoaded: boolean;
@@ -393,8 +392,8 @@ export interface ICategoriesState {
 	questionLoading: boolean,
 	error?: Error;
 	whichRowId?: string; // category.id or question.id
-	categoryKeyInViewingOrEditing: ICategoryKey | null;
-	questionKeyInViewingOrEditing: IQuestionKey | null;
+	categoryInViewingOrEditing: ICategory | null;
+	questionInViewingOrEditing: IQuestion | null;
 }
 
 export interface ILocStorage {

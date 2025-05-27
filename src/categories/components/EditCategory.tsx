@@ -11,8 +11,8 @@ const EditCategory = ({ inLine }: { inLine: boolean }) => {
 
     const { state, updateCategory } = useCategoryContext();
 
-    const { categories, categoryKeyInViewingOrEditing, categoryKeyExpanded } = state;
-    const { id } = categoryKeyInViewingOrEditing!;
+    const { categories, categoryInViewingOrEditing, categoryKeyExpanded } = state;
+    const { id } = categoryInViewingOrEditing!;
     const category = categories.find(c => c.id === id);
     const { questionId } = categoryKeyExpanded!;
 

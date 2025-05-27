@@ -584,3 +584,32 @@ export type GroupsPayload = {
 export type GroupsActions =
 	ActionMap<GroupsPayload>[keyof ActionMap<GroupsPayload>];
 
+
+export const initialAnswer: IAnswer = {
+  partitionKey: '',
+  id: 'will be given by DB',
+  parentGroup: '',
+  groupTitle: '',
+  title: '',
+  link: '',
+  source: 0,
+  status: 0
+}
+
+
+export const initialGroup: IGroup = {
+	partitionKey: 'null',
+	id: '',
+	kind: 0,
+	title: '',
+	level: 0,
+	variations: [],
+	parentGroup: 'null',
+	hasSubGroups: false,
+	answers: [],
+	numOfAnswers: 0,
+	hasMoreAnswers: false,
+	isExpanded: false,
+	link: null,
+	header: ''
+}

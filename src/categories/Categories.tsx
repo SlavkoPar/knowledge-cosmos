@@ -50,7 +50,7 @@ const Providered = ({ categoryId_questionId, fromChatBotDlg }: IProps) => {
         dispatch({ type: ActionTypes.SET_QUESTION_SELECTED, payload: { questionKey } })
     }
 
-    const [keyExpanded, setKeyExpanded] = useState<ICategoryKeyExpanded>({
+    const [catKeyExpanded, setCatKeyExpanded] = useState<ICategoryKeyExpanded>({
         partitionKey: null,
         id: null,
         questionId: categoryKeyExpanded ? categoryKeyExpanded.questionId : null
@@ -80,7 +80,7 @@ const Providered = ({ categoryId_questionId, fromChatBotDlg }: IProps) => {
                         const categoryId = arr[0];
                         const questionId = arr[1];
                         const keyExp = { partitionKey: null, id: categoryId, questionId }
-                        setKeyExpanded(keyExp);
+                        setCatKeyExpanded(keyExp);
                         console.log('4) =>>>>>>>>>>>>>>>>>>> Categories calling keyExp:', keyExp);
                         await reloadCategoryNode(keyExp, fromChatBotDlg ?? 'false')
                             .then(() => { return null; });
@@ -119,12 +119,12 @@ const Providered = ({ categoryId_questionId, fromChatBotDlg }: IProps) => {
                     <Col>
                         <div className="d-flex justify-content-start align-items-center">
                             <div className="w-75 my-1">
-                                <AutoSuggestQuestions
+                                {/* <AutoSuggestQuestions
                                     tekst={tekst}
                                     onSelectQuestion={onSelectQuestion}
-                                    allCategories={cats}
+                                    allCats={cats}
                                     searchQuestions={searchQuestions}
-                                />
+                                /> */}
                             </div>
                         </div>
                     </Col>
@@ -134,7 +134,7 @@ const Providered = ({ categoryId_questionId, fromChatBotDlg }: IProps) => {
                     onClick={() => dispatch({
                         type: ActionTypes.ADD_SUB_CATEGORY,
                         payload: {
-                            categoryKey: categoryKeyExpanded,
+                            categoryKey: catKeyExpanded,
                             level: 1
                         }
                     })
@@ -145,20 +145,31 @@ const Providered = ({ categoryId_questionId, fromChatBotDlg }: IProps) => {
                 <Row className="my-1">
                     <Col xs={12} md={5}>
                         <div>
-                            <CategoryList categoryKeyExpanded={categoryKeyExpanded!} level={0} title="root" />
+                            <CategoryList categoryKey={catKeyExpanded!} level={0} title="root" />
                         </div>
                     </Col>
                     <Col xs={0} md={7}>
                         {/* {store.mode === FORM_MODES.ADD && <Add category={category??initialCategory} />} */}
                         {/* <div class="d-none d-lg-block">hide on screens smaller than lg</div> */}
                         <div id='div-details' className="d-none d-md-block">
-                            {state.mode === Mode.AddingCategory && <AddCategory categoryKey={keyExpanded} inLine={false} />}
+                            {state.mode === Mode.AddingCategory && <AddCategory categoryKey={catKeyExpanded} inLine={false} />}
                             {state.mode === Mode.ViewingCategory && <ViewCategory inLine={false} />}
                             {state.mode === Mode.EditingCategory && <EditCategory inLine={false} />}
                             {/* {state.mode === FORM_MODES.ADD_QUESTION && <AddQuestion category={null} />} */}
                             {/* TODO check if we set questionId everywhere */}
-                            {keyExpanded.questionId && state.mode === Mode.ViewingQuestion && <ViewQuestion inLine={false} />}
-                            {keyExpanded.questionId && state.mode === Mode.EditingQuestion && <EditQuestion inLine={false} />}
+                            {catKeyExpanded.questionId && state.mode === Mode.ViewingQuestion && 
+                                <ViewQuestion inLine={false} />
+                            }
+                            {catKeyExpanded.questionId && state.mode === Mode.EditingQuestion && 
+                                <EditQuestion 
+                                    questionKey={{ 
+                                        parentCategory: catKeyExpanded.id ?? undefined,
+                                        partitionKey: catKeyExpanded.partitionKey,
+                                        id: catKeyExpanded.questionId,
+                                    }}
+                                    inLine={false} 
+                                />
+                            }
                         </div>
                     </Col>
                 </Row>

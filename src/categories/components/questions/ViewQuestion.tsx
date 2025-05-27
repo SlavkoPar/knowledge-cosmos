@@ -5,7 +5,7 @@ import QuestionForm from "categories/components/questions/QuestionForm";
 
 const ViewQuestion = ({ inLine }: { inLine: boolean }) => {
     const { state } = useCategoryContext();
-    const { questionLoading, categories, questionKeyInViewingOrEditing: questionInViewingOrEditing } = state;
+    const { questionLoading, categories, questionInViewingOrEditing: questionInViewingOrEditing } = state;
     const { partitionKey, id, parentCategory } = questionInViewingOrEditing!;
 
     const category = categories.find(c => c.id === parentCategory);

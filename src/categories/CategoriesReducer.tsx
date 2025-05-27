@@ -42,13 +42,12 @@ export const initialState: ICategoriesState = {
     questionId: "qqqqqq111",
   },
   categoryId_questionId_done: undefined,
-  //categoryId: null,
   loading: false,
   questionLoading: false,
   categoryNodeReLoading: false,
   categoryNodeLoaded: false, //true  TODO izmeni nakon testa
-  categoryKeyInViewingOrEditing: null,
-  questionKeyInViewingOrEditing: null
+  categoryInViewingOrEditing: null,
+  questionInViewingOrEditing: null
 }
 
 
@@ -251,7 +250,7 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
       const category: ICategory = {
         ...initialCategory,
         level,
-        partitionKey,
+        partitionKey: partitionKey!,
         parentCategory: id,
         inAdding: true
       }
@@ -311,9 +310,8 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
         // ),
         mode: Mode.ViewingCategory,
         loading: false,
-        categoryId: category.id,
         //questionId: null,
-        categoryInViewingOrEditing: new CategoryKey(category).categoryKey
+        categoryInViewingOrEditing: category //new CategoryKey(category).categoryKey
       };
     }
 
@@ -325,9 +323,9 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
         ...state,
         mode: Mode.EditingCategory,
         loading: false,
-        categoryId: category.id,
+        //categoryId: category.id,
         //questionId: null,
-        categoryInViewingOrEditing: new CategoryKey(category).categoryKey
+        categoryInViewingOrEditing: category // new CategoryKey(category).categoryKey
       };
     }
 
@@ -442,10 +440,11 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
     // After user clicks Save, we call createQuestion 
     case ActionTypes.ADD_QUESTION: {
       const { categoryInfo } = action.payload;
-      const { id, level } = categoryInfo;
+      const { categoryKey, level } = categoryInfo;
+      const { partitionKey, id } = categoryKey;
       const question: IQuestion = {
         ...initialQuestion,
-        partitionKey: id,
+        partitionKey: id ?? '',
         parentCategory: id,
         inAdding: true
       }
@@ -521,7 +520,7 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
         loading: false,
         categoryId: question.parentCategory,
         //questionId: question.id,
-        questionInViewingOrEditing: new QuestionKey(question).questionKey
+        questionInViewingOrEditing: question //new QuestionKey(question).questionKey
       }
     }
 
@@ -546,7 +545,7 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
         loading: false,
         categoryId: parentCategory,
         //questionId: id,
-        questionInViewingOrEditing: new QuestionKey(question).questionKey
+        questionInViewingOrEditing: question //new QuestionKey(question).questionKey
       }
       return obj;
     }
@@ -571,7 +570,7 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
     case ActionTypes.CLOSE_QUESTION_FORM: {
       const { question } = action.payload;
       const { partitionKey, id, parentCategory } = question;
-      let questionInViewingOrEditing: IQuestionKey | null = new QuestionKey(question).questionKey;
+      let questionInViewingOrEditing: IQuestion | null = null //new QuestionKey(question).questionKey;
       ; const category = state.categories.find(c => c.id === parentCategory)
       let questions: IQuestion[] = [];
       switch (state.mode) {
@@ -609,7 +608,7 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
 };
 
 
-function markForClean(categories: ICategory[], id: string) {
+function markForClean(categories: ICategory[], id: string | null) {
   let deca = categories
     .filter(c => c.parentCategory === id)
     .map(c => c.id)

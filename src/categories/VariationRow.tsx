@@ -99,7 +99,7 @@ const VariationRow = ({ categoryKey, tag, categoryInAdding }: { categoryKey: ICa
                     title="Add Tag"
                     onClick={() => {
                         console.log('click q')
-                        const categoryInfo: ICategoryInfo = { categoryKey: partitionKey, id, level }
+                        const categoryInfo: ICategoryInfo = { categoryKey: {partitionKey, id}, level }
                         //dispatch({ type: ActionTypes.ADD_ANSWER, payload: { categoryInfo } })
                     }}
                 >

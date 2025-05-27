@@ -5,7 +5,7 @@ import { ICategory, IParentInfo } from "categories/types";
 import { useCategoryContext } from "categories/CategoryProvider";
 
 
-const CategoryList = ({ title, categoryKeyExpanded: categoryKey, level }: IParentInfo) => {
+const CategoryList = ({ title, categoryKey, level }: IParentInfo) => {
     const { state, getSubCategories } = useCategoryContext();
     const { categories, categoryKeyExpanded } = state;
     // { error, }

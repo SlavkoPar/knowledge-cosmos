@@ -3,28 +3,29 @@ import { useCategoryContext, useCategoryDispatch } from 'categories/CategoryProv
 import { useGlobalContext, useGlobalState } from 'global/GlobalProvider'
 
 import QuestionForm from "categories/components/questions/QuestionForm";
-import { ActionTypes, FormMode, IQuestion } from "categories/types";
+import { ActionTypes, FormMode, IQuestion, IQuestionKey } from "categories/types";
 
-const EditQuestion = ({ inLine }: { inLine: boolean }) => {
+const EditQuestion = ({ questionKey, inLine }: { questionKey: IQuestionKey, inLine: boolean }) => {
+    const { partitionKey, id, parentCategory } = questionKey;
     const globalState = useGlobalState();
     const { nickName } = globalState.authUser;
     const { loadCats } = useGlobalContext();
 
     const dispatch = useCategoryDispatch();
     const { state, updateQuestion, reloadCategoryNode } = useCategoryContext();
-    const { questionLoading, categories, questionKeyInViewingOrEditing: questionInViewingOrEditing } = state;
-    const { partitionKey, id, parentCategory } = questionInViewingOrEditing!;
-    const category = categories.find(c => c.id === parentCategory);
-    const [question, setQuestion] = useState<IQuestion | undefined>(undefined);
+    const { questionLoading, categories, questionInViewingOrEditing } = state;
+    //const { partitionKey, id, parentCategory } = questionInViewingOrEditing!;
+    //const category = categories.find(c => c.id === parentCategory);
+    const [question, setQuestion] = useState<IQuestion | null>(null);
     useEffect(() => {
         //const q = category!.questions.find(q => q.inEditing)
-        if (category) {
-            const q = category!.questions.find(q => q.id === id)
-            console.log("#################################### EditQuestion setQuestion ...", { q })
-            if (q) {
-                setQuestion(q);
-            }
-        }
+        //if (category) {
+            //const q = category!.questions.find(q => q.id === id)
+            console.log("#################################### EditQuestion setQuestion ...", { questionInViewingOrEditing })
+            //if (q) {
+                setQuestion(questionInViewingOrEditing);
+            //}
+        //}
     }, [questionInViewingOrEditing]) // questionLoading
 
     // if (questionLoading) {
@@ -33,6 +34,11 @@ const EditQuestion = ({ inLine }: { inLine: boolean }) => {
     // }
 
     console.log("#################################### EditQuestion inLine:", { inLine }, { question })
+
+    if (!questionInViewingOrEditing) {
+        console.log("#################################### EditQuestion loading ...")
+        return <div>Loading question..</div>
+    }
 
     const submitForm = async (questionObject: IQuestion) => {
         const object: IQuestion = {

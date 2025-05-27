@@ -159,7 +159,7 @@ export const NavigationBar = () => {
                     </div>
                 </AuthenticatedTemplate>
                 <UnauthenticatedTemplate>
-                    <a className="navbar-brand" href="/">
+                    <a className="navbar-brand ms-2" href="/" >
                         Microsoft identity platform
                     </a>
                     <div className="collapse navbar-collapse justify-content-end">

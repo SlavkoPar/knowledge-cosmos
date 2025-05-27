@@ -9,7 +9,7 @@ import { useGlobalContext, useGlobalState } from 'global/GlobalProvider';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus, faQuestion } from '@fortawesome/free-solid-svg-icons'
 import CatList from 'global/Components/SelectCategory/CatList';
-import { ICategory, IQuestion, IQuestionEx, IQuestionKey } from 'categories/types';
+import { ICategory, IQuestion, IQuestionEx, IQuestionKey, QuestionKey } from 'categories/types';
 import { IWhoWhen, ICat, IHistory, USER_ANSWER_ACTION, IHistoryFilterDto } from 'global/types';
 import AssignedAnswersChatBot from 'global/ChatBotPage/AssignedAnswersChatBot';
 import { IChatBotAnswer, INewQuestion, INextAnswer, useAI } from './hooks/useAI'
@@ -64,16 +64,6 @@ const ChatBotPage: React.FC = () => {
 	const [catsUsageSel, setCatUsageSel] = useState<Map<string, boolean>>(new Map<string, boolean>());
 
 	const [pastEvents, setPastEvents] = useState<IChild[]>([]);
-
-	class QuestionKey {
-		constructor(question: IQuestion) {
-			this.questionKey = {
-				partitionKey: question.partitionKey,
-				id: question.id
-			}
-		}
-		questionKey: IQuestionKey;
-	}
 
 	enum ChildType {
 		AUTO_SUGGEST,
@@ -144,7 +134,7 @@ const ChatBotPage: React.FC = () => {
 		if (questionCurr) {
 			console.log({ questionCurr })
 			const historyFilterDto: IHistoryFilterDto = {
-				QuestionKey: new QuestionKey(questionCurr).questionKey,
+				QuestionKey: new QuestionKey(questionCurr).questionKey!,
 				Filter: underFilter,
 				Created: { Time: new Date, NickName: authUser.nickName }
 			}
@@ -241,7 +231,7 @@ const ChatBotPage: React.FC = () => {
 		setPastEvents((prevHistory) => [...prevHistory, props]);
 
 		const history: IHistory = {
-			questionKey: new QuestionKey(selectedQuestion!).questionKey,
+			questionKey: new QuestionKey(selectedQuestion!).questionKey!,
 			answerKey: chatBotAnswer!.answerKey,
 			userAction: USER_ANSWER_ACTION.Fixed,
 			created: {
@@ -279,7 +269,7 @@ const ChatBotPage: React.FC = () => {
 
 		if (chatBotAnswer) {
 			const history: IHistory = {
-				questionKey: new QuestionKey(selectedQuestion!).questionKey,
+				questionKey: new QuestionKey(selectedQuestion!).questionKey!,
 				answerKey: chatBotAnswer.answerKey,
 				userAction: nextChatBotAnswer ? USER_ANSWER_ACTION.NotFixed : USER_ANSWER_ACTION.NotClicked,
 				created: {
@@ -403,7 +393,7 @@ const ChatBotPage: React.FC = () => {
 									<AutoSuggestQuestions
 										tekst={txt}
 										onSelectQuestion={onSelectQuestion}
-										allCategories={cats}
+										allCats={cats}
 										searchQuestions={searchQuestions}
 									/>
 								</>

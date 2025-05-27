@@ -22,7 +22,7 @@ const AddCategory = ({ categoryKey, inLine }: { categoryKey: ICategoryKey, inLin
         delete categoryObject.inAdding;
         const object: ICategory = {
             ...categoryObject,
-            partitionKey: categoryKey.partitionKey,
+            partitionKey: categoryKey.partitionKey?? '',  // TODO proveri
             id: categoryObject.title.split(' ')[0].toUpperCase(),
             created: {
                 time: new Date(),

@@ -1,11 +1,11 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit, faRemove, faQuestion, faPlus, faReply } from '@fortawesome/free-solid-svg-icons'
 
 import { ListGroup, Button, Badge } from "react-bootstrap";
 
 import { useGlobalState } from 'global/GlobalProvider'
-import { ActionTypes, ICategoryInfo, Mode } from "categories/types";
+import { ActionTypes, ICategoryInfo, IQuestionKey, Mode } from "categories/types";
 import { useCategoryContext, useCategoryDispatch } from 'categories/CategoryProvider'
 import { useHover } from 'hooks/useHover';
 import { IQuestion } from 'categories/types'
@@ -22,13 +22,20 @@ import { IWhoWhen } from 'global/types';
 //const QuestionRow = ({ question, categoryInAdding }: { ref: React.ForwardedRef<HTMLLIElement>, question: IQuestion, categoryInAdding: boolean | undefined }) => {
 const QuestionRow = ({ question, categoryInAdding }: { question: IQuestion, categoryInAdding: boolean | undefined }) => {
     const { id, partitionKey, parentCategory, title, inAdding, numOfAssignedAnswers } = question;
+    const questionKey: IQuestionKey = { partitionKey, id, parentCategory: parentCategory ?? undefined };
 
     const { canEdit, isDarkMode, variant, bg, authUser } = useGlobalState();
     const { state, viewQuestion, editQuestion, deleteQuestion } = useCategoryContext();
     const dispatch = useCategoryDispatch();
 
-    const { questionKeyInViewingOrEditing: questionInViewingOrEditing } = state;
-    const bold = questionInViewingOrEditing && questionInViewingOrEditing.id === id;
+    const { questionInViewingOrEditing, categoryKeyExpanded } = state;
+    const { questionId } = categoryKeyExpanded ?? { questionId: null };
+
+    //const { questionKey } = questionInViewingOrEditing;
+    //const bold = questionInViewingOrEditing && questionInViewingOrEditing.id === id;
+    //const bold = categoryKeyExpanded && categoryKeyExpanded.id === id;
+    const bold = id === questionId;
+    console.log("------------------------ QuestionRow", { id, questionId })
 
     const alreadyAdding = state.mode === Mode.AddingQuestion;
 
@@ -42,16 +49,35 @@ const QuestionRow = ({ question, categoryInAdding }: { question: IQuestion, cate
 
     const edit = async (Id: string) => {
         // Load data from server and reinitialize question
-        await editQuestion({ partitionKey, id });
+        await editQuestion(questionKey);
     }
 
     const onSelectQuestion = async (id: string) => {
-        // Load data from server and reinitialize question
         if (canEdit)
-            await editQuestion({ partitionKey, id });
+            await editQuestion(questionKey);
         else
-            await viewQuestion({ partitionKey, id });
+            await viewQuestion(questionKey);
     }
+
+    useEffect(() => {
+        (async () => {
+            //if (categoryKey != null) {
+            //if (categoryId === categoryKey.id && questionId) {
+            //if (categoryKey && questionId) {
+            if (questionId && bold) {
+                onSelectQuestion(questionId)
+                // const questionKey: IQuestionKey = { partitionKey, id: questionId };
+                // if (canEdit) {
+                //     await editQuestion(questionKey)
+                // }
+                // else
+                //     await viewQuestion(questionKey)
+            }
+            //}
+        })()
+    }, [editQuestion, viewQuestion, questionId]); //, questionLoading
+
+
 
     const [hoverRef, hoverProps] = useHover();
 
@@ -107,7 +133,7 @@ const QuestionRow = ({ question, categoryInAdding }: { question: IQuestion, cate
                         className="ms-1 p-0 text-secondary d-flex align-items-center"
                         title="Add Question"
                         onClick={() => {
-                            const categoryInfo: ICategoryInfo = { categoryKey: partitionKey, id: parentCategory, level: 0 }
+                            const categoryInfo: ICategoryInfo = { categoryKey: { partitionKey, id: parentCategory }, level: 0 }
                             dispatch({ type: ActionTypes.ADD_QUESTION, payload: { categoryInfo } })
                         }}
                     >
@@ -132,7 +158,7 @@ const QuestionRow = ({ question, categoryInAdding }: { question: IQuestion, cate
                     <>
                         {/* <div class="d-lg-none">hide on lg and wider screens</div> */}
                         <div id='div-question' className="ms-0 d-md-none w-100">
-                            {state.mode === Mode.EditingQuestion && <EditQuestion inLine={true} />}
+                            {state.mode === Mode.EditingQuestion && <EditQuestion questionKey={questionKey} inLine={true} />}
                             {state.mode === Mode.ViewingQuestion && <ViewQuestion inLine={true} />}
                         </div>
                         <div className="d-none d-md-block">

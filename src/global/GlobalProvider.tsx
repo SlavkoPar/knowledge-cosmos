@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useReducer, Dispatch, useCallback, useEffect } from "react";
-import { v4 as uuidv4 } from 'uuid';
 
 import {
   IGlobalContext, ILoginUser, ROLES, GlobalActionTypes,
@@ -107,9 +106,6 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
     }
   }
 
-  const addInitialData = async (dbp: IDBPDatabase): Promise<void> => {
-
-  }
 
   // ---------------------------
   // load all short categories

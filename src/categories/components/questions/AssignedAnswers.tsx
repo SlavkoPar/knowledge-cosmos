@@ -6,9 +6,8 @@ import { useGlobalContext } from "global/GlobalProvider";
 import AssignedAnswer from "./AssignedAnswer";
 import { AutoSuggestAnswers } from 'categories/AutoSuggestAnswers'
 import { IWhoWhen } from "global/types";
-import { IAnswer, IAnswerKey, IAssignedAnswer } from "groups/types";
+import { IAnswer, IAnswerKey, IAssignedAnswer, initialAnswer } from "groups/types";
 import AddAnswer from "categories/components/questions/AddAnswer"
-import { initialAnswer } from "groups/GroupsReducer"; // PRE
 
 interface IProps {
     questionKey: IQuestionKey,

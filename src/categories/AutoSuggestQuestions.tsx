@@ -19,7 +19,7 @@ interface ICatMy {
 }
 
 interface ICatSection {
-	id: string,
+	id: string | null,
 	categoryTitle: string,
 	parentCategoryUp: string,
 	categoryParentTitle: string, // TODO ???
@@ -44,13 +44,13 @@ const QuestionAutosuggestMulti = Autosuggest as { new(): Autosuggest<IQuestionRo
 export class AutoSuggestQuestions extends React.Component<{
 	tekst: string | undefined,
 	onSelectQuestion: (questionKey: IQuestionKey, underFilter: string) => void,
-	allCategories: Map<string, ICat>,
+	allCats: Map<string, ICat>,
 	searchQuestions: (filter: string, count: number) => Promise<IQuestionRow[]>
 }, any> {
 	// region Fields
 	state: any;
 	isMob: boolean;
-	allCategories: Map<string, ICat>;
+	allCats: Map<string, ICat>;
 	searchQuestions: (filter: string, count: number) => Promise<IQuestionRow[]>;
 	debouncedLoadSuggestions: (value: string) => void;
 	//inputAutosuggest: React.RefObject<HTMLInputElement>;
@@ -65,7 +65,7 @@ export class AutoSuggestQuestions extends React.Component<{
 			highlighted: ''
 		};
 		//this.inputAutosuggest = createRef<HTMLInputElement>();
-		this.allCategories = props.allCategories;
+		this.allCats = props.allCategories;
 		this.searchQuestions = props.searchQuestions;
 		this.isMob = isMobile;
 		this.loadSuggestions = this.loadSuggestions.bind(this);
@@ -142,7 +142,7 @@ export class AutoSuggestQuestions extends React.Component<{
 	private satisfyingCategories = (searchWords: string[]): ICatIdTitle[] => {
 		const arr: ICatIdTitle[] = [];
 		searchWords.filter(w => w.length >= 3).forEach(w => {
-			this.allCategories.forEach(async cat => {
+			this.allCats.forEach(async cat => {
 				const parentCategory = cat.id;
 				let j = 0;
 				// cat.words.forEach(catw => {
@@ -164,14 +164,13 @@ export class AutoSuggestQuestions extends React.Component<{
 		if (search.length < 2)
 			return [];
 
-		const catQuests = new Map<string, IQuestionRow[]>();
+		const catQuests = new Map<string | null, IQuestionRow[]>();
 
 		const questionKeys: IQuestionKey[] = [];
 		try {
 			console.log('--------->>>>> getSuggestions')
-			var questionRowDtoList: IQuestionRow[] = await this.searchQuestions(escapedValue, 20);
-
-			questionRowDtoList.forEach((quest: IQuestionRow) => {
+			var questionRows: IQuestionRow[] = await this.searchQuestions(escapedValue, 20);
+			questionRows.forEach((quest: IQuestionRow) => {
 				const { id, partitionKey, parentCategory, title } = quest;
 				const questionKey = { partitionKey, id }
 				if (!questionKeys.includes(questionKey)) {
@@ -260,21 +259,42 @@ export class AutoSuggestQuestions extends React.Component<{
 			// 
 			let catSections: ICatSection[] = [];
 			catQuests.forEach((quests, id) => {
-				const cat = this.allCategories.get(id);
-				const { title, titlesUpTheTree, variations } = cat!;
+
+				let variationsss: string[] = [];
 				const catSection: ICatSection = {
-					id: id,
-					categoryTitle: title,
+					id,
+					categoryTitle: '',
 					categoryParentTitle: 'kuro',
-					parentCategoryUp: titlesUpTheTree!,
+					parentCategoryUp: '',
 					questionRows: []
 				};
+				if (id !== null) {
+					const cat = this.allCats.get(id);
+					if (cat) {
+						const { title, titlesUpTheTree, variations } = cat!;
+						catSection.categoryTitle = title;
+						catSection.parentCategoryUp = titlesUpTheTree;
+						variationsss = variations;
+					}
+					else {
+						alert(`${id} Not found in allCats`)
+					}
+				}
+				else {
+				}
+				// const catSection: ICatSection = {
+				// 	id: id,
+				// 	categoryTitle: title,
+				// 	categoryParentTitle: 'kuro',
+				// 	parentCategoryUp: titlesUpTheTree!,
+				// 	questionRows: []
+				// };
 				quests.forEach(quest => {
 					// console.log(quest);
-					if (variations.length > 0) {
+					if (variationsss.length > 0) {
 						let wordsIncludesTag = false;
 						// searchWords.forEach(w => {
-						// 	variations.forEach(variation => {
+						// 	variationsss.forEach(variation => {
 						// 		if (variation === w.toUpperCase()) {
 						// 			wordsIncludesTag = true;
 						// 			catSection.quests.push({ ...quest, title: quest.title + ' ' + variation });
@@ -282,7 +302,7 @@ export class AutoSuggestQuestions extends React.Component<{
 						// 	})
 						// })
 						if (!wordsIncludesTag) {
-							// variations.forEach(variation => {
+							// variationsss.forEach(variation => {
 							// 	// console.log(quest);
 							// 	catSection.questionRows.push({ ...quest, title: quest.title + ' ' + variation });
 							// });

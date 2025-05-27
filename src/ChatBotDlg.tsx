@@ -10,7 +10,7 @@ import { AutoSuggestQuestions } from 'categories/AutoSuggestQuestions';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFolder } from '@fortawesome/free-solid-svg-icons'
 
-import { IQuestion, IQuestionEx, IQuestionKey } from 'categories/types';
+import { IQuestion, IQuestionEx, IQuestionKey, QuestionKey } from 'categories/types';
 import { ICat, IHistory, USER_ANSWER_ACTION, IHistoryFilterDto } from 'global/types';
 import { IChatBotAnswer, INewQuestion, INextAnswer, useAI } from 'hooks/useAI'
 
@@ -59,16 +59,6 @@ const ChatBotDlg = ({ show, onHide }: IProps) => {
     const [catLevels, setCatLevels] = useState<ICatLevel[]>([]);
 
     const [pastEvents, setPastEvents] = useState<IChild[]>([]);
-
-    class QuestionKey {
-        constructor(question: IQuestion) {
-            this.questionKey = {
-                partitionKey: question.partitionKey,
-                id: question.id
-            }
-        }
-        questionKey: IQuestionKey;
-    }
 
     enum ChildType {
         AUTO_SUGGEST,
@@ -162,7 +152,7 @@ const ChatBotDlg = ({ show, onHide }: IProps) => {
         if (questionCurr) {
             console.log({ questionCurr })
             const historyFilterDto: IHistoryFilterDto = {
-                QuestionKey: new QuestionKey(questionCurr).questionKey,
+                QuestionKey: new QuestionKey(questionCurr).questionKey!,
                 Filter: underFilter,
                 Created: { Time: new Date, NickName: authUser.nickName }
             }
@@ -251,7 +241,7 @@ const ChatBotDlg = ({ show, onHide }: IProps) => {
         setPastEvents((prevHistory) => [...prevHistory, props]);
 
         const history: IHistory = {
-            questionKey: new QuestionKey(selectedQuestion!).questionKey,
+            questionKey: new QuestionKey(selectedQuestion!).questionKey!,
             answerKey: chatBotAnswer!.answerKey,
             userAction: USER_ANSWER_ACTION.Fixed,
             created: {
@@ -289,7 +279,7 @@ const ChatBotDlg = ({ show, onHide }: IProps) => {
 
         if (chatBotAnswer) {
             const history: IHistory = {
-                questionKey: new QuestionKey(selectedQuestion!).questionKey,
+                questionKey: new QuestionKey(selectedQuestion!).questionKey!,
                 answerKey: chatBotAnswer.answerKey,
                 userAction: nextChatBotAnswer ? USER_ANSWER_ACTION.NotFixed : USER_ANSWER_ACTION.NotClicked,
                 created: {
@@ -526,7 +516,7 @@ const ChatBotDlg = ({ show, onHide }: IProps) => {
                                     <AutoSuggestQuestions
                                         tekst={txt}
                                         onSelectQuestion={onSelectQuestion}
-                                        allCategories={cats}
+                                        allCats={cats}
                                         searchQuestions={searchQuestions}
                                     />
                                 </>

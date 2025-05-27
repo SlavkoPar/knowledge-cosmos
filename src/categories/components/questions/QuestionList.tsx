@@ -1,20 +1,19 @@
 import React, { forwardRef, useCallback, useEffect, useRef, useState } from "react";
-import { IParentInfo, IQuestion } from "categories/types";
+import { IParentInfo, IQuestion, IQuestionKey } from "categories/types";
 import { useCategoryContext } from "categories/CategoryProvider";
 import { useGlobalState } from "global/GlobalProvider";
 import useInfiniteScroll from "react-infinite-scroll-hook";
 import { List, ListItem, Loading } from "common/components/InfiniteList";
 import QuestionRow from "categories/components/questions/QuestionRow";
-import useFetchWithMsal from "hooks/useFetchWithMsal";
-import { protectedResources } from "authConfig";
 
-const QuestionList = ({ title, categoryKeyExpanded, level }: IParentInfo) => {
+const QuestionList = ({ title, categoryKey, level }: IParentInfo) => {
   const pageSize = 100;
-  const { partitionKey, id, questionId } = categoryKeyExpanded;
+  const { partitionKey, id } = categoryKey;
   const { canEdit } = useGlobalState();
 
   const { state, loadCategoryQuestions, editQuestion, viewQuestion } = useCategoryContext();
-  const { categories, questionLoading, error } = state;
+  const { categories, categoryKeyExpanded, questionLoading, error } = state;
+  const { questionId } = categoryKeyExpanded!;
 
   const category = categories.find(c => c.id === id)!
   const { questions, numOfQuestions, hasMoreQuestions } = category;
@@ -23,7 +22,7 @@ const QuestionList = ({ title, categoryKeyExpanded, level }: IParentInfo) => {
   async function loadMore() {
     try {
       const parentInfo: IParentInfo = {
-        categoryKeyExpanded,
+        categoryKey,
         startCursor: questions.length,
         includeQuestionId: questionId ?? null
       }
@@ -52,18 +51,19 @@ const QuestionList = ({ title, categoryKeyExpanded, level }: IParentInfo) => {
   useEffect(() => {
     (async () => {
       //if (categoryKey != null) {
-        //if (categoryId === categoryKey.id && questionId) {
-        //if (categoryKey && questionId) {
-        if (questionId) {
-          if (canEdit) {
-            await editQuestion(categoryKeyExpanded) //{ partitionKey: id, id: questionId })
-          }
-          else
-            await viewQuestion(categoryKeyExpanded) //, { partitionKey: id, id: questionId })
+      //if (categoryId === categoryKey.id && questionId) {
+      //if (categoryKey && questionId) {
+      if (questionId) {
+        const questionKey: IQuestionKey = { partitionKey, id: questionId };
+        if (canEdit) {
+          await editQuestion(questionKey)
         }
+        else
+          await viewQuestion(questionKey)
+      }
       //}
     })()
-  }, [editQuestion, viewQuestion, categoryKeyExpanded, /*questionId,*/ canEdit]); //, questionLoading
+  }, [editQuestion, viewQuestion, categoryKey, /*questionId,*/ canEdit]); //, questionLoading
 
   // console.log('QuestionList render', questions, questions.length)
 

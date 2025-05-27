@@ -24,7 +24,7 @@ const CategoryForm = ({ inLine, mode, category, questionId, submitForm, children
 
   const { partitionKey, id, title, variations, questions, kind } = category;
   const categoryKey: ICategoryKey = { partitionKey, id };
-  const categoryKeyExpanded: ICategoryKeyExpanded =  { partitionKey, id, questionId };
+  const categoryKeyExpanded: ICategoryKeyExpanded = { partitionKey, id, questionId };
 
   if (!document.getElementById('div-details')) {
 
@@ -196,7 +196,7 @@ const CategoryForm = ({ inLine, mode, category, questionId, submitForm, children
         <Form.Group>
           <Form.Label className="m-1 mb-0">Questions ({`${formik.values.numOfQuestions}`}) </Form.Label>
           {showQuestions &&
-            <QuestionList level={1} categoryKeyExpanded={categoryKeyExpanded} title={title} />
+            <QuestionList level={1} categoryKey={categoryKeyExpanded} title={title} />
           }
         </Form.Group>
 

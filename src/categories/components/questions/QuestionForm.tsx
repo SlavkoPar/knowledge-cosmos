@@ -31,7 +31,7 @@ const QuestionForm = ({ mode, question, submitForm, children, showCloseButton, s
   const adding = mode === FormMode.adding;
 
   const { partitionKey, parentCategory, title, id, assignedAnswers, relatedFilters } = question;
-  const questionKey = {parentCategory, partitionKey, id };
+  const questionKey = {parentCategory: parentCategory ?? undefined, partitionKey, id };
   const categoryKey: ICategoryKey = {partitionKey, id: parentCategory};
 
   const dispatch = useCategoryDispatch();
@@ -124,7 +124,7 @@ const QuestionForm = ({ mode, question, submitForm, children, showCloseButton, s
                 //   if (isEdit && formik.initialValues.title !== formik.values.title)
                 //     formik.submitForm();
                 // }}
-                value={formik.values.parentCategory.toString()}
+                value={formik.values.parentCategory ? formik.values.parentCategory: ''}
                 placeholder='Category'
                 className="text-primary w-100"
                 disabled={isDisabled}

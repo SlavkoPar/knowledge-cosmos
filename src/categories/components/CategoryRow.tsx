@@ -150,7 +150,7 @@ const CategoryRow = ({ category, questionId }: { category: ICategory, questionId
                         className="py-0 mx-1 text-secondary float-end"
                         title="Add Question"
                         onClick={async () => {
-                            const categoryInfo: ICategoryInfo = { categoryKey: partitionKey, id: category.id, level: category.level }
+                            const categoryInfo: ICategoryInfo = { categoryKey: {partitionKey, id: category.id}, level: category.level }
                             if (!isExpanded) {
                                 await dispatch({ type: ActionTypes.SET_EXPANDED, payload: { categoryKey } });
                             }
@@ -215,10 +215,10 @@ const CategoryRow = ({ category, questionId }: { category: ICategory, questionId
                     {isExpanded &&
                         <>
                             {hasSubCategories &&
-                                <CategoryList level={level + 1} categoryKeyExpanded={categoryKeyExpanded} title={title} />
+                                <CategoryList level={level + 1} categoryKey={categoryKey} title={title} />
                             }
                             {showQuestions &&
-                                <QuestionList level={level + 1} categoryKeyExpanded={categoryKeyExpanded} title={title} />
+                                <QuestionList level={level + 1} categoryKey={categoryKey} title={title} />
                             }
                         </>
                     }
