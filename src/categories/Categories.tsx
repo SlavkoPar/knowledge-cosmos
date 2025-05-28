@@ -15,7 +15,7 @@ import EditCategory from "categories/components/EditCategory";
 import ViewQuestion from "categories/components/questions/ViewQuestion";
 import EditQuestion from "categories/components/questions/EditQuestion";
 
-import { initialQuestion } from "categories/CategoriesReducer";
+import { initialCategory, initialQuestion } from "categories/CategoriesReducer";
 import ModalAddQuestion from './ModalAddQuestion';
 import AddCategory from './components/AddCategory';
 import { AutoSuggestQuestions } from './AutoSuggestQuestions';
@@ -145,7 +145,13 @@ const Providered = ({ categoryId_questionId, fromChatBotDlg }: IProps) => {
                 <Row className="my-1">
                     <Col xs={12} md={5}>
                         <div>
-                            <CategoryList categoryKey={catKeyExpanded!} level={0} title="root" />
+                            <CategoryList categoryKey={catKeyExpanded} level={0} title="root" 
+                            />
+                             {/* category={{ 
+                                     ...initialCategory, 
+                                     partitionKey: catKeyExpanded.partitionKey!,
+                                     id: catKeyExpanded.id!
+                              }}  */}
                         </div>
                     </Col>
                     <Col xs={0} md={7}>
@@ -157,17 +163,17 @@ const Providered = ({ categoryId_questionId, fromChatBotDlg }: IProps) => {
                             {state.mode === Mode.EditingCategory && <EditCategory inLine={false} />}
                             {/* {state.mode === FORM_MODES.ADD_QUESTION && <AddQuestion category={null} />} */}
                             {/* TODO check if we set questionId everywhere */}
-                            {catKeyExpanded.questionId && state.mode === Mode.ViewingQuestion && 
+                            {catKeyExpanded.questionId && state.mode === Mode.ViewingQuestion &&
                                 <ViewQuestion inLine={false} />
                             }
-                            {catKeyExpanded.questionId && state.mode === Mode.EditingQuestion && 
-                                <EditQuestion 
-                                    questionKey={{ 
+                            {catKeyExpanded.questionId && state.mode === Mode.EditingQuestion &&
+                                <EditQuestion
+                                    questionKey={{
                                         parentCategory: catKeyExpanded.id ?? undefined,
                                         partitionKey: catKeyExpanded.partitionKey,
                                         id: catKeyExpanded.questionId,
                                     }}
-                                    inLine={false} 
+                                    inLine={false}
                                 />
                             }
                         </div>
@@ -178,7 +184,7 @@ const Providered = ({ categoryId_questionId, fromChatBotDlg }: IProps) => {
                 <ModalAddQuestion
                     show={modalShow}
                     onHide={() => { setModalShow(false) }}
-                    newQuestion={newQuestion}
+                    newQuestionRow={newQuestion}
                 />
             }
         </>

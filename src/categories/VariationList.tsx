@@ -1,5 +1,5 @@
 import React, { forwardRef, useCallback, useEffect, useRef, useState } from "react";
-import { ICategoryKey, IParentInfo, IVariation } from "categories/types";
+import { ICategoryKey, IVariation } from "categories/types";
 import { useCategoryContext } from "categories/CategoryProvider";
 import { useGlobalState } from "global/GlobalProvider";
 import { List, ListItem, Loading } from "common/components/InfiniteList";

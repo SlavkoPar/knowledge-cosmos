@@ -1,8 +1,8 @@
 import React, { useCallback, useEffect, useState } from "react";
 
-import { ICategory, IQuestion, IQuestionKey } from 'categories/types';
+import { IAssignedAnswer, ICategory, IQuestion, IQuestionKey } from 'categories/types';
 import { useGlobalContext } from "global/GlobalProvider";
-import { IAnswer, IAnswerKey, IAssignedAnswer } from "groups/types";
+import { IAnswer, IAnswerKey } from "groups/types";
 import { IWhoWhen } from "global/types";
 
 export interface IChatBotAnswer {

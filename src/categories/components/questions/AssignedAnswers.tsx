@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { Button, ListGroup, Modal } from "react-bootstrap";
-import { IQuestionKey } from "categories/types";
+import { IAssignedAnswer, IQuestionKey } from "categories/types";
 import { useCategoryContext } from "categories/CategoryProvider";
 import { useGlobalContext } from "global/GlobalProvider";
 import AssignedAnswer from "./AssignedAnswer";
 import { AutoSuggestAnswers } from 'categories/AutoSuggestAnswers'
 import { IWhoWhen } from "global/types";
-import { IAnswer, IAnswerKey, IAssignedAnswer, initialAnswer } from "groups/types";
+import { IAnswer, IAnswerKey, initialAnswer } from "groups/types";
 import AddAnswer from "categories/components/questions/AddAnswer"
 
 interface IProps {

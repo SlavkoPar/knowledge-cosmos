@@ -1,5 +1,5 @@
 import { ActionMap, IWhoWhen, IRecord, IRecordDto, Dto2WhoWhen, WhoWhen2Dto, IWhoWhenDto, ICat } from 'global/types';
-import { AssignedAnswer, AssignedAnswerDto, IAnswer, IAnswerKey, IAssignedAnswer, IAssignedAnswerDto } from 'groups/types';
+import { IAnswer, IAnswerKey } from 'groups/types';
 
 export const Mode = {
 	UNDEFINED: undefined,
@@ -90,14 +90,14 @@ export interface IQuestionRow extends IRecord {
 	partitionKey: string;
 	id: string;
 	title: string;
+	numOfAssignedAnswers: number;
 	parentCategory: string | null;
 	categoryTitle: string;
-	included?: boolean;
+	isSelected: boolean;
 }
 
 export interface IQuestion extends IQuestionRow {
 	assignedAnswers: IAssignedAnswer[];
-	numOfAssignedAnswers: number;
 	relatedFilters: IRelatedFilter[]
 	numOfRelatedFilters: number,
 	source: number;
@@ -142,63 +142,53 @@ export interface ICategory extends IRecord {
 	header: string;
 	level: number;
 	variations: string[];
-	questions: IQuestion[];
+	questionRows: IQuestionRow[];
 	numOfQuestions: number;
 	hasMoreQuestions?: boolean;
 	isExpanded?: boolean;
 	isSelected?: boolean; // when category has no subCategories
 	hasSubCategories: boolean;
-	categories?: ICategory[]; // used for export to json
 	titlesUpTheTree?: string;
 }
+
+// export interface ICategory extends ICategoryRow {
+// }
 
 
 export class QuestionRow {
 	constructor(rowDto: IQuestionRowDto) { //, parentCategory: string) {
 		this.questionRow = {
-			parentCategory: rowDto.ParentCategory,
 			partitionKey: rowDto.PartitionKey,
 			id: rowDto.Id,
+			parentCategory: rowDto.ParentCategory,
+			numOfAssignedAnswers: rowDto.NumOfAssignedAnswers ?? 0,
 			title: rowDto.Title,
 			categoryTitle: rowDto.CategoryTitle,
 			created: new Dto2WhoWhen(rowDto.Created!).whoWhen,
 			modified: rowDto.Modified
 				? new Dto2WhoWhen(rowDto.Modified).whoWhen
 				: undefined,
-			included: rowDto.Included
+			isSelected: rowDto.Included !== undefined
 		}
 	}
 	questionRow: IQuestionRow
 }
 
-export class Question {
-	constructor(dto: IQuestionDto) { //, parentCategory: string) {
-		const assignedAnswers = dto.AssignedAnswerDtos ?
-			dto.AssignedAnswerDtos.map((dto: IAssignedAnswerDto) => new AssignedAnswer(dto).assignedAnswer)
-			: [];
-		const relatedFilters = dto.RelatedFilterDtos
-			? dto.RelatedFilterDtos.map((Dto: IRelatedFilterDto) => new RelatedFilter(Dto).relatedFilter)
-			: [];
-		// TODO possible to call base class construtor
-		this.question = {
-			parentCategory: dto.ParentCategory,
-			partitionKey: dto.PartitionKey,
-			id: dto.Id,
-			title: dto.Title,
-			categoryTitle: dto.CategoryTitle,
-			assignedAnswers,
-			numOfAssignedAnswers: dto.NumOfAssignedAnswers ?? 0,
-			relatedFilters,
-			numOfRelatedFilters: dto.NumOfRelatedFilters ?? 0,
-			source: dto.Source ?? 0,
-			status: dto.Status ?? 0,
-			created: new Dto2WhoWhen(dto.Created!).whoWhen,
-			modified: dto.Modified
-				? new Dto2WhoWhen(dto.Modified).whoWhen
-				: undefined
+export class QuestionRowDto {
+	constructor(row: IQuestionRow) { //, parentCategory: string) {
+		this.questionRowDto = {
+			PartitionKey: row.partitionKey,
+			Id: row.id,
+			ParentCategory: row.parentCategory ?? '',
+			NumOfAssignedAnswers: row.numOfAssignedAnswers ?? 0,
+			Title: '',
+			CategoryTitle: '',
+			Created: new WhoWhen2Dto(row.created!).whoWhenDto!,
+			Modified: new WhoWhen2Dto(row.modified).whoWhenDto!,
+			Included: row.isSelected
 		}
 	}
-	question: IQuestion
+	questionRowDto: IQuestionRowDto
 }
 
 
@@ -213,7 +203,6 @@ export class CategoryKey {
 	}
 	categoryKey: ICategoryKey | null;
 }
-
 
 export class Category {
 	constructor(dto: ICategoryDto) {
@@ -233,8 +222,8 @@ export class Category {
 			modified: dto.Modified
 				? new Dto2WhoWhen(dto.Modified).whoWhen
 				: undefined,
-			questions: dto.Questions
-				? dto.Questions.map(questionRowDto => new Question(questionRowDto/*, dto.Id*/).question)
+			questionRows: dto.QuestionRowDtos
+				? dto.QuestionRowDtos.map(questionRowDto => new QuestionRow(questionRowDto/*, dto.Id*/).questionRow)
 				: []
 		}
 	}
@@ -262,6 +251,36 @@ export class CategoryDto {
 	categoryDto: ICategoryDto;
 }
 
+export class Question {
+	constructor(dto: IQuestionDto) { //, parentCategory: string) {
+		const assignedAnswers = dto.AssignedAnswerDtos ?
+			dto.AssignedAnswerDtos.map((dto: IAssignedAnswerDto) => new AssignedAnswer(dto).assignedAnswer)
+			: [];
+		const relatedFilters = dto.RelatedFilterDtos
+			? dto.RelatedFilterDtos.map((Dto: IRelatedFilterDto) => new RelatedFilter(Dto).relatedFilter)
+			: [];
+		// TODO possible to call base class construtor
+		this.question = {
+			parentCategory: dto.ParentCategory,
+			partitionKey: dto.PartitionKey,
+			id: dto.Id,
+			title: dto.Title,
+			categoryTitle: dto.CategoryTitle,
+			assignedAnswers,
+			numOfAssignedAnswers: dto.NumOfAssignedAnswers ?? 0,
+			relatedFilters,
+			numOfRelatedFilters: dto.NumOfRelatedFilters ?? 0,
+			source: dto.Source ?? 0,
+			status: dto.Status ?? 0,
+			isSelected: dto.Included !== undefined,
+			created: new Dto2WhoWhen(dto.Created!).whoWhen,
+			modified: dto.Modified
+				? new Dto2WhoWhen(dto.Modified).whoWhen
+				: undefined
+		}
+	}
+	question: IQuestion
+}
 
 export class QuestionKey {
 	constructor(question: IQuestion | undefined) {
@@ -275,8 +294,6 @@ export class QuestionKey {
 	}
 	questionKey: IQuestionKey | null;
 }
-
-
 
 export class QuestionDto {
 	constructor(question: IQuestion) {
@@ -303,6 +320,7 @@ export interface IQuestionRowDto extends IRecordDto {
 	PartitionKey: string;
 	Id: string;
 	ParentCategory: string;
+	NumOfAssignedAnswers?: number,
 	Title: string;
 	CategoryTitle: string;
 	Included?: boolean;
@@ -312,7 +330,6 @@ export interface IQuestionRowDto extends IRecordDto {
 
 export interface IQuestionDto extends IQuestionRowDto {
 	AssignedAnswerDtos?: IAssignedAnswerDto[];
-	NumOfAssignedAnswers?: number,
 	RelatedFilterDtos?: IRelatedFilterDto[]
 	NumOfRelatedFilters?: number
 }
@@ -345,7 +362,7 @@ export interface ICategoryDto extends IRecordDto {
 	Level?: number;
 	NumOfQuestions?: number;
 	HasSubCategories?: boolean;
-	Questions?: IQuestionRowDto[];
+	QuestionRowDtos?: IQuestionRowDto[];
 	HasMoreQuestions?: boolean;
 }
 
@@ -377,7 +394,6 @@ export interface IParentInfo {
 	title?: string, // to easier follow getting the list of sub-categories
 	inAdding?: boolean,
 }
-
 
 export interface ICategoriesState {
 	mode: string | null;
@@ -415,14 +431,13 @@ export interface ICategoriesContext {
 	collapseCategory: (categoryKey: ICategoryKey) => void,
 	//////////////
 	// questions
-	//getCategoryQuestions: ({ parentCategory, level, inAdding }: IParentInfo) => void,
 	loadCategoryQuestions: (parentInfo: IParentInfo) => void,
 	createQuestion: (question: IQuestion, fromModal: boolean) => Promise<any>;
 	viewQuestion: (questionKey: IQuestionKey) => void;
 	editQuestion: (questionKey: IQuestionKey) => void;
 	updateQuestion: (question: IQuestion) => Promise<any>;
 	assignQuestionAnswer: (action: string, questionKey: IQuestionKey, answerKey: IAnswerKey, assigned: IWhoWhen) => Promise<any>;
-	deleteQuestion: (question: IQuestion) => void;
+	deleteQuestion: (questionRow: IQuestionRow) => void;
 }
 
 export interface ICategoryFormProps {
@@ -442,6 +457,63 @@ export interface IQuestionFormProps {
 	showCloseButton: boolean;
 	source: number,
 	children: string
+}
+
+
+/////////////////////////////////////////////////
+// Assigned Answers
+
+export interface IAssignedAnswer {
+	questionKey: IQuestionKey;
+	answerKey: IAnswerKey;
+	answerTitle: string;
+	answerLink: string;
+	created: IWhoWhen,
+	modified: IWhoWhen | null
+}
+
+export interface IAssignedAnswerDto {
+	QuestionKey: IQuestionKey;
+	AnswerKey: IAnswerKey;
+	AnswerTitle: string;
+	AnswerLink: string;
+	Created: IWhoWhenDto;
+	Modified: IWhoWhenDto | null;
+}
+
+export interface IAssignedAnswerDtoEx {
+	assignedAnswerDto: IAssignedAnswerDto | null;
+	msg: string;
+}
+
+export class AssignedAnswerDto {
+	constructor(assignedAnswer: IAssignedAnswer) {
+		const { questionKey, answerKey, answerTitle, answerLink, created, modified } = assignedAnswer;
+		this.assignedAnswerDto = {
+			QuestionKey: questionKey,
+			AnswerKey: answerKey,
+			AnswerTitle: answerTitle ?? '',
+			AnswerLink: answerTitle ?? '',
+			Created: new WhoWhen2Dto(created).whoWhenDto!,
+			Modified: modified ? new WhoWhen2Dto(modified).whoWhenDto! : null
+		}
+	}
+	assignedAnswerDto: IAssignedAnswerDto;
+}
+
+export class AssignedAnswer {
+	constructor(dto: IAssignedAnswerDto) {
+		const { QuestionKey, AnswerKey, AnswerTitle, AnswerLink, Created, Modified } = dto;
+		this.assignedAnswer = {
+			questionKey: QuestionKey,
+			answerKey: AnswerKey,
+			answerTitle: AnswerTitle,
+			answerLink: AnswerLink,
+			created: new Dto2WhoWhen(Created).whoWhen!,
+			modified: Modified ? new Dto2WhoWhen(Modified).whoWhen! : null
+		}
+	}
+	assignedAnswer: IAssignedAnswer;
 }
 
 
@@ -568,7 +640,7 @@ export type CategoriesPayload = {
 	// questions
 	[ActionTypes.LOAD_CATEGORY_QUESTIONS]: {
 		parentCategory: string | null,
-		questionRowDtos: IQuestionRowDto[],
+		questionRows: IQuestionRow[],
 		hasMoreQuestions: boolean
 	};
 

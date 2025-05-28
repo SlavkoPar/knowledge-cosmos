@@ -5,7 +5,7 @@ import { faEdit, faRemove, faQuestion, faPlus, faReply } from '@fortawesome/free
 import { ListGroup, Button, Badge } from "react-bootstrap";
 
 import { useGlobalState } from 'global/GlobalProvider'
-import { ActionTypes, ICategoryInfo, IQuestionKey, Mode } from "categories/types";
+import { ActionTypes, ICategoryInfo, IQuestionKey, IQuestionRow, Mode } from "categories/types";
 import { useCategoryContext, useCategoryDispatch } from 'categories/CategoryProvider'
 import { useHover } from 'hooks/useHover';
 import { IQuestion } from 'categories/types'
@@ -17,11 +17,12 @@ import Q from 'assets/Q.png';
 import QPlus from 'assets/QPlus.png';
 
 import { IWhoWhen } from 'global/types';
+import { initialQuestion } from 'categories/CategoriesReducer';
 
 
 //const QuestionRow = ({ question, categoryInAdding }: { ref: React.ForwardedRef<HTMLLIElement>, question: IQuestion, categoryInAdding: boolean | undefined }) => {
-const QuestionRow = ({ question, categoryInAdding }: { question: IQuestion, categoryInAdding: boolean | undefined }) => {
-    const { id, partitionKey, parentCategory, title, inAdding, numOfAssignedAnswers } = question;
+const QuestionRow = ({ questionRow, categoryInAdding }: { questionRow: IQuestionRow, categoryInAdding: boolean | undefined }) => {
+    const { id, partitionKey, parentCategory, title, inAdding, numOfAssignedAnswers, isSelected: included } = questionRow;
     const questionKey: IQuestionKey = { partitionKey, id, parentCategory: parentCategory ?? undefined };
 
     const { canEdit, isDarkMode, variant, bg, authUser } = useGlobalState();
@@ -34,17 +35,17 @@ const QuestionRow = ({ question, categoryInAdding }: { question: IQuestion, cate
     //const { questionKey } = questionInViewingOrEditing;
     //const bold = questionInViewingOrEditing && questionInViewingOrEditing.id === id;
     //const bold = categoryKeyExpanded && categoryKeyExpanded.id === id;
-    const bold = id === questionId;
+    const bold = included; // id === questionId;
     console.log("------------------------ QuestionRow", { id, questionId })
 
     const alreadyAdding = state.mode === Mode.AddingQuestion;
 
     const del = () => {
-        question.modified = {
+        questionRow.modified = {
             time: new Date(),
             nickName: authUser.nickName
         }
-        deleteQuestion(question);
+        deleteQuestion(questionRow);
     };
 
     const edit = async (Id: string) => {
@@ -61,31 +62,16 @@ const QuestionRow = ({ question, categoryInAdding }: { question: IQuestion, cate
 
     useEffect(() => {
         (async () => {
-            //if (categoryKey != null) {
-            //if (categoryId === categoryKey.id && questionId) {
-            //if (categoryKey && questionId) {
-            if (questionId && bold) {
-                onSelectQuestion(questionId)
-                // const questionKey: IQuestionKey = { partitionKey, id: questionId };
-                // if (canEdit) {
-                //     await editQuestion(questionKey)
-                // }
-                // else
-                //     await viewQuestion(questionKey)
+            if (included) {
+                onSelectQuestion(id)
             }
-            //}
         })()
-    }, [editQuestion, viewQuestion, questionId]); //, questionLoading
-
-
+    }, []);
 
     const [hoverRef, hoverProps] = useHover();
 
     const Row1 =
-        // <div ref={hoverRef} className="d-flex justify-content-start align-items-center w-100 text-secondary border border-3  position-relative">
-        // <div ref={hoverRef} className="d-flex align-items-center w-100 text-secondary position-relative question-row">
         <div ref={hoverRef} className="d-flex justify-content-start align-items-center w-100 text-primary bg-warning position-relative question-row">
-
             <Button
                 variant='link'
                 size="sm"
@@ -93,7 +79,6 @@ const QuestionRow = ({ question, categoryInAdding }: { question: IQuestion, cate
             >
                 <img width="22" height="18" src={Q} alt="Question" />
             </Button>
-
             <Button
                 variant='link'
                 size="sm"
@@ -104,7 +89,6 @@ const QuestionRow = ({ question, categoryInAdding }: { question: IQuestion, cate
             >
                 {title}
             </Button>
-
             <Badge pill bg="secondary" className={`text-info ${numOfAssignedAnswers === 0 ? 'd-none' : 'd-inline'}`}>
                 {numOfAssignedAnswers}a
                 {/* <FontAwesomeIcon icon={faReply} size='sm' /> */}
@@ -152,7 +136,12 @@ const QuestionRow = ({ question, categoryInAdding }: { question: IQuestion, cate
             as="li"
         >
             {inAdding && categoryInAdding && state.mode === Mode.AddingQuestion ? (
-                <AddQuestion question={question} inLine={true} showCloseButton={true} source={0} />
+                <AddQuestion
+                    //question={{ ...initialQuestion, ...questionRow}} 
+                    questionRow={questionRow}
+                    inLine={true}
+                    showCloseButton={true}
+                    source={0} />
             )
                 : (state.mode === Mode.EditingQuestion || state.mode === Mode.ViewingQuestion) ? (
                     <>

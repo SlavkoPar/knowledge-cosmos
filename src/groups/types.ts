@@ -30,64 +30,6 @@ export enum FormMode {
 
 
 
-/////////////////////////////////////////////////
-// Assigned Answers
-
-export interface IAssignedAnswer {
-	questionKey: IQuestionKey;
-	answerKey: IAnswerKey;
-	answerTitle: string;
-	answerLink: string;
-	created: IWhoWhen,
-	modified: IWhoWhen | null
-}
-
-export interface IAssignedAnswerDto {
-	QuestionKey: IQuestionKey;
-	AnswerKey: IAnswerKey;
-	AnswerTitle: string;
-	AnswerLink: string;
-	Created: IWhoWhenDto;
-	Modified: IWhoWhenDto | null;
-}
-
-export interface IAssignedAnswerDtoEx {
-	assignedAnswerDto: IAssignedAnswerDto | null;
-	msg: string;
-}
-
-export class AssignedAnswerDto {
-	constructor(assignedAnswer: IAssignedAnswer) {
-		const { questionKey, answerKey, answerTitle, answerLink, created, modified } = assignedAnswer;
-		this.assignedAnswerDto = {
-			QuestionKey: questionKey,
-			AnswerKey: answerKey,
-			AnswerTitle: answerTitle ?? '',
-			AnswerLink: answerTitle ?? '',
-			Created: new WhoWhen2Dto(created).whoWhenDto!,
-			Modified: modified ? new WhoWhen2Dto(modified).whoWhenDto! : null
-		}
-	}
-	assignedAnswerDto: IAssignedAnswerDto;
-}
-
-export class AssignedAnswer {
-	constructor(dto: IAssignedAnswerDto) {
-		const { QuestionKey, AnswerKey, AnswerTitle, AnswerLink, Created, Modified } = dto;
-		this.assignedAnswer = {
-			questionKey: QuestionKey,
-			answerKey: AnswerKey,
-			answerTitle: AnswerTitle,
-			answerLink: AnswerLink,
-			created: new Dto2WhoWhen(Created).whoWhen!,
-			modified: Modified ? new Dto2WhoWhen(Modified).whoWhen! : null
-		}
-	}
-	assignedAnswer: IAssignedAnswer;
-}
-
-
-
 //////////////////////////////////////
 // Answer
 
@@ -139,7 +81,7 @@ export interface IGroup extends IRecord {
 	header: string;
 	level: number;
 	variations: string[];
-	answers: IAnswer[];
+	answerRows: IAnswerRow[];
 	numOfAnswers: number;
 	hasMoreAnswers?: boolean;
 	isExpanded?: boolean;
@@ -210,7 +152,7 @@ export class Group {
 			modified: dto.Modified
 				? new Dto2WhoWhen(dto.Modified).whoWhen
 				: undefined,
-			answers: dto.Answers
+			answerRows: dto.Answers
 				? dto.Answers.map(answerDto => new Answer(answerDto/*, dto.Id*/).answer)
 				: []
 		}
@@ -447,7 +389,6 @@ export enum ActionTypes {
 
 	SET_ANSWER = 'SET_ANSWER',
 	SET_ANSWER_AFTER_ASSIGN_ANSWER = 'SET_ANSWER_AFTER_ASSIGN_ANSWER',
-	SET_ANSWER_ANSWERS = 'SET_ANSWER_ANSWERS',
 	DELETE_ANSWER = 'DELETE_ANSWER',
 
 	CLOSE_ANSWER_FORM = 'CLOSE_ANSWER_FORM',
@@ -563,9 +504,6 @@ export type GroupsPayload = {
 		answer: IAnswer
 	};
 
-	[ActionTypes.SET_ANSWER_ANSWERS]: {
-		answers: IAssignedAnswer[];
-	};
 
 	[ActionTypes.DELETE_ANSWER]: {
 		answer: IAnswer
@@ -606,7 +544,7 @@ export const initialGroup: IGroup = {
 	variations: [],
 	parentGroup: 'null',
 	hasSubGroups: false,
-	answers: [],
+	answerRows: [],
 	numOfAnswers: 0,
 	hasMoreAnswers: false,
 	isExpanded: false,

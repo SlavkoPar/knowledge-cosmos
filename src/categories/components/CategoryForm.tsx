@@ -22,14 +22,14 @@ const CategoryForm = ({ inLine, mode, category, questionId, submitForm, children
   const editing = mode === FormMode.editing;
   const adding = mode === FormMode.adding;
 
-  const { partitionKey, id, title, variations, questions, kind } = category;
+  const { partitionKey, id, title, variations, questionRows, kind } = category;
   const categoryKey: ICategoryKey = { partitionKey, id };
   const categoryKeyExpanded: ICategoryKeyExpanded = { partitionKey, id, questionId };
 
   if (!document.getElementById('div-details')) {
 
   }
-  const showQuestions = questions.length > 0 //!questions.find(q => q.inAdding);
+  const showQuestions = questionRows.length > 0 //!questions.find(q => q.inAdding);
   /* 
   We have, at two places:
     <EditCategory inLine={true} />
@@ -196,7 +196,7 @@ const CategoryForm = ({ inLine, mode, category, questionId, submitForm, children
         <Form.Group>
           <Form.Label className="m-1 mb-0">Questions ({`${formik.values.numOfQuestions}`}) </Form.Label>
           {showQuestions &&
-            <QuestionList level={1} categoryKey={categoryKeyExpanded} title={title} />
+            <QuestionList level={1} categoryKey={categoryKey} title={title} />
           }
         </Form.Group>
 

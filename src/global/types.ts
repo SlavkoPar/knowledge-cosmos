@@ -143,14 +143,6 @@ export interface IShortGroup {
 	kind: number;
 }
 
-export interface ICatExport {
-	id: string;
-	parentCategory: string;
-	title: string;
-	variations: string[];
-	hasSubCategories: boolean;
-	kind: number
-}
 
 
 export interface IGlobalState {
@@ -193,7 +185,6 @@ export interface IGlobalContext {
 	getUser: (nickName: string) => Promise<any>;
 	OpenDB: () => Promise<any>;
 	setLastRouteVisited: (lastRouteVisited: string) => void;
-	exportToJSON: (category: ICategory, parentCategory: string) => void;
 	health: () => void;
 	loadCats: () => void;
 	getSubCats: (categoryId: string | null) => Promise<any>;

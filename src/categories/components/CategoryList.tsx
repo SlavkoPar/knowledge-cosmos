@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { ListGroup } from "react-bootstrap";
 import CategoryRow from "categories/components/CategoryRow";
-import { ICategory, IParentInfo } from "categories/types";
+import { CategoryKey, ICategory, IParentInfo } from "categories/types";
 import { useCategoryContext } from "categories/CategoryProvider";
 
 
@@ -21,7 +21,6 @@ const CategoryList = ({ title, categoryKey, level }: IParentInfo) => {
                 });
         })()
     }, [getSubCategories, categoryKey]);
-
 
     const mySubCategories = categoryKey.id === 'null'
         ? categories.filter(c => c.parentCategory === null)

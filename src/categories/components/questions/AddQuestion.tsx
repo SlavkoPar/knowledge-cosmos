@@ -3,10 +3,11 @@ import { useCategoryContext, useCategoryDispatch } from 'categories/CategoryProv
 import { useGlobalState } from 'global/GlobalProvider'
 
 import QuestionForm from "categories/components/questions/QuestionForm";
-import { ActionTypes, FormMode, IQuestion } from "categories/types";
+import { ActionTypes, FormMode, IQuestion, IQuestionRow } from "categories/types";
+import { initialQuestion } from "categories/CategoriesReducer";
 
 interface IProps {
-    question: IQuestion;
+    questionRow: IQuestionRow;
     closeModal?: () => void;
     inLine: boolean;
     showCloseButton: boolean;
@@ -14,19 +15,30 @@ interface IProps {
     setError?: (msg: string) => void;
 }
 
-const AddQuestion = ({ question, inLine, closeModal, showCloseButton, source, setError }: IProps) => {
+const AddQuestion = ({ questionRow, inLine, closeModal, showCloseButton, source, setError }: IProps) => {
     const globalState = useGlobalState();
     const { authUser } = globalState;
     const { nickName } = authUser;
+
+    const question = { ...initialQuestion, ...questionRow };
 
     // { error, execute }
 
     const dispatch = useCategoryDispatch();
     const { state, createQuestion, reloadCategoryNode } = useCategoryContext();
     if (!closeModal) {
-        const cat = state.categories.find(c => c.id === question.parentCategory)
-        question.categoryTitle = cat ? cat.title : '';
+        const cat = state.categories.find(c => c.id === questionRow.parentCategory)
+        questionRow.categoryTitle = cat ? cat.title : '';
     }
+    // const question: IQuestion = {
+    //     ...questionRow, 
+    //     assignedAnswers: [], 
+    //     numOfAssignedAnswers: 0,
+    //     relatedFilters: [],
+    //     numOfRelatedFilters: 0,
+    //     source: 0,
+    //     status: 0
+    // };
     const [formValues] = useState(question);
 
     const submitForm = async (questionObject: IQuestion) => {
@@ -50,10 +62,11 @@ const AddQuestion = ({ question, inLine, closeModal, showCloseButton, source, se
             else if (closeModal) {
                 closeModal();
                 dispatch({ type: ActionTypes.CLEAN_TREE, payload: { id: q.parentCategory } })
-                await reloadCategoryNode({ partitionKey: '', id: q.parentCategory, questionId: q.id } );
+                await reloadCategoryNode({ partitionKey: '', id: q.parentCategory, questionId: q.id });
             }
         }
     }
+
 
     return (
         <QuestionForm

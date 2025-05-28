@@ -13,7 +13,6 @@ import About from 'About';
 import Health from 'Health';
 import SupportPage from './SupportPage';
 import ChatBotPage from './ChatBotPage';
-import Export from 'Export';
 import { GlobalActionTypes, IUser } from 'global/types';
 import { AccountInfo } from '@azure/msal-browser';
 import { useMsal } from '@azure/msal-react';
@@ -126,7 +125,6 @@ function App() {
               {/* <Route path="/groups/:groupId_AnswerId" element={<Groups />} />
               <Route path="/groups" element={<Groups />} /> */}
 
-              <Route path="/export" element={<Export />} />
               <Route path="/about" element={<About />} />
               <Route path="/about-short" element={<AboutShort />} />
               <Route path="/health" element={<Health />} />

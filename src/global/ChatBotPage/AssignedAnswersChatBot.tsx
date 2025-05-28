@@ -4,8 +4,9 @@ import { useGlobalContext } from "global/GlobalProvider";
 import AssignedAnswerChatBot from "global/ChatBotPage/AssignedAnswerChatBot";
 import { AutoSuggestAnswers } from 'categories/AutoSuggestAnswers'
 import { IWhoWhen } from "global/types";
-import { IAnswer, IAnswerKey, IAssignedAnswer, initialAnswer } from "groups/types";
+import { IAnswer, IAnswerKey, initialAnswer } from "groups/types";
 import AddAnswer from "categories/components/questions/AddAnswer"
+import { IAssignedAnswer } from "categories/types";
 //import { initialAnswer } from "groups/GroupsReducer";
 
 interface IProps {

@@ -7,7 +7,8 @@ import { ListGroup, Button, Modal } from "react-bootstrap";
 import { useGlobalContext, useGlobalState } from 'global/GlobalProvider'
 import { useHover } from 'hooks/useHover';
 import { formatDate } from 'common/utilities'
-import { IAnswerKey, IAssignedAnswer } from 'groups/types';
+import { IAnswerKey } from 'groups/types';
+import { IAssignedAnswer } from "categories/types";
 
 interface IProps {
     questionTitle: string,

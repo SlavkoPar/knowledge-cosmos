@@ -3,7 +3,7 @@ import { Container, Row, Col, Button, Modal } from "react-bootstrap";
 
 import { useParams } from 'react-router-dom';
 
-import { Mode, ActionTypes, IQuestion } from "./types";
+import { Mode, ActionTypes, IQuestion, IQuestionRow } from "./types";
 
 import { useGlobalState } from "global/GlobalProvider";
 import { CategoryProvider, useCategoryContext, useCategoryDispatch } from "./CategoryProvider";
@@ -20,7 +20,7 @@ import { initialQuestion } from "categories/CategoriesReducer";
 interface IProps {
     show: boolean,
     onHide: () => void;
-    newQuestion: IQuestion
+    newQuestionRow: IQuestionRow
 }
 
 const ModalAddQuestion = (props: IProps) => {
@@ -56,7 +56,7 @@ const ModalAddQuestion = (props: IProps) => {
             </Modal.Header>
             <Modal.Body className="py-0">
                 <AddQuestion
-                    question={props.newQuestion}
+                    questionRow={props.newQuestionRow}
                     closeModal={props.onHide}
                     inLine={true}
                     showCloseButton={false}

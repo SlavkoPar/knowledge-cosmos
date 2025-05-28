@@ -2,16 +2,19 @@ import { useGlobalState, useGlobalContext } from 'global/GlobalProvider'
 import React, { createContext, useContext, useReducer, useCallback, Dispatch } from 'react';
 
 import {
-  ActionTypes, ICategory, IQuestion, ICategoriesContext, IParentInfo, IFromUserAssignedAnswer,
-  ICategoryDto, ICategoryDtoEx, ICategoryDtoListEx, ICategoryKey, ICategoryKeyExtended,  ICategoryKeyExpanded,
-  CategoryKey,  Category, CategoryDto,
-  IQuestionDto, IQuestionDtoEx, IQuestionEx, IQuestionRowDto, IQuestionKey,IQuestionRow,
-  Question, QuestionDto, QuestionRow
- } from 'categories/types';
+  ActionTypes, ICategory, IQuestion, ICategoriesContext, IFromUserAssignedAnswer,
+  ICategoryDto, ICategoryDtoEx, ICategoryDtoListEx, ICategoryKey, ICategoryKeyExtended, ICategoryKeyExpanded,
+  CategoryKey, Category, CategoryDto,
+  IQuestionDto, IQuestionDtoEx, IQuestionEx, IQuestionRowDto, IQuestionKey, IQuestionRow,
+  Question, QuestionDto, QuestionRow,
+  QuestionRowDto,
+  IParentInfo
+} from 'categories/types';
 
 import { initialCategoriesState, CategoriesReducer } from 'categories/CategoriesReducer';
 import { IWhoWhen, ICat, Dto2WhoWhen, WhoWhen2Dto } from 'global/types';
-import { IAnswer, IAnswerKey, IGroup, IAssignedAnswer, IAssignedAnswerDto, IAssignedAnswerDtoEx, AssignedAnswer, AssignedAnswerDto } from 'groups/types';
+import { IAnswer, IAnswerKey, IGroup } from 'groups/types';
+import { IAssignedAnswer, IAssignedAnswerDto, IAssignedAnswerDtoEx, AssignedAnswer, AssignedAnswerDto } from 'categories/types';
 import { protectedResources } from 'authConfig';
 
 const CategoriesContext = createContext<ICategoriesContext>({} as any);
@@ -184,7 +187,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
               if (categoryDto) {
                 const category = new Category(categoryDto).category;
                 console.log('Category successfully created')
-                dispatch({ type: ActionTypes.SET_ADDED_CATEGORY, payload: { category: { ...category, questions: [] } } });
+                dispatch({ type: ActionTypes.SET_ADDED_CATEGORY, payload: { category: { ...category, questionRows: [] } } });
                 dispatch({ type: ActionTypes.CLOSE_CATEGORY_FORM })
                 await loadCats(); // reload
               }
@@ -239,19 +242,6 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
           category.isExpanded = true;
           //dispatch({ type: ActionTypes.SET_CATEGORY, payload: { category } });
           dispatch({ type: ActionTypes.SET_EXPANDED, payload: { categoryKey } });
-          //await getSubCategories(execute, categoryKey);
-          /*
-          if (numOfQuestions > 0) { // && questions.length === 0) {
-            const parentInfo: IParentInfo = {
-              execute,
-              partitionKey,
-              parentCategory: id,
-              startCursor: 0,
-              includeQuestionId: null //questionId ?? null
-            }
-            await loadCategoryQuestions(parentInfo);
-          }
-            */
           return category;
         }
         //})
@@ -405,12 +395,11 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
 
   const PAGE_SIZE = 12;
   const loadCategoryQuestions = useCallback(
-    async ({ categoryKey: categoryKey, startCursor, includeQuestionId }: IParentInfo)
+    async ({ categoryKey, startCursor, includeQuestionId }: IParentInfo)
       : Promise<any> => {
       const questionRowDtos: IQuestionRowDto[] = [];
       try {
-        const partitionKey = categoryKey.partitionKey;
-        const parentCategory = categoryKey.id;
+        const { partitionKey, id: parentCategory } = categoryKey;
         dispatch({ type: ActionTypes.SET_CATEGORY_QUESTIONS_LOADING, payload: { questionLoading: true } })
         try {
           const url = `${protectedResources.KnowledgeAPI.endpointQuestion}/${partitionKey}/${parentCategory}/${startCursor}/${PAGE_SIZE}/${includeQuestionId}`;
@@ -423,17 +412,19 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
             const { categoryDto, msg } = categoryDtoEx;
             console.log('>>>>>>>>>>>>loadCategoryQuestions categoryDto:', { categoryDto })
             if (categoryDto !== null) {
-              const { Title, Questions, HasMoreQuestions } = categoryDto;
-              Questions!.forEach((questionRowDto: IQuestionRowDto) => {
+              const { Title, QuestionRowDtos, HasMoreQuestions } = categoryDto;
+              QuestionRowDtos!.forEach((questionRowDto: IQuestionRowDto) => {
                 if (includeQuestionId && questionRowDto.Id === includeQuestionId) {
                   questionRowDto.Included = true;
                 }
                 questionRowDto.CategoryTitle = Title; // TODO treba li
                 questionRowDtos.push(questionRowDto);
               })
+              //const questionRows: IQuestionRow[] = questionRowDtos.map(questionRow => new Question(questionRow).question);
+              const questionRows: IQuestionRow[] = questionRowDtos.map(dto => new QuestionRow(dto).questionRow);
               dispatch({
                 type: ActionTypes.LOAD_CATEGORY_QUESTIONS,
-                payload: { parentCategory, questionRowDtos, hasMoreQuestions: HasMoreQuestions! }
+                payload: { parentCategory, questionRows, hasMoreQuestions: HasMoreQuestions! }
               });
             }
           });
@@ -516,11 +507,11 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
 
 
   const deleteQuestion = useCallback(
-    async (question: IQuestion) => {
-      const { partitionKey, id, title, modified, parentCategory } = question;
+    async (questionRow: IQuestionRow) => {
+      const { partitionKey, id, title, modified, parentCategory } = questionRow;
       dispatch({ type: ActionTypes.SET_CATEGORY_LOADING, payload: { id: parentCategory!, loading: false } });
       try {
-        const questionDto = new QuestionDto(question).questionDto;
+        const questionDto = new QuestionRowDto(questionRow).questionRowDto;
         //questionDto.Archived = new WhoWhen2Dto(question.archived!).whoWhenDto!;
         const url = `${protectedResources.KnowledgeAPI.endpointQuestion}`;
         console.time()

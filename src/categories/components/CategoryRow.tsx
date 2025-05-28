@@ -7,7 +7,7 @@ import QPlus from 'assets/QPlus.png';
 import { ListGroup, Button, Badge } from "react-bootstrap";
 
 import { useGlobalState } from 'global/GlobalProvider'
-import { ActionTypes, ICategoryInfo, ICategoryKey, ICategoryKeyExpanded, IParentInfo, Mode } from "categories/types";
+import { ActionTypes, ICategoryInfo, ICategoryKey, ICategoryKeyExpanded, Mode } from "categories/types";
 import { useCategoryContext, useCategoryDispatch } from 'categories/CategoryProvider'
 import { useHover } from 'hooks/useHover';
 import { ICategory } from 'categories/types'
@@ -18,7 +18,8 @@ import ViewCategory from "categories/components/ViewCategory";
 import QuestionList from './questions/QuestionList';
 
 const CategoryRow = ({ category, questionId }: { category: ICategory, questionId: string | null }) => {
-    const { partitionKey, id: categoryId, title, level, inAdding, hasSubCategories, numOfQuestions, isExpanded, isSelected } = category;
+    const { partitionKey, id: categoryId, title, level, hasSubCategories, numOfQuestions, questionRows,
+                inAdding,  isExpanded, isSelected } = category;
     const [categoryKey] = useState<ICategoryKey>({ partitionKey, id: categoryId }); // otherwise reloads
     const [categoryKeyExpanded] = useState<ICategoryKeyExpanded>({ partitionKey, id: categoryId, questionId }); // otherwise reloads
 

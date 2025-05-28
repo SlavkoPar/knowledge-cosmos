@@ -9,7 +9,6 @@ import {
   ICat, IShortGroup,
   IParentInfo,
   IWhoWhen,
-  ICatExport,
   IHistory, IHistoryDtoEx, IHistoryData, HistoryDto,
   IHistoryDtoListEx,
   IHistoryListEx,
@@ -18,8 +17,9 @@ import {
 
 import { globalReducer, initialGlobalState } from "global/globalReducer";
 
-import { Category, ICategory, ICategoryDto, ICategoryKey, IQuestionRow, IQuestionRowDto, IQuestion, IQuestionDto, IQuestionDtoEx, IQuestionEx, IQuestionKey, Question } from "categories/types";
-import { Group, IGroup, IGroupDto, IGroupKey, IAnswer, IAnswerDto, IAnswerKey, IAnswerRow, IAnswerRowDto, Answer, IAssignedAnswer } from "groups/types";
+import { Category, ICategory, ICategoryDto, ICategoryKey, IQuestionRow, IQuestionRowDto, IQuestion, IQuestionDto, IQuestionDtoEx, IQuestionEx, IQuestionKey, Question, IAssignedAnswer } from "categories/types";
+import { Group, IGroup, IGroupDto, IGroupKey, IAnswer, IAnswerDto, IAnswerKey, IAnswerRow, IAnswerRowDto, Answer } from "groups/types";
+
 import { IUser } from 'global/types';
 
 import { IDBPDatabase, IDBPIndex, openDB } from 'idb' // IDBPTransaction
@@ -184,8 +184,10 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
               partitionKey: q.PartitionKey,
               id: q.Id,
               parentCategory: q.ParentCategory,
+              numOfAssignedAnswers: q.NumOfAssignedAnswers ?? 0,
               title: q.Title,
-              categoryTitle: ''
+              categoryTitle: '',
+              isSelected: q.Included !== undefined
             }))
             resolve(list);
           }
@@ -494,36 +496,6 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
   }, [globalState.cats]);
 
 
-  const exportToObj = async (index: IDBPIndex<unknown, ["Categories"], "Categories", "parentCategory_idx", "readonly">,
-    category: ICategory) => {
-    try {
-      category.categories = [];
-      for await (const cursor of index.iterate(category.id)) {
-        const cat: ICategory = cursor.value;
-        await exportToObj(index, cat);
-        category.categories.push(cat);
-      }
-    }
-    catch (error: any | Error) {
-      console.log(error);
-      dispatch({ type: GlobalActionTypes.SET_ERROR, payload: { error } });
-    }
-  }
-
-  const exportToJSON = async (category: ICategory) => {
-    try {
-      const { dbp } = globalState;
-      const tx = dbp!.transaction('Categories')
-      const index = tx.store.index('parentCategory_idx');
-      await exportToObj(index, category);
-      await tx.done;
-    }
-    catch (error: any | Error) {
-      console.log(error);
-      dispatch({ type: GlobalActionTypes.SET_ERROR, payload: { error } });
-    }
-  }
-
   const health = () => {
     const url = `api/health`;
     // axios
@@ -749,7 +721,7 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
   return (
     <GlobalContext.Provider value={{
       globalState, OpenDB, setLastRouteVisited,
-      getUser, exportToJSON, health,
+      getUser, health,
       loadCats, getSubCats, getCatsByKind, searchQuestions, getQuestion,
       loadShortGroups, getSubGroups, getGroupsByKind, searchAnswers, getAnswer,
       addHistory, getAnswersRated, addHistoryFilter

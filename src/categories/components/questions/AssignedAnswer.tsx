@@ -8,7 +8,8 @@ import { useHover } from 'hooks/useHover';
 import { useCategoryContext } from "categories/CategoryProvider";
 import { formatDate } from 'common/utilities'
 import React, { useState } from "react";
-import { IAnswerKey, IAssignedAnswer } from 'groups/types';
+import { IAnswerKey } from 'groups/types';
+import { IAssignedAnswer } from 'categories/types';
 
 interface IProps {
     questionTitle: string,
