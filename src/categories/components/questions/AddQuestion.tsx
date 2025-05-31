@@ -66,8 +66,6 @@ const AddQuestion = ({ questionRow, inLine, closeModal, showCloseButton, source,
             }
         }
     }
-
-
     return (
         <QuestionForm
             question={formValues}

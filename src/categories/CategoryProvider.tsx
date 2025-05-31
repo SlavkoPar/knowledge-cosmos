@@ -44,7 +44,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
     const accessToken = localStorage.getItem("accessToken");
     if (accessToken) {
       try {
-        // console.log({ accessToken })
+        console.log("------------&&&&&&&&&&&&&&&------Execute endpoint:", endpoint)
         let response = null;
 
         const headers = new Headers();
@@ -100,7 +100,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
     async (categoryKeyExpanded: ICategoryKeyExpanded, fromChatBotDlg: string = 'false'): Promise<any> => {
       return new Promise(async (resolve) => {
         try {
-          console.log('CategoryProvider.reloadCategoryNode', categoryKeyExpanded)
+          console.log('---CategoryProvider.reloadCategoryNode categoryKeyExpanded:', categoryKeyExpanded)
           const { id, partitionKey } = categoryKeyExpanded;
           if (id) {
             const cat: ICat | undefined = cats.get(id);
@@ -116,6 +116,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
           //dispatch({ type: ActionTypes.CLEAN_SUB_TREE, payload: { categoryKey: null/*new CategoryKey(parentCat).categoryKey*/ } });
           // ---------------------------------------------------------------------------
           console.time();
+
           //const query = categoryKey ? `${categoryKey.partitionKey}/${categoryKey.id}` : 'null/null';
           //const query = `${partitionKey}/${id}`;
           const url = `${protectedResources.KnowledgeAPI.endpointCat}/${partitionKey}/${id}`;
@@ -153,7 +154,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
       try {
         dispatch({ type: ActionTypes.SET_LOADING });
         const url = `${protectedResources.KnowledgeAPI.endpointCategory}/${partitionKey}/${id}`;
-        console.log('calling getSubCategories:', url)
+        console.log('CategoryProvider getSubCategories url:', url)
         console.time();
         await Execute("GET", url).then((categoryDtos: ICategoryDto[]) => {
           console.timeEnd();
@@ -294,14 +295,14 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
         const url = `${protectedResources.KnowledgeAPI.endpointCategory}`;
         console.time()
         await Execute("PUT", url, categoryDto)
-          .then((response: ICategoryDto | Response) => {
+          .then((response: ICategoryDtoEx | Response) => {
             console.timeEnd();
             if (response instanceof Response) {
               console.error(response);
               dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error('Server Error') } });
             }
             else {
-              const categoryDto: ICategoryDto = response;
+              const { categoryDto, msg } = response as ICategoryDtoEx;
               if (categoryDto) {
                 const category = new Category(categoryDto).category;
                 const { id, partitionKey } = category;
@@ -399,10 +400,10 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
       : Promise<any> => {
       const questionRowDtos: IQuestionRowDto[] = [];
       try {
-        const { partitionKey, id: parentCategory } = categoryKey;
+        const { partitionKey, id } = categoryKey;
         dispatch({ type: ActionTypes.SET_CATEGORY_QUESTIONS_LOADING, payload: { questionLoading: true } })
         try {
-          const url = `${protectedResources.KnowledgeAPI.endpointQuestion}/${partitionKey}/${parentCategory}/${startCursor}/${PAGE_SIZE}/${includeQuestionId}`;
+          const url = `${protectedResources.KnowledgeAPI.endpointQuestion}/${partitionKey}/${id}/${startCursor}/${PAGE_SIZE}/${includeQuestionId}`;
           console.time()
           console.log('>>>>>>>>>>>>')
           console.log('>>>>>>>>>>>>loadCategoryQuestions URL:', { url }, { includeQuestionId })
@@ -420,11 +421,10 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
                 questionRowDto.CategoryTitle = Title; // TODO treba li
                 questionRowDtos.push(questionRowDto);
               })
-              //const questionRows: IQuestionRow[] = questionRowDtos.map(questionRow => new Question(questionRow).question);
               const questionRows: IQuestionRow[] = questionRowDtos.map(dto => new QuestionRow(dto).questionRow);
               dispatch({
                 type: ActionTypes.LOAD_CATEGORY_QUESTIONS,
-                payload: { parentCategory, questionRows, hasMoreQuestions: HasMoreQuestions! }
+                payload: { id, questionRows, hasMoreQuestions: HasMoreQuestions! }
               });
             }
           });
@@ -472,10 +472,11 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
       }
     }, [dispatch]);
 
+
   const updateQuestion = useCallback(
-    async (question: IQuestion) => {
+    async (question: IQuestion, categoryChanged: boolean) => {
       const { partitionKey, id, title, modified, parentCategory } = question;
-      dispatch({ type: ActionTypes.SET_CATEGORY_LOADING, payload: { id: parentCategory!, loading: false } });
+      // dispatch({ type: ActionTypes.SET_CATEGORY_LOADING, payload: { id: parentCategory!, loading: false } });
       try {
         const questionDto = new QuestionDto(question).questionDto;
         const url = `${protectedResources.KnowledgeAPI.endpointQuestion}`;
@@ -488,8 +489,21 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
             const { questionDto, msg } = questionDtoEx;
             if (questionDto) {
               questionRet = new Question(questionDto).question;
-              console.log('Question successfully updated')
-              dispatch({ type: ActionTypes.SET_QUESTION, payload: { question } });
+              console.log('Question successfully updated: ', questionRet)
+              const { partitionKey, parentCategory} = questionRet;
+              if (categoryChanged) {
+                const catKeyExpanded: ICategoryKeyExpanded = {
+                  partitionKey,
+                  id: parentCategory,
+                  questionId: null // TODO zadrzi isti
+                }
+                dispatch({ type: ActionTypes.CATEGORY_NODE_RE_LOADING });
+                dispatch({ type: ActionTypes.CLEAN_SUB_TREE, payload: { categoryKey: null } });
+                await reloadCategoryNode(catKeyExpanded)
+              }
+              else {
+                dispatch({ type: ActionTypes.SET_QUESTION, payload: { question } });
+              }
               //dispatch({ type: ActionTypes.CLOSE_QUESTION_FORM })
               // await loadCats(); // reload
             }

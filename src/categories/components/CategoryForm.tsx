@@ -81,9 +81,10 @@ const CategoryForm = ({ inLine, mode, category, questionId, submitForm, children
   const isDisabled = false;
 
   return (
-    <div className="form-wrapper p-2" data-bs-theme={`${isDarkMode ? 'dark' : 'light'}`}>
+    // data-bs-theme={`${isDarkMode ? 'dark' : 'light'}`}
+    <div className="form-wrapper p-2 category-form" >
       <CloseButton onClick={closeForm} className="float-end" />
-      <Row className='text-center'>
+      <Row className='text-center text-muted'>
         <Form.Label>Category</Form.Label>
       </Row>
       <Form onSubmit={formik.handleSubmit}>
@@ -203,10 +204,8 @@ const CategoryForm = ({ inLine, mode, category, questionId, submitForm, children
         {(viewing || editing) &&
           <CreatedModifiedForm
             created={category.created}
-            createdBy={category.createdBy}
             modified={category.modified}
-            modifiedBy={category.modifiedBy}
-            classes="text-secondary"
+            classes="text-primary"
           />
         }
 

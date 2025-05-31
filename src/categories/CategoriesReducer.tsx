@@ -40,7 +40,7 @@ export const initialState: ICategoriesState = {
   categoryKeyExpanded: {
     partitionKey: "REMOTECTRLS",
     id: "REMOTECTRLS",
-    questionId: "qqqqqq111",
+    questionId: "qqqqqq111"
   },
   categoryId_questionId_done: undefined,
   loading: false,
@@ -92,6 +92,7 @@ export const CategoriesReducer: Reducer<ICategoriesState, CategoriesActions> = (
 
   console.log('------------------------------->', action.type)
   const newState = reducer(state, action);
+
   const aTypesToStore = [
     ActionTypes.SET_EXPANDED,
     ActionTypes.SET_COLLAPSED,
@@ -136,11 +137,10 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
       }
 
 
-    case ActionTypes.CATEGORY_NODE_LOADING: {
-      const { loading } = action.payload;
+    case ActionTypes.CATEGORY_NODE_RE_LOADING: {
       return {
         ...state,
-        categoryNodeLoading: loading
+        categoryNodeReLoading: true
       }
     }
 
@@ -215,12 +215,12 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
         if (ids.length === 0)
           return {
             ...state,
-            categoryKeyExpanded: null
+            //categoryKeyExpanded: null
           }
         else
           return {
             ...state,
-            categoryKeyExpanded: null,
+            //categoryKeyExpanded: null,
             categories: state.categories.filter(c => !ids.includes(c.id))
           }
       }
@@ -266,7 +266,7 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
       const { category } = action.payload;
       return {
         ...state,
-        categories: state.categories.map(c => c.inAdding ? category : c),
+        categories: state.categories.map((c: ICategory) => c.inAdding ? category : c),
         mode: Mode.NULL,
         loading: false
       }
@@ -274,7 +274,7 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
 
     case ActionTypes.SET_CATEGORY: {
       const { category } = action.payload; // category doesn't contain  inAdding 
-      console.log('SET_CATEGORY', { category })
+      console.log('@@@@@@@@@@ SET_CATEGORY', { category })
       const { id } = category;
       /* TODO sredi kasnije 
       const cat = state.categories.find(c => c.id === id);
@@ -286,13 +286,14 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
       */
       return {
         ...state,
-        categories: state.categories.map(c => c.id === id
+        categories: state.categories.map((c: ICategory) => c.id === id
           ? {
             ...category,
             inAdding: c.inAdding,
             isExpanded: c.isExpanded
           }
           : c),
+        questionInViewingOrEditing: null,
         // keep mode
         loading: false
       }
@@ -301,39 +302,42 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
     case ActionTypes.VIEW_CATEGORY: {
       const { category } = action.payload;
       //const { isExpanded } = category;
+      category.isExpanded = false;
       console.log('===>>> ActionTypes.VIEW_CATEGORY', category)
       const { partitionKey, id, parentCategory } = category;
       return {
         ...state,
-        // categories: state.categories.map(c => c.id === category.id
-        //   ? { ...category, inViewing: true } //, isExpanded } // category.questions are inside of object
-        //   : { ...c, inViewing: false }
-        // ),
+        //categories: resetRows(state.categories, category.id, { isSelected: true, isExpanded: false, questionRows: [], numOfQuestions: 0 }),
+        categories: resetCategory(state.categories, category.id),
         mode: Mode.ViewingCategory,
         loading: false,
-        //questionId: null,
-        categoryInViewingOrEditing: category //new CategoryKey(category).categoryKey
+        categoryKeyExpanded: state.categoryKeyExpanded ? { ...state.categoryKeyExpanded, questionId: null } : null,
+        categoryInViewingOrEditing: category,
+        questionInViewingOrEditing: null
       };
     }
 
     case ActionTypes.EDIT_CATEGORY: {
       const { category } = action.payload;
+      category.isExpanded = false;
       const { partitionKey, id, parentCategory } = category;
-      console.log('===>>> ActionTypes.EDIT_CATEGORY', category)
+      const categories = resetCategory(state.categories, category.id);
+      console.log('===>>> ActionTypes.EDIT_CATEGORY', { category }, { categories })
       return {
         ...state,
+        categories,
         mode: Mode.EditingCategory,
         loading: false,
-        //categoryId: category.id,
-        //questionId: null,
-        categoryInViewingOrEditing: category // new CategoryKey(category).categoryKey
+        categoryKeyExpanded: state.categoryKeyExpanded ? { ...state.categoryKeyExpanded, questionId: null } : null,
+        categoryInViewingOrEditing: category,
+        questionInViewingOrEditing: null
       };
     }
 
     case ActionTypes.LOAD_CATEGORY_QUESTIONS: {
-      const { parentCategory, questionRows, hasMoreQuestions } = action.payload; // category doesn't contain inAdding 
-      console.log('>>>>>>>>>>>>LOAD_CATEGORY_QUESTIONS', { parentCategory, questionRows, hasMoreQuestions })
-      const category = state.categories.find(c => c.id === parentCategory);
+      const { id, questionRows, hasMoreQuestions } = action.payload; // category doesn't contain inAdding 
+      console.log('>>>>>>>>>>>>LOAD_CATEGORY_QUESTIONS', { id, questionRows, hasMoreQuestions })
+      const category = state.categories.find(c => c.id === id);
       /*
       const questions: IQuestion[] = questionRowDtos.map(questionRow => new Question(questionRow).question);
       */
@@ -346,11 +350,13 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
       // TODOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO
       // return state;
       //}
+      /* TODO sredi kad budes radio adding
       const questionInAdding = category!.questionRows.find(q => q.inAdding);
       if (questionInAdding) {
         //questions.unshift(questionInAdding);
         console.assert(state.mode === Mode.AddingQuestion, "expected Mode.AddingQuestion")
       }
+      */
       // const arr = questionRows.map(questionRow => (questionRow.included
       //   ? {
       //     ...questionRow,
@@ -358,7 +364,7 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
       //   : questionRow));
       return {
         ...state,
-        categories: state.categories.map(c => c.id === parentCategory
+        categories: state.categories.map((c: ICategory) => c.id === id
           ? {
             ...c,
             questionRows: c.questionRows.concat(questionRows),
@@ -391,7 +397,7 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
       return {
         ...state,
         mode: Mode.NULL,
-        categories: categories.map(c => ({ ...c, inAdding: false }))
+        categories: categories.map((c: ICategory) => ({ ...c, inAdding: false }))
       };
     }
 
@@ -401,16 +407,14 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
       console.log('ActionTypes.SET_EXPANDED:', { categoryKey })
       return {
         ...state,
-        categories: categories.map(c => c.id === categoryKey.id
+        categories: categories.map((c: ICategory) => c.id === categoryKey.id
           ? { ...c, isExpanded: true }
           : c
         ),
         loading: false,
         mode: Mode.NULL, // : state.mode,// expanding ? state.mode : Mode.NULL,  // TODO  close form only if inside of colapsed node
         categoryKeyExpanded: { ...categoryKey, questionId: null },
-        //categoryId: undefined,
         categoryNodeLoaded: true, // prevent reloadCategoryNode
-        //questionId: null
       };
     }
 
@@ -426,7 +430,7 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
       }
       return {
         ...state,
-        categories: categories.map(c => c.id === id
+        categories: categories.map((c: ICategory) => c.id === id
           ? { ...c, isExpanded: false }
           : c
         ),
@@ -453,7 +457,7 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
       }
       return {
         ...state,
-        categories: state.categories.map(c => c.id === id
+        categories: state.categories.map((c: ICategory) => c.id === id
           ? { ...c, questionRows: [questionRow, ...c.questionRows], inAdding: true, numOfQuestions: c.numOfQuestions + 1 }
           : { ...c, inAdding: false }),
         mode: Mode.AddingQuestion
@@ -462,25 +466,25 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
 
     case ActionTypes.SET_QUESTION: {
       const { question } = action.payload;
-      const { parentCategory, id } = question;
+      const { parentCategory, id, title, numOfAssignedAnswers } = question;
       const inAdding = state.mode === Mode.AddingQuestion;
-
-      // for inAdding, id is IDBValidKey('000000000000000000000000')
-      // thats why we look for q.inAdding instead of q.id === id
-      const categories = state.categories.map(c => c.id === parentCategory
+      const categories = state.categories.map((c: ICategory) => c.id === parentCategory
         ? {
           ...c,
-          questions: inAdding
-            ? c.questionRows.map(q => q.inAdding ? { ...question, inAdding: false } : q)
-            : c.questionRows.map(q => q.id === id ? { ...question } : q),
+          questionRows: inAdding
+            ? c.questionRows.map(q => q.inAdding ? { ...q, title, inAdding: false } : q)
+            : c.questionRows.map(q => q.id === id ? { ...q, title, numOfAssignedAnswers } : q),
           inAdding: false
         }
         : c
       );
+      console.log('ActionTypes.SET_QUESTION', "^" + parentCategory + "^", categories.filter(c => c.id === parentCategory)[0])
       return {
         ...state,
         categories,
-        mode: Mode.NULL,
+        categoryInViewingOrEditing: null,
+        questionInViewingOrEditing: question,
+        // mode: Mode.NULL,
         error: undefined,
         loading: false
       };
@@ -496,10 +500,10 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
       // const x = state.categories.filter(c => c.id === parentCategory).filter(q=>q.id === id);
       // console.error('SET_QUESTION_AFTER_ASSIGN_ANSWER', {x})
 
-      const categories = state.categories.map(c => c.id === parentCategory
+      const categories = state.categories.map((c: ICategory) => c.id === parentCategory
         ? {
           ...c,
-          questions: inAdding
+          questionRows: inAdding
             ? c.questionRows.map(q => q.inAdding ? { ...question, inAdding: q.inAdding } : q)
             : c.questionRows.map(q => q.id === id ? { ...question } : q), // TODO sta, ako je inViewing
           inAdding: c.inAdding
@@ -513,48 +517,47 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
         loading: false
       };
     }
+    case ActionTypes.SET_VIEWING_EDITING_QUESTION: {
+      return {
+        ...state,
+        categories: state.categories.map((c: ICategory) => ({
+          ...c,
+          questionRows: c.questionRows.map((q: IQuestionRow) => ({ ...q }))
+        })),
+        mode: null
+      }
+    }
 
     case ActionTypes.VIEW_QUESTION: {
       const { question } = action.payload;
       const { partitionKey, id, parentCategory } = question;
+      const { categories, categoryKeyExpanded } = state;
+      const categoryProps = undefined;
       return {
         ...state,
+        categories: resetRows(state.categories, parentCategory, categoryProps, id, { isSelected: true, isExpanded: false }),
         mode: Mode.ViewingQuestion,
         loading: false,
-        categoryId: question.parentCategory,
-        categoryKeyExpanded: {
-          partitionKey,
-          id: parentCategory,
-          questionId: id,
-        },
+        categoryKeyExpanded: categoryKeyExpanded
+          ? { ...categoryKeyExpanded, questionId: categoryKeyExpanded.id === parentCategory ? id : null }
+          : null,
         questionInViewingOrEditing: question
-      }
-    }
-
-    case ActionTypes.SET_VIEWING_EDITING_QUESTION: {
-      return {
-        ...state,
-        categories: state.categories.map(c => ({
-          ...c,
-          questions: c.questionRows.map((q: IQuestionRow) => ({ ...q }))
-        })),
-        mode: null
       }
     }
 
     case ActionTypes.EDIT_QUESTION: {
       const { question } = action.payload;
       const { partitionKey, id, parentCategory } = question;
+      const { categories, categoryKeyExpanded } = state;
+      const categoryProps = undefined;
       return {
         ...state,
+        categories: resetRows(state.categories, parentCategory, categoryProps, id, { isSelected: true, isExpanded: false }),
         mode: Mode.EditingQuestion,
         loading: false,
-        categoryId: parentCategory,
-        categoryKeyExpanded: {
-          partitionKey,
-          id: parentCategory,
-          questionId: id,
-        },
+        categoryKeyExpanded: categoryKeyExpanded
+          ? { ...categoryKeyExpanded, questionId: categoryKeyExpanded.id === parentCategory ? id : null }
+          : null,
         questionInViewingOrEditing: question
       }
     }
@@ -564,10 +567,10 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
       const { parentCategory, id } = question;
       return {
         ...state,
-        categories: state.categories.map(c => c.id === parentCategory
+        categories: state.categories.map((c: ICategory) => c.id === parentCategory
           ? {
             ...c,
-            questions: c.questionRows.filter(q => q.id !== id)
+            questionRows: c.questionRows.filter(q => q.id !== id)
           }
           : c
         ),
@@ -580,7 +583,7 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
       const { question } = action.payload;
       const { partitionKey, id, parentCategory } = question;
       let questionInViewingOrEditing: IQuestion | null = null
-        ; const category = state.categories.find(c => c.id === parentCategory)
+      const category = state.categories.find(c => c.id === parentCategory)
       let questionRows: IQuestionRow[] = [];
       switch (state.mode) {
         case Mode.AddingQuestion: {
@@ -602,8 +605,8 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
 
       return {
         ...state,
-        categories: state.categories.map(c => c.id === parentCategory
-          ? { ...c, questions: questionRows, numOfQuestions: questionRows.length, inAdding: false }
+        categories: state.categories.map((c: ICategory) => c.id === parentCategory
+          ? { ...c, /*questionRows: questionRows, numOfQuestions: questionRows.length,*/ inAdding: false }
           : c
         ),
         mode: Mode.NULL,
@@ -617,6 +620,45 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
 };
 
 
+function resetCategory(categories: ICategory[], categoryId: string | null): ICategory[] {
+  return categories.map((c: ICategory) => c.id === categoryId
+    ? {
+      ...c,
+      //questionRows: []
+      //numOfQuestions: 0
+      questionRows: c.questionRows.map(q => ({ ...q, isSelected: false })),
+      isExpanded: false,
+      isSelected: true
+    }
+    : {
+      ...c,
+      //isSelected: c.id === categoryId      
+    }
+  )
+}
+
+function resetRows(categories: ICategory[],
+  id: string | null,
+  categoryProps?: Object,
+  questionId?: string,
+  questionRowProps?: Object,
+): ICategory[] {
+  return categories.map((c: ICategory) => c.id === id
+    ? {
+      ...c,
+      questionRows: c.questionRows.map(q => q.id === questionId
+        ? ({ ...q, ...questionRowProps ?? {} })
+        : ({ ...q, isSelected: false })),
+      ...categoryProps
+    }
+    : {
+      ...c,
+      questionRows: c.questionRows.map(q => ({ ...q, isSelected: false })),
+      //isSelected: c.id === id      
+    }
+  )
+}
+
 function markForClean(categories: ICategory[], id: string | null) {
   let deca = categories
     .filter(c => c.parentCategory === id)
@@ -628,3 +670,17 @@ function markForClean(categories: ICategory[], id: string | null) {
   })
   return deca
 }
+
+// class QuestionRow {
+//   constructor(question: IQuestion) {
+//     const {partitionKey, id, parentCategory, numOfAssignedAnswers, title} = question;
+//     this.questionRow = {
+//       partitionKey,
+//       id,
+//       parentCategory,
+//       title,
+//       numOfAssignedAnswers
+//     }
+//   }
+//   questionRow: IQuestionRow
+// }

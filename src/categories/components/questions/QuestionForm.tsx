@@ -72,9 +72,7 @@ const QuestionForm = ({ mode, question, submitForm, children, showCloseButton, s
       parentCategory: Yup.string().required("Required").notOneOf(['000000000000000000000000'])
     }),
     onSubmit: (values: IQuestion) => {
-      //alert(JSON.stringify(values, null, 2));
-      console.log('QuestionForm.onSubmit', JSON.stringify(values, null, 2))
-      //submitForm({ ...values, ...cat })
+      // console.log('QuestionForm.onSubmit', JSON.stringify(values, null, 2))
       submitForm(values)
       //props.handleClose(false);
     }
@@ -88,7 +86,7 @@ const QuestionForm = ({ mode, question, submitForm, children, showCloseButton, s
   }
 
   return (
-    <div className="form-wrapper px-3 py-1 my-0 my-1 w-100 bg-warning" >
+    <div className="form-wrapper px-3 py-1 my-0 my-1 w-100 bg-warning question-form" >
       {/* data-bs-theme={`${isDarkMode ? 'dark' : 'light'}`} */}
       {showCloseButton && <CloseButton onClick={closeForm} className="float-end" />}
       <Row className='text-center'>
@@ -99,7 +97,7 @@ const QuestionForm = ({ mode, question, submitForm, children, showCloseButton, s
         <Stack direction="horizontal" gap={0}>
           <div className="p-0"><Form.Label>Category:</Form.Label></div>
           <div className="p-1">
-            <Form.Group controlId="parentCategory" className="category-select form-select-sm">
+            <Form.Group controlId="parentCategory" className="category-select form-select-sm w-50">
               <Dropdown>
                 <Dropdown.Toggle variant="light" id="dropdown-basic" className="px-2 py-0 text-primary border" disabled={isDisabled}>
                   <span className="text-wrap me-1">{formik.values.categoryTitle}</span>
@@ -229,9 +227,7 @@ const QuestionForm = ({ mode, question, submitForm, children, showCloseButton, s
 
             <CreatedModifiedForm
               created={question.created}
-              createdBy={question.createdBy}
               modified={question.modified}
-              modifiedBy={question.modifiedBy}
               classes="text-primary"
             />
           </>

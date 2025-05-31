@@ -53,7 +53,7 @@ const CatRow = ({ category, dispatch, setParentCategory }: ICatRow) => {
                 title={id}
                 onClick={() => onSelectCategory(category)}
             >
-                {title}
+                {title.substring(0, 25) + ' ...'}
             </Button>
         </div>
 

@@ -100,7 +100,7 @@ function App() {
     navigate(lastRouteVisited);
   }, [])
 
-  if (!isAuthenticated || !catsLoaded || !shortGroupsLoaded)
+  if (!isAuthenticated || !catsLoaded) // || !shortGroupsLoaded)
     return <div>App loading</div>
 
   return (

@@ -17,6 +17,8 @@ const QuestionList = ({ title, categoryKey, level }: IParentInfo) => {
 
   console.assert(partitionKey === category.partitionKey);
 
+  console.log('^^^^^^^^^^^^^ QuestionList', questionRows)
+
   async function loadMore() {
     try {
       const parentInfo: IParentInfo = {
@@ -24,7 +26,9 @@ const QuestionList = ({ title, categoryKey, level }: IParentInfo) => {
         startCursor: questionRows.length,
         includeQuestionId: questionId ?? null
       }
-      console.log('loadMore', { parentInfo })
+      console.log('^^^^^^^^^^^^^ loadMore')
+      console.log('^^^^^^^^^^^^^', { parentInfo })
+      console.log('^^^^^^^^^^^^^ loadMore')
       await loadCategoryQuestions(parentInfo);
     }
     catch (error) {
@@ -34,7 +38,7 @@ const QuestionList = ({ title, categoryKey, level }: IParentInfo) => {
   }
 
   useEffect(() => {
-    if (numOfQuestions > 0) { // TODO
+    if (numOfQuestions > 0 && questionRows.length === 0) { // TODO
       loadMore();
     }
   }, [numOfQuestions])
@@ -47,14 +51,14 @@ const QuestionList = ({ title, categoryKey, level }: IParentInfo) => {
     rootMargin: '0px 0px 100px 0px',
   });
 
-  
+
   // if (questionLoading)
   //   return <div> ... loading</div>
 
   return (
     <div
       ref={rootRef}
-      className="ms-2" // border border-3 border-info"
+      className="ms-2" //  border border-1 border-info
       // className="max-h-[500px] max-w-[500px] overflow-auto bg-slate-100"
       style={{ maxHeight: '300px', overflowY: 'auto' }}
     >
@@ -63,7 +67,6 @@ const QuestionList = ({ title, categoryKey, level }: IParentInfo) => {
           <label>No questions</label>
         }
         {questionRows.map((questionRow: IQuestionRow) => {
-          //question.partitionKey = partitionKey;
           return <QuestionRow
             key={questionRow.id}
             questionRow={questionRow}

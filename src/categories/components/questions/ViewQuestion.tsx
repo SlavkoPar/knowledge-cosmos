@@ -14,7 +14,7 @@ const ViewQuestion = ({ inLine }: { inLine: boolean }) => {
             //const q = category!.questions.find(q => q.inEditing)
             //if (category) {
                 //const q = category!.questions.find(q => q.id === id)
-                console.log("#################################### EditQuestion setQuestion ...", { questionInViewingOrEditing })
+                console.log("#################################### ViewQuestion setQuestion ...", { questionInViewingOrEditing })
                 //if (q) {
                     setQuestion(questionInViewingOrEditing);
                 //}

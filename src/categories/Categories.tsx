@@ -26,9 +26,7 @@ interface IProps {
 }
 
 const Providered = ({ categoryId_questionId, fromChatBotDlg }: IProps) => {
-    console.log("=============================================")
-    console.log("Categories", categoryId_questionId)
-    console.log("=============================================")
+    console.log("=== Categories", categoryId_questionId)
     const { state, reloadCategoryNode } = useCategoryContext();
     const { categoryKeyExpanded, categoryId_questionId_done, categoryNodeReLoading, categoryNodeLoaded } = state;
 
@@ -62,9 +60,6 @@ const Providered = ({ categoryId_questionId, fromChatBotDlg }: IProps) => {
         (async () => {
             if (!categoryNodeReLoading) {
                 if (categoryId_questionId) {
-                    console.log('1) =>>>>>>>>>>>>>>>>>>> Categories calling categoryId_questionId:', categoryId_questionId);
-                    console.log('2) =>>>>>>>>>>>>>>>>>>> Categories calling categoryId_questionId_done:', categoryId_questionId_done);
-                    console.log('3) =>>>>>>>>>>>>>>>>>>> Categories calling categoryKeyExpanded:', categoryKeyExpanded);
                     if (categoryId_questionId === 'add_question') {
                         const sNewQuestion = localStorage.getItem('New_Question');
                         if (sNewQuestion) {
@@ -80,15 +75,16 @@ const Providered = ({ categoryId_questionId, fromChatBotDlg }: IProps) => {
                         const categoryId = arr[0];
                         const questionId = arr[1];
                         const keyExp = { partitionKey: null, id: categoryId, questionId }
-                        setCatKeyExpanded(keyExp);
-                        console.log('4) =>>>>>>>>>>>>>>>>>>> Categories calling keyExp:', keyExp);
+                        // setCatKeyExpanded(keyExp);
+                        console.log('zovem reloadCategoryNode 1111111111111111111)', {categoryId_questionId}, {categoryId_questionId_done})
                         await reloadCategoryNode(keyExp, fromChatBotDlg ?? 'false')
                             .then(() => { return null; });
                     }
                 }
                 else if (categoryKeyExpanded && !categoryNodeLoaded) {
-                    console.log('999) =>>>>>>>>>>>>>> Categories calling reloadCategoryNode:', { categoryId_questionId, categoryKeyExpanded, categoryId_questionId_done });
-                    await reloadCategoryNode(categoryKeyExpanded).then(() => { return null; });
+                    console.log('zovem reloadCategoryNode 2222222222222)', {categoryKeyExpanded}, {categoryNodeLoaded})
+                    await reloadCategoryNode(categoryKeyExpanded)
+                            .then(() => { return null; });
                 }
             }
         })()
@@ -101,8 +97,7 @@ const Providered = ({ categoryId_questionId, fromChatBotDlg }: IProps) => {
     if (categoryId_questionId !== 'add_question') {
         if (/*categoryKeyExpanded ||*/ (categoryId_questionId && categoryId_questionId !== categoryId_questionId_done)) {
             console.log("zzzzzz loading...", { categoryKeyExpanded, categoryId_questionId, categoryId_questionId_done })
-            // return <div>`zzzzzz loading... "${categoryId_questionId}" "${categoryId_questionId_done}"`</div>
-            return <div>loading...`</div>
+            return <div>loading...</div>
         }
     }
 
@@ -145,13 +140,7 @@ const Providered = ({ categoryId_questionId, fromChatBotDlg }: IProps) => {
                 <Row className="my-1">
                     <Col xs={12} md={5}>
                         <div>
-                            <CategoryList categoryKey={catKeyExpanded} level={0} title="root" 
-                            />
-                             {/* category={{ 
-                                     ...initialCategory, 
-                                     partitionKey: catKeyExpanded.partitionKey!,
-                                     id: catKeyExpanded.id!
-                              }}  */}
+                            <CategoryList categoryKey={catKeyExpanded} level={0} title="root" />
                         </div>
                     </Col>
                     <Col xs={0} md={7}>
@@ -167,12 +156,9 @@ const Providered = ({ categoryId_questionId, fromChatBotDlg }: IProps) => {
                                 <ViewQuestion inLine={false} />
                             }
                             {catKeyExpanded.questionId && state.mode === Mode.EditingQuestion &&
-                                <EditQuestion
-                                    questionKey={{
-                                        parentCategory: catKeyExpanded.id ?? undefined,
-                                        partitionKey: catKeyExpanded.partitionKey,
-                                        id: catKeyExpanded.questionId,
-                                    }}
+                                <EditQuestion questionKey={{parentCategory: catKeyExpanded.id ?? undefined,
+                                                            partitionKey: catKeyExpanded.partitionKey,
+                                                            id: catKeyExpanded.questionId}}
                                     inLine={false}
                                 />
                             }

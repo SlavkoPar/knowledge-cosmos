@@ -13,9 +13,7 @@ const CategoryList = ({ title, categoryKey, level }: IParentInfo) => {
     const { questionId } = categoryKeyExpanded!;
 
     useEffect(() => {
-        //getSubCategories(execute, categoryKey);
         (async () => {
-            console.log('zovem getSubCategories', { useCategoryContext })
             await getSubCategories(categoryKey)
                 .then((response: boolean) => {
                 });
@@ -25,7 +23,7 @@ const CategoryList = ({ title, categoryKey, level }: IParentInfo) => {
     const mySubCategories = categoryKey.id === 'null'
         ? categories.filter(c => c.parentCategory === null)
         : categories.filter(c => c.parentCategory === categoryId);
-    console.log("+++++++>>>>>>> CategoryList ", { categoryKey, mySubCategories });
+    // console.log("+++++++>>>>>>> CategoryList ", { categoryKey, mySubCategories });
 
     return (
         <div className={level! > 1 ? 'ms-2' : ''}>

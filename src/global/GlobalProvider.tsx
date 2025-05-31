@@ -337,7 +337,7 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
     try {
       await loadCats();
       console.log(111111111111)
-      await loadShortGroups();
+      //await loadShortGroups();
       console.log(22222)
       return true;
     }

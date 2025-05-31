@@ -92,8 +92,8 @@ export interface IQuestionRow extends IRecord {
 	title: string;
 	numOfAssignedAnswers: number;
 	parentCategory: string | null;
-	categoryTitle: string;
-	isSelected: boolean;
+	categoryTitle?: string;
+	isSelected?: boolean;
 }
 
 export interface IQuestion extends IQuestionRow {
@@ -111,7 +111,9 @@ export interface ICategoryKey {
 	id: string | null;
 }
 
-export interface ICategoryKeyExpanded extends ICategoryKey {
+export interface ICategoryKeyExpanded { //extends ICategoryKey {
+	partitionKey: string | null;
+	id: string | null;
 	questionId: string | null;
 }
 
@@ -413,13 +415,13 @@ export interface ICategoriesState {
 }
 
 export interface ILocStorage {
-	lastCategoryKeyExpanded: ICategoryKey | null;
+	lastCategoryKeyExpanded: ICategoryKeyExpanded | null;
 }
 
 
 export interface ICategoriesContext {
 	state: ICategoriesState,
-	reloadCategoryNode: (categoryKey: ICategoryKeyExpanded, fromChatBotDlg?: string) => Promise<any>;
+	reloadCategoryNode: (categoryKeyExpanded: ICategoryKeyExpanded, fromChatBotDlg?: string) => Promise<any>;
 	getSubCategories: (categoryKey: ICategoryKey) => Promise<any>,
 	createCategory: (category: ICategory) => void,
 	viewCategory: (categoryKey: ICategoryKey, includeQuestionId: string) => void,
@@ -435,7 +437,7 @@ export interface ICategoriesContext {
 	createQuestion: (question: IQuestion, fromModal: boolean) => Promise<any>;
 	viewQuestion: (questionKey: IQuestionKey) => void;
 	editQuestion: (questionKey: IQuestionKey) => void;
-	updateQuestion: (question: IQuestion) => Promise<any>;
+	updateQuestion: (question: IQuestion, categoryChanged: boolean) => Promise<any>;
 	assignQuestionAnswer: (action: string, questionKey: IQuestionKey, answerKey: IAnswerKey, assigned: IWhoWhen) => Promise<any>;
 	deleteQuestion: (questionRow: IQuestionRow) => void;
 }
@@ -538,7 +540,7 @@ export enum ActionTypes {
 	SET_EXPANDED = 'SET_EXPANDED',
 	SET_COLLAPSED = 'SET_COLLAPSED',
 
-	CATEGORY_NODE_LOADING = "CATEGORY_NODE_LOADING",
+	CATEGORY_NODE_RE_LOADING = "CATEGORY_NODE_RE_LOADING",
 	SET_CATEGORY_NODES_UP_THE_TREE = "SET_CATEGORY_NODES_UP_THE_TREE",
 
 	// questions
@@ -570,10 +572,7 @@ export type CategoriesPayload = {
 		questionLoading: boolean;
 	}
 
-
-	[ActionTypes.CATEGORY_NODE_LOADING]: {
-		loading: boolean
-	};
+	[ActionTypes.CATEGORY_NODE_RE_LOADING]: undefined;
 
 	[ActionTypes.SET_CATEGORY_NODES_UP_THE_TREE]: {
 		categoryNodesUpTheTree: ICategoryKeyExtended[]; /// we could have used Id only
@@ -639,7 +638,7 @@ export type CategoriesPayload = {
 	/////////////
 	// questions
 	[ActionTypes.LOAD_CATEGORY_QUESTIONS]: {
-		parentCategory: string | null,
+		id: string | null,
 		questionRows: IQuestionRow[],
 		hasMoreQuestions: boolean
 	};

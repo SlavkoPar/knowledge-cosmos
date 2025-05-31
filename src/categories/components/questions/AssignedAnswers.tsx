@@ -78,7 +78,7 @@ const AssignedAnswers = ({ questionKey, questionTitle, assignedAnswers, isDisabl
         <div className={'mx-0 my-0 border rounded-2 px-1 py-1 border border-info bg-info'} >
             <div>
                 <label className="text-muted bg-info fs-6">Assigned Answers</label>
-                <ListGroup as="ul" variant={variant} className='my-1'>
+                <ListGroup as="ul" variant={variant} className='my-1' key={questionKey.id}>
                     {assignedAnswers.map((assignedAnswer: IAssignedAnswer) =>
                         <AssignedAnswer
                             key={assignedAnswer.answerKey.id}
@@ -88,7 +88,6 @@ const AssignedAnswers = ({ questionKey, questionTitle, assignedAnswers, isDisabl
                             isDisabled={isDisabled}
                             unAssignAnswer={unAssignAnswer}
                         />)
-                        // key={assignedAnswer.answer.id.toString()}
                     }
                 </ListGroup>
                 {state.error && <div>state.error</div>}

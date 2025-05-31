@@ -22,7 +22,7 @@ import { initialQuestion } from 'categories/CategoriesReducer';
 
 //const QuestionRow = ({ question, categoryInAdding }: { ref: React.ForwardedRef<HTMLLIElement>, question: IQuestion, categoryInAdding: boolean | undefined }) => {
 const QuestionRow = ({ questionRow, categoryInAdding }: { questionRow: IQuestionRow, categoryInAdding: boolean | undefined }) => {
-    const { id, partitionKey, parentCategory, title, inAdding, numOfAssignedAnswers, isSelected: included } = questionRow;
+    const { id, partitionKey, parentCategory, title, inAdding, numOfAssignedAnswers, isSelected } = questionRow;
     const questionKey: IQuestionKey = { partitionKey, id, parentCategory: parentCategory ?? undefined };
 
     const { canEdit, isDarkMode, variant, bg, authUser } = useGlobalState();
@@ -35,7 +35,7 @@ const QuestionRow = ({ questionRow, categoryInAdding }: { questionRow: IQuestion
     //const { questionKey } = questionInViewingOrEditing;
     //const bold = questionInViewingOrEditing && questionInViewingOrEditing.id === id;
     //const bold = categoryKeyExpanded && categoryKeyExpanded.id === id;
-    const bold = included; // id === questionId;
+    //const bold = included; // id === questionId;
     console.log("------------------------ QuestionRow", { id, questionId })
 
     const alreadyAdding = state.mode === Mode.AddingQuestion;
@@ -62,11 +62,11 @@ const QuestionRow = ({ questionRow, categoryInAdding }: { questionRow: IQuestion
 
     useEffect(() => {
         (async () => {
-            if (included) {
+            if (isSelected) {
                 onSelectQuestion(id)
             }
         })()
-    }, []);
+    }, [isSelected]);
 
     const [hoverRef, hoverProps] = useHover();
 
@@ -82,7 +82,7 @@ const QuestionRow = ({ questionRow, categoryInAdding }: { questionRow: IQuestion
             <Button
                 variant='link'
                 size="sm"
-                className={`p-0 mx-0 text-decoration-none text-secondary ${bold ? 'fw-bold' : ''}`}
+                className={`p-0 mx-0 text-decoration-none text-secondary ${isSelected ? 'fw-bold' : ''}`}
                 title={`id:${id!.toString()}`}
                 onClick={() => onSelectQuestion(id!)}
                 disabled={alreadyAdding}

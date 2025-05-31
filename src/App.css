@@ -210,3 +210,26 @@ input[type=number] {
 .warning {
   background-color: antiquewhite
 }
+
+.created-modified {
+  font-size: 13px !important;
+}
+
+.category-form {
+  background-color: rgb(207, 226, 255)
+  /* background-color: rgb(239, 217, 253);  */
+}
+
+.category-form label {
+  color: rgba(33, 37, 41, 0.75);
+  font-size: 14px;
+}
+
+.question-form {
+  background-color: rgb(239, 217, 253);
+}
+
+.question-form label {
+  color: darkolivegreen;
+  font-size: 14px;
+}

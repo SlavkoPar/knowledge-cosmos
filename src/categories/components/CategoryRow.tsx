@@ -18,10 +18,10 @@ import ViewCategory from "categories/components/ViewCategory";
 import QuestionList from './questions/QuestionList';
 
 const CategoryRow = ({ category, questionId }: { category: ICategory, questionId: string | null }) => {
-    const { partitionKey, id: categoryId, title, level, hasSubCategories, numOfQuestions, questionRows,
+    const { partitionKey, id, title, level, hasSubCategories, numOfQuestions, questionRows,
                 inAdding,  isExpanded, isSelected } = category;
-    const [categoryKey] = useState<ICategoryKey>({ partitionKey, id: categoryId }); // otherwise reloads
-    const [categoryKeyExpanded] = useState<ICategoryKeyExpanded>({ partitionKey, id: categoryId, questionId }); // otherwise reloads
+    const [categoryKey] = useState<ICategoryKey>({ partitionKey, id }); // otherwise reloads
+    const [categoryKeyExpanded] = useState<ICategoryKeyExpanded>({ partitionKey, id, questionId }); // otherwise reloads
 
     const { canEdit, isDarkMode, variant, bg, authUser } = useGlobalState();
 
@@ -36,7 +36,7 @@ const CategoryRow = ({ category, questionId }: { category: ICategory, questionId
     const alreadyAdding = mode === Mode.AddingCategory;
     // TODO proveri ovo
     const showQuestions = (isExpanded && numOfQuestions > 0) // || questions.find(q => q.inAdding) // && !questions.find(q => q.inAdding); // We don't have questions loaded
-
+    
     const del = () => {
         category.modified = {
             time: new Date(),
@@ -68,7 +68,7 @@ const CategoryRow = ({ category, questionId }: { category: ICategory, questionId
         if (!isExpanded && isSelected) {
             onSelectCategory()
         }
-    }, [])
+    }, [isExpanded, isSelected])
 
     const [hoverRef, hoverProps] = useHover();
 
@@ -99,7 +99,7 @@ const CategoryRow = ({ category, questionId }: { category: ICategory, questionId
                 variant='link'
                 size="sm"
                 className={`py-0 mx-0 text-decoration-none ${isSelected ? 'fw-bold' : ''}`}
-                title={categoryId.toString()}
+                title={id}
                 onClick={onSelectCategory}
                 disabled={alreadyAdding}
             >
@@ -204,7 +204,7 @@ const CategoryRow = ({ category, questionId }: { category: ICategory, questionId
                 }
             </ListGroup.Item>
 
-            {state.error && state.whichRowId == categoryId && <div className="text-danger">{state.error.message}</div>}
+            {state.error && state.whichRowId == id && <div className="text-danger">{state.error.message}</div>}
 
             {/* !inAdding && */}
             {(isExpanded || inAdding) && // Row2
@@ -215,10 +215,10 @@ const CategoryRow = ({ category, questionId }: { category: ICategory, questionId
                 >
                     {isExpanded &&
                         <>
-                            {hasSubCategories &&
+                            { hasSubCategories &&
                                 <CategoryList level={level + 1} categoryKey={categoryKey} title={title} />
                             }
-                            {showQuestions &&
+                            { showQuestions &&
                                 <QuestionList level={level + 1} categoryKey={categoryKey} title={title} />
                             }
                         </>
@@ -226,8 +226,6 @@ const CategoryRow = ({ category, questionId }: { category: ICategory, questionId
 
                 </ListGroup.Item>
             }
-
-
         </>
     );
 };

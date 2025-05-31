@@ -29,7 +29,7 @@ const CatList = ({ categoryKey, level, setParentCategory }: ICatInfo) => {
     }
 
     return (
-        <div className={level > 1 ? 'ms-4' : ''}>
+        <div className={level > 1 ? 'ms-4 h-25' : 'h-25'} style={{overflowY: 'auto'}}>
                 <ListGroup as="ul" variant='dark' className="mb-0">
                     {mySubCategories.map(category =>
                         <CatRow

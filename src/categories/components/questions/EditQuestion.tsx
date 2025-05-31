@@ -49,13 +49,16 @@ const EditQuestion = ({ questionKey, inLine }: { questionKey: IQuestionKey, inLi
                 nickName: nickName
             }
         }
-        const q = await updateQuestion(object);
+        const categoryChanged = question!.parentCategory !== object.parentCategory;
+        const q = await updateQuestion(object, categoryChanged);
         if (question!.parentCategory !== q.parentCategory) {
             await loadCats(); // reload, group could have been changed
             dispatch({ type: ActionTypes.CLEAN_TREE, payload: { id: q.parentCategory } })
             await reloadCategoryNode({ partitionKey: '', id: q.parentCategory, questionId: q.id });
         }
-        setTimeout(() => dispatch({ type: ActionTypes.CLOSE_QUESTION_FORM, payload: { question: q } }), 1000);
+        if (categoryChanged) {
+            setTimeout(() => dispatch({ type: ActionTypes.CLOSE_QUESTION_FORM, payload: { question: q } }), 1000);
+        }
     };
 
     if (!question)
