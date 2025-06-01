@@ -125,21 +125,23 @@ export interface ICat {
 	hasSubCategories: boolean;
 	level: number;
 	kind: number;
+	isExpanded: boolean;
 }
 
+
 export interface IShortGroup {
-	partitionKey: string
+	partitionKey: string,
 	id: string;
 	parentGroup: string | null;
 	header: string;
 	title: string;
-	link: string | null;
 	titlesUpTheTree: string; // traverse up the tree, until root
-	variations: string[];
 	hasSubGroups: boolean;
 	level: number;
 	kind: number;
+	isExpanded: boolean;
 }
+
 
 
 
@@ -190,7 +192,7 @@ export interface IGlobalContext {
 	searchQuestions: (filter: string, count: number) => Promise<IQuestionRow[]>;
 	getQuestion: (questionKey: IQuestionKey) => Promise<IQuestionEx>;
 	loadShortGroups: () => void;
-	getSubGroups: (categoryKey: ICategoryKey) => Promise<any>;
+	getSubShortGroups: (categoryId: string | null) => Promise<any>;
 	getGroupsByKind: (kind: number) => Promise<IShortGroup[]>;
 	searchAnswers: (filter: string, count: number) => Promise<IAnswerRow[]>;
 	getAnswer: (answerKey: IAnswerKey) => Promise<IAnswer | null>;
@@ -207,8 +209,8 @@ export enum GlobalActionTypes {
 	SET_ERROR = 'SET_ERROR',
 	DARK_MODE = "DARK_MODE",
 	LIGHT_MODE = "LIGHT_MODE",
-	SET_ALL_CATEGORIES = 'SET_ALL_CATEGORIES',
-	SET_ALL_GROUPS = 'SET_ALL_GROUPS',
+	SET_ALL_CATS = 'SET_ALL_CATS',
+	SET_ALL_SHORT_GROUPS = 'SET_ALL_SHORT_GROUPS',
 	SET_QUESTION_AFTER_ASSIGN_ANSWER = 'SET_QUESTION_AFTER_ASSIGN_ANSWER',
 	SET_LAST_ROUTE_VISITED = 'SET_LAST_ROUTE_VISITED'
 }
@@ -271,11 +273,11 @@ export type GlobalPayload = {
 
 	[GlobalActionTypes.DARK_MODE]: undefined;
 
-	[GlobalActionTypes.SET_ALL_CATEGORIES]: {
+	[GlobalActionTypes.SET_ALL_CATS]: {
 		cats: Map<string, ICat>
 	};
 
-	[GlobalActionTypes.SET_ALL_GROUPS]: {
+	[GlobalActionTypes.SET_ALL_SHORT_GROUPS]: {
 		shortGroups: Map<string, IShortGroup>
 	};
 
@@ -289,23 +291,6 @@ export type GlobalPayload = {
 };
 
 
-/////////////////////////////////////////////////////////////////////////
-// DropDown Select Category
-
-export interface ICatsState {
-	loading: boolean,
-	parentCategory: string | null,
-	title: string,
-	cats: ICategory[], // drop down categories
-	error?: Error;
-}
-
-export interface ICatInfo {
-	categoryKey: ICategoryKey | null,
-	level: number,
-	setParentCategory: (category: ICategory) => void;
-}
-
 
 export interface IShortGroupsState {
 	loading: boolean,
@@ -316,19 +301,11 @@ export interface IShortGroupsState {
 }
 
 export interface IShortGroupInfo {
-	groupKey: IGroupKey,
+	groupKey: IGroupKey | null,
 	level: number,
-	setParentGroup: (group: IGroup) => void;
+	setParentGroup: (group: IShortGroup) => void;
 }
 
-
-export enum CatsActionTypes {
-	SET_LOADING = 'SET_LOADING',
-	SET_SUB_CATS = 'SET_SUB_CATS',
-	SET_ERROR = 'SET_ERROR',
-	SET_EXPANDED = 'SET_EXPANDED',
-	SET_PARENT_CAT = 'SET_PARENT_CAT'
-}
 
 export enum ShortGroupsActionTypes {
 	SET_LOADING = 'SET_LOADING',
@@ -338,30 +315,6 @@ export enum ShortGroupsActionTypes {
 	SET_PARENT_SHORTGROUP = 'SET_PARENT_SHORTGROUP'
 }
 
-export type CatsPayload = {
-	[CatsActionTypes.SET_LOADING]: false;
-
-	[CatsActionTypes.SET_SUB_CATS]: {
-		subCats: ICategory[];
-	};
-
-	[CatsActionTypes.SET_EXPANDED]: {
-		id: string;
-		expanding: boolean;
-	}
-
-	[CatsActionTypes.SET_ERROR]: {
-		error: Error;
-	};
-
-	[CatsActionTypes.SET_PARENT_CAT]: {
-		category: ICategory;
-	};
-
-};
-
-export type CatsActions =
-	ActionMap<CatsPayload>[keyof ActionMap<CatsPayload>];
 
 
 export type ShortGroupsPayload = {

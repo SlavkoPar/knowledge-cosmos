@@ -9,7 +9,7 @@ const CategoryList = ({ title, categoryKey, level }: IParentInfo) => {
     const { state, getSubCategories } = useCategoryContext();
     const { categories, categoryKeyExpanded } = state;
     // { error, }
-    const { partitionKey, id: categoryId } = categoryKey;
+    const { partitionKey, id } = categoryKey;
     const { questionId } = categoryKeyExpanded!;
 
     useEffect(() => {
@@ -22,7 +22,7 @@ const CategoryList = ({ title, categoryKey, level }: IParentInfo) => {
 
     const mySubCategories = categoryKey.id === 'null'
         ? categories.filter(c => c.parentCategory === null)
-        : categories.filter(c => c.parentCategory === categoryId);
+        : categories.filter(c => c.parentCategory === id);
     // console.log("+++++++>>>>>>> CategoryList ", { categoryKey, mySubCategories });
 
     return (
@@ -31,7 +31,7 @@ const CategoryList = ({ title, categoryKey, level }: IParentInfo) => {
                 <ListGroup as="ul" variant='dark' className="mb-0">
                     {mySubCategories.map((c: ICategory) =>
                         <CategoryRow
-                            category={{ ...c, isSelected: c.id === categoryId }}
+                            category={{ ...c, isSelected: c.id === id }}
                             questionId={questionId}
                             key={c.id}
                         />

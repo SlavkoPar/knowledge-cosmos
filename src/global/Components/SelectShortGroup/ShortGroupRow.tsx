@@ -5,19 +5,19 @@ import { faCaretRight, faCaretDown } from '@fortawesome/free-solid-svg-icons'
 import { ListGroup, Button } from "react-bootstrap";
 
 import { useGlobalState } from 'global/GlobalProvider'
-import { ShortGroupsActionTypes, ShortGroupsActions } from "global/types";
-import { IGroup } from 'groups/types'
+import { IShortGroup } from "global/types";
 
-import ShortGroupList from "global/Components/SelectGroup/ShortGroupList";
+import ShortGroupList from "global/Components/SelectShortGroup/ShortGroupList";
+import { ShortGroupsActions, ShortGroupsActionTypes } from './types';
 
-interface IGroupRow {
-    group: IGroup;
+interface IShortGroupRow {
+    shortGroup: IShortGroup;
     dispatch: React.Dispatch<ShortGroupsActions>;
-    setParentGroup: (group: IGroup) => void;
+    setParentShortGroup: (shortGroup: IShortGroup) => void;
 }
 
-const ShortGroupRow = ({ group, dispatch, setParentGroup }: IGroupRow) => {
-    const { partitionKey, id, title, level, isExpanded } = group;
+const ShortGroupRow = ({ shortGroup , dispatch, setParentShortGroup }: IShortGroupRow) => {
+    const { partitionKey, id, title, level, isExpanded } = shortGroup;
     const groupKey = { partitionKey, id };
 
     const { isDarkMode, variant, bg } = useGlobalState();
@@ -26,10 +26,10 @@ const ShortGroupRow = ({ group, dispatch, setParentGroup }: IGroupRow) => {
         dispatch({ type: ShortGroupsActionTypes.SET_EXPANDED, payload: { id, expanding: !isExpanded } });
     }
 
-    const onSelectGroup = (group: IGroup) => {
+    const onSelectShortGroup = (shortGroup: IShortGroup) => {
         // Load data from server and reinitialize group
         // viewGroup(id);
-        setParentGroup(group);
+        setParentShortGroup(shortGroup);
     }
 
     const Row1 =
@@ -51,9 +51,9 @@ const ShortGroupRow = ({ group, dispatch, setParentGroup }: IGroupRow) => {
                 size="sm"
                 className={`py-0 mx-0 text-decoration-none`}
                 title={id}
-                onClick={() => onSelectGroup(group)}
+                onClick={() => onSelectShortGroup(shortGroup)}
             >
-                {title}
+                {title.substring(0, 25) + ' ...'}
             </Button>
         </div>
 
@@ -76,7 +76,7 @@ const ShortGroupRow = ({ group, dispatch, setParentGroup }: IGroupRow) => {
                     <ShortGroupList
                         level={level + 1}
                         groupKey={groupKey}
-                        setParentGroup={setParentGroup}
+                        setParentGroup={setParentShortGroup}
                     />
                 </ListGroup.Item>
             }

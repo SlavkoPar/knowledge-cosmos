@@ -19,7 +19,7 @@ interface IGrpMy {
 }
 
 interface IGroupSection {
-	id: string,
+	id: string | null,
 	groupTitle: string,
 	parentGroupUp: string,
 	groupParentTitle: string, // TODO ???
@@ -44,7 +44,7 @@ const AnswerAutosuggestMulti = Autosuggest as { new(): Autosuggest<IAnswerRow, I
 export class AutoSuggestAnswers extends React.Component<{
 	tekst: string | undefined,
 	onSelectQuestionAnswer: (answerKey: IAnswerKey) => void,
-	alreadyAssigned: string[],
+	alreadyAssigned?: string[],
 	shortGroups: Map<string, IShortGroup>,
 	searchAnswers: (filter: string, count: number) => Promise<IAnswerRow[]>
 
@@ -68,7 +68,7 @@ export class AutoSuggestAnswers extends React.Component<{
 			highlighted: ''
 		};
 		//this.inputAutosuggest = createRef<HTMLInputElement>();
-		this.alreadyAssigned = props.alreadyAssigned;
+		this.alreadyAssigned = props.alreadyAssigned ?? [];
 		this.shortGroups = props.shortGroups;
 		this.searchAnswers = props.searchAnswers;
 		this.isMob = isMobile;
@@ -171,7 +171,7 @@ export class AutoSuggestAnswers extends React.Component<{
 		if (search.length < 2)
 			return [];
 
-		const groupAnswers = new Map<string, IAnswerRow[]>();
+		const groupAnswers = new Map<string | null, IAnswerRow[]>();
 		const answerKeys: IAnswerKey[] = [];
 		try {
 			console.log('--------->>>>> getSuggestions')
@@ -225,9 +225,9 @@ export class AutoSuggestAnswers extends React.Component<{
 			// 
 			let groupSections: IGroupSection[] = [];
 			groupAnswers.forEach((shortAnswers, id) => {
-				const group = this.shortGroups.get(id);
+				const group = this.shortGroups.get(id!);
 				console.log('GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG', group)
-				const { title, titlesUpTheTree, variations } = group!;
+				const { title, titlesUpTheTree/*, variations*/ } = group!;
 				const groupSection: IGroupSection = {
 					id,
 					groupTitle: title,
@@ -237,26 +237,26 @@ export class AutoSuggestAnswers extends React.Component<{
 				};
 				shortAnswers.forEach(shortAnswer => {
 					// console.log(ans);
-					if (variations.length > 0) {
-						let wordsIncludesTag = false;
-						// searchWords.forEach(w => {
-						// 	variations.forEach(variation => {
-						// 		if (variation === w.toUpperCase()) {
-						// 			wordsIncludesTag = true;
-						// 			grpSection.anss.push({ ...ans, title: ans.title + ' ' + variation });
-						// 		}
-						// 	})
-						// })
-						if (!wordsIncludesTag) {
-							variations.forEach(variation => {
-								// console.log(ans);
-								groupSection.shortAnswers.push({ ...shortAnswer, title: shortAnswer.title + ' ' + variation });
-							});
-						}
-					}
-					else {
+					// if (variations.length > 0) {
+					// 	let wordsIncludesTag = false;
+					// 	// searchWords.forEach(w => {
+					// 	// 	variations.forEach(variation => {
+					// 	// 		if (variation === w.toUpperCase()) {
+					// 	// 			wordsIncludesTag = true;
+					// 	// 			grpSection.anss.push({ ...ans, title: ans.title + ' ' + variation });
+					// 	// 		}
+					// 	// 	})
+					// 	// })
+					// 	if (!wordsIncludesTag) {
+					// 		variations.forEach(variation => {
+					// 			// console.log(ans);
+					// 			groupSection.shortAnswers.push({ ...shortAnswer, title: shortAnswer.title + ' ' + variation });
+					// 		});
+					// 	}
+					// }
+					// else {
 						groupSection.shortAnswers.push(shortAnswer);
-					}
+					// }
 				});
 				groupSections.push(groupSection);
 				console.log('AutoSuggestAnswers', {groupSection});

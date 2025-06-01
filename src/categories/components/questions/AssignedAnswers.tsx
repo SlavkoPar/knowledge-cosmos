@@ -6,7 +6,8 @@ import { useGlobalContext } from "global/GlobalProvider";
 import AssignedAnswer from "./AssignedAnswer";
 import { AutoSuggestAnswers } from 'categories/AutoSuggestAnswers'
 import { IWhoWhen } from "global/types";
-import { IAnswer, IAnswerKey, initialAnswer } from "groups/types";
+import { IAnswer, IAnswerKey } from "groups/types";
+import { initialAnswer } from 'groups/GroupsReducer'
 import AddAnswer from "categories/components/questions/AddAnswer"
 
 interface IProps {
@@ -162,7 +163,6 @@ const AssignedAnswers = ({ questionKey, questionTitle, assignedAnswers, isDisabl
                     <Modal.Title>Assign the answer</Modal.Title>
                 </Modal.Header>
                 <Modal.Body style={{ height: '40vh', width: '50vw' }} className="question-answers">
-
                     <AutoSuggestAnswers
                         tekst={''}
                         alreadyAssigned={

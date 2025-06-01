@@ -1,6 +1,6 @@
-import { Reducer } from 'react'
-import { IGroup } from "groups/types";
-import { ShortGroupsActionTypes, ShortGroupsActions, IShortGroupsState } from "global/types";
+import React, { Reducer } from 'react'
+import { IShortGroup } from "global/types";
+import { ShortGroupsActions, ShortGroupsActionTypes, IShortGroupsState } from './types';
 
 export const initialState: IShortGroupsState = {
   loading: false,
@@ -19,10 +19,10 @@ export const ShortGroupsReducer: Reducer<IShortGroupsState, ShortGroupsActions> 
       }
 
     case ShortGroupsActionTypes.SET_SUB_SHORTGROUPS: {
-      const { groups } = action.payload;
+      const { subShortGroups } = action.payload;
       return {
         ...state,
-        shortGroups: state.shortGroups.concat(groups),
+        shortGroups: state.shortGroups.concat(subShortGroups),
         loading: false
       }
     }
@@ -36,9 +36,8 @@ export const ShortGroupsReducer: Reducer<IShortGroupsState, ShortGroupsActions> 
       const { id, expanding } = action.payload;
       let { shortGroups } = state;
       if (!expanding) {
-        const arr = markForClean(shortGroups, id!)
-        console.log('clean:', arr)
-        const ids = arr.map(c => c.id)
+        const ids = markForClean(shortGroups, id!)
+        console.log('clean:', ids)
         if (ids.length > 0) {
           shortGroups = shortGroups.filter(c => !ids.includes(c.id))
         }
@@ -53,8 +52,8 @@ export const ShortGroupsReducer: Reducer<IShortGroupsState, ShortGroupsActions> 
     }
 
     case ShortGroupsActionTypes.SET_PARENT_SHORTGROUP: {
-      const { group } = action.payload;
-      const { partitionKey, id,  title } = group;
+      const { shortGroup } = action.payload;
+      const { id, title } = shortGroup;
       return {
         ...state,
         parentGroup: id!,
@@ -67,13 +66,15 @@ export const ShortGroupsReducer: Reducer<IShortGroupsState, ShortGroupsActions> 
   }
 };
 
-function markForClean(groups: IGroup[], parentGroup: string) {
-  let deca = groups
-    .filter(c => c.parentGroup === parentGroup)
-    .map(c => ({ id: c.id, parentGroup: c.parentGroup }))
 
-  deca.forEach(c => {
-    deca = deca.concat(markForClean(groups, c.id!))
+function markForClean(shortGroups: IShortGroup[], id: string | null) {
+  let deca = shortGroups
+    .filter(c => c.parentGroup === id)
+    .map(c => c.id)
+
+  deca.forEach(id => {
+    const unuci = id ? markForClean(shortGroups, id) : [];
+    deca = deca.concat(unuci);
   })
   return deca
 }

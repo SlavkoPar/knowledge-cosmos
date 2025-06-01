@@ -5,19 +5,19 @@ import { faCaretRight, faCaretDown } from '@fortawesome/free-solid-svg-icons'
 import { ListGroup, Button } from "react-bootstrap";
 
 import { useGlobalState } from 'global/GlobalProvider'
-import { CatsActionTypes, CatsActions } from "global/types";
-import { ICategory } from 'categories/types'
+import { ICat } from "global/types";
 
 import CatList from "global/Components/SelectCategory/CatList";
+import { CatsActions, CatsActionTypes } from './types';
 
 interface ICatRow {
-    category: ICategory;
+    cat: ICat;
     dispatch: React.Dispatch<CatsActions>;
-    setParentCategory: (category: ICategory) => void;
+    setParentCat: (cat: ICat) => void;
 }
 
-const CatRow = ({ category, dispatch, setParentCategory }: ICatRow) => {
-    const { partitionKey, id, title, level, isExpanded } = category;
+const CatRow = ({ cat , dispatch, setParentCat }: ICatRow) => {
+    const { partitionKey, id, title, level, isExpanded } = cat;
     const categoryKey = { partitionKey, id };
 
     const { isDarkMode, variant, bg } = useGlobalState();
@@ -26,10 +26,10 @@ const CatRow = ({ category, dispatch, setParentCategory }: ICatRow) => {
         dispatch({ type: CatsActionTypes.SET_EXPANDED, payload: { id, expanding: !isExpanded } });
     }
 
-    const onSelectCategory = (category: ICategory) => {
+    const onSelectCat = (cat: ICat) => {
         // Load data from server and reinitialize category
         // viewCategory(id);
-        setParentCategory(category);
+        setParentCat(cat);
     }
 
     const Row1 =
@@ -51,7 +51,7 @@ const CatRow = ({ category, dispatch, setParentCategory }: ICatRow) => {
                 size="sm"
                 className={`py-0 mx-0 text-decoration-none`}
                 title={id}
-                onClick={() => onSelectCategory(category)}
+                onClick={() => onSelectCat(cat)}
             >
                 {title.substring(0, 25) + ' ...'}
             </Button>
@@ -76,7 +76,7 @@ const CatRow = ({ category, dispatch, setParentCategory }: ICatRow) => {
                     <CatList
                         level={level + 1}
                         categoryKey={categoryKey}
-                        setParentCategory={setParentCategory}
+                        setParentCategory={setParentCat}
                     />
                 </ListGroup.Item>
             }

@@ -5,44 +5,41 @@ import { useFormik } from "formik";
 import { Form, CloseButton, Row, Col, Stack } from "react-bootstrap";
 import { CreatedModifiedForm } from "common/CreateModifiedForm"
 import { FormButtons } from "common/FormButtons"
-import { ActionTypes, CategoryKey, FormMode, ICategory, ICategoryKey, IQuestion, IQuestionFormProps } from "categories/types";
+import { ActionTypes, GroupKey, FormMode, IGroup, IGroupKey, IAnswer, IAnswerFormProps } from "groups/types";
 
 import { Select } from 'common/components/Select';
 import { sourceOptions } from 'common/sourceOptions'
 import { statusOptions } from 'common/statusOptions'
-import CatList from 'global/Components/SelectCategory/CatList'
+import ShortGroupList from 'global/Components/SelectShortGroup/ShortGroupList'
 
-import { useCategoryContext, useCategoryDispatch } from "categories/CategoryProvider";
+import { useGroupContext, useGroupDispatch } from "groups/GroupProvider";
 import Dropdown from 'react-bootstrap/Dropdown';
-import AssignedAnswers from './AssignedAnswers';
 import { useGlobalContext } from 'global/GlobalProvider';
-import VariationList from 'categories/VariationList';
-import RelatedFilters from './RelatedFilters';
-import { ICat } from 'global/types';
+import { IShortGroup } from 'global/types';
 
-const QuestionForm = ({ mode, question, submitForm, children, showCloseButton, source = 0, closeModal }: IQuestionFormProps) => {
+const AnswerForm = ({ mode, answer, submitForm, children, showCloseButton, source = 0, closeModal }: IAnswerFormProps) => {
 
   const { globalState } = useGlobalContext();
   const { isDarkMode, variant, bg } = globalState;
 
-  const { state } = useCategoryContext();
+  const { state } = useGroupContext();
 
   const viewing = mode === FormMode.viewing;
   const editing = mode === FormMode.editing;
   const adding = mode === FormMode.adding;
 
-  const { partitionKey, parentCategory, title, id, assignedAnswers, relatedFilters } = question;
-  const questionKey = {parentCategory: parentCategory ?? undefined, partitionKey, id };
-  const categoryKey: ICategoryKey = {partitionKey, id: parentCategory};
+  const { partitionKey, parentGroup, title, id } = answer;
+  const answerKey = { parentGroup: parentGroup ?? undefined, partitionKey, id };
+  const groupKey: IGroupKey = { partitionKey, id: parentGroup };
 
-  const dispatch = useCategoryDispatch();
+  const dispatch = useGroupDispatch();
 
   const closeForm = () => {
     if (closeModal) {
       closeModal();
     }
     else {
-      dispatch({ type: ActionTypes.CLOSE_QUESTION_FORM, payload: { question } })
+      dispatch({ type: ActionTypes.CLOSE_ANSWER_FORM, payload: { answer } })
     }
   }
 
@@ -51,7 +48,7 @@ const QuestionForm = ({ mode, question, submitForm, children, showCloseButton, s
       closeModal();
     }
     else {
-      dispatch({ type: ActionTypes.CANCEL_QUESTION_FORM, payload: { question } })
+      dispatch({ type: ActionTypes.CANCEL_ANSWER_FORM, payload: { answer } })
     }
   }
 
@@ -67,13 +64,13 @@ const QuestionForm = ({ mode, question, submitForm, children, showCloseButton, s
 
   const formik = useFormik({
     enableReinitialize: true,
-    initialValues: question,
+    initialValues: answer,
     validationSchema: Yup.object().shape({
       title: Yup.string().required("Required"),
-      parentCategory: Yup.string().required("Required").notOneOf(['000000000000000000000000'])
+      parentGroup: Yup.string().required("Required").notOneOf(['000000000000000000000000'])
     }),
-    onSubmit: (values: IQuestion) => {
-      // console.log('QuestionForm.onSubmit', JSON.stringify(values, null, 2))
+    onSubmit: (values: IAnswer) => {
+      // console.log('AnswerForm.onSubmit', JSON.stringify(values, null, 2))
       submitForm(values)
       //props.handleClose(false);
     }
@@ -81,34 +78,34 @@ const QuestionForm = ({ mode, question, submitForm, children, showCloseButton, s
 
   const isDisabled = mode === FormMode.viewing;
 
-  const setParentCategory = (cat: ICat) => {
-    formik.setFieldValue('parentCategory', cat.id);
-    formik.setFieldValue('categoryTitle', cat.title);
+  const setParentGroup = (shortGroup: IShortGroup) => {
+    formik.setFieldValue('parentGroup', shortGroup.id);
+    formik.setFieldValue('groupTitle', shortGroup.title);
   }
 
   return (
-    <div className="form-wrapper px-3 py-1 my-0 my-1 w-100 bg-warning question-form" >
+    <div className="form-wrapper px-3 py-1 my-0 my-1 w-100 bg-info answer-form" >
       {/* data-bs-theme={`${isDarkMode ? 'dark' : 'light'}`} */}
       {showCloseButton && <CloseButton onClick={closeForm} className="float-end" />}
       <Row className='text-center'>
-        <Form.Label>Question</Form.Label>
+        <Form.Label>Answer</Form.Label>
       </Row>
       <Form onSubmit={formik.handleSubmit}>
 
         <Stack direction="horizontal" gap={0}>
-          <div className="p-0"><Form.Label>Category:</Form.Label></div>
+          <div className="p-0"><Form.Label>Group:</Form.Label></div>
           <div className="p-1">
-            <Form.Group controlId="parentCategory" className="category-select form-select-sm w-50">
+            <Form.Group controlId="parentGroup" className="group-select form-select-sm w-50">
               <Dropdown>
                 <Dropdown.Toggle variant="light" id="dropdown-basic" className="px-2 py-0 text-primary border" disabled={isDisabled}>
-                  <span className="text-wrap me-1">{formik.values.categoryTitle}</span>
+                  <span className="text-wrap me-1">{formik.values.groupTitle}</span>
                 </Dropdown.Toggle>
                 <Dropdown.Menu className="p-0">
                   <Dropdown.Item className="p-0 m-0 rounded-3">
-                    <CatList
-                      categoryKey= {null}  // TODO {categoryKey}
+                    <ShortGroupList
+                      groupKey={null}  // TODO {groupKey}
                       level={1}
-                      setParentCategory={setParentCategory}
+                      setParentGroup={setParentGroup}
                     />
                   </Dropdown.Item>
                 </Dropdown.Menu>
@@ -116,22 +113,22 @@ const QuestionForm = ({ mode, question, submitForm, children, showCloseButton, s
 
               <Form.Control
                 as="input"
-                name="parentCategory"
+                name="parentGroup"
                 onChange={formik.handleChange}
                 //onBlur={formik.handleBlur}
                 // onBlur={(e: React.FocusEvent<HTMLTextAreaElement>): void => {
                 //   if (isEdit && formik.initialValues.title !== formik.values.title)
                 //     formik.submitForm();
                 // }}
-                value={formik.values.parentCategory ? formik.values.parentCategory: ''}
-                placeholder='Category'
+                value={formik.values.parentGroup ? formik.values.parentGroup : ''}
+                placeholder='Group'
                 className="text-primary w-100"
                 disabled={isDisabled}
                 hidden={true}
               />
               <Form.Text className="text-danger">
-                {formik.touched.parentCategory && formik.errors.parentCategory ? (
-                  <div className="text-danger">{formik.errors.parentCategory ? 'required' : ''}</div>
+                {formik.touched.parentGroup && formik.errors.parentGroup ? (
+                  <div className="text-danger">{formik.errors.parentGroup ? 'required' : ''}</div>
                 ) : null}
               </Form.Text>
             </Form.Group>
@@ -152,7 +149,7 @@ const QuestionForm = ({ mode, question, submitForm, children, showCloseButton, s
             // }}
             value={formik.values.title}
             rows={3}
-            placeholder='New Question'
+            placeholder='New Answer'
             className="text-primary w-100"
             disabled={isDisabled}
           />
@@ -161,6 +158,31 @@ const QuestionForm = ({ mode, question, submitForm, children, showCloseButton, s
               <div className="text-danger">{formik.errors.title}</div>
             ) : null}
           </Form.Text>
+        </Form.Group>
+
+        <Form.Group controlId="link">
+          <Form.Label>Link</Form.Label>
+          <>
+            <Form.Control
+              as="input"
+              placeholder="link"
+              name="link"
+              onChange={formik.handleChange}
+              //onBlur={formik.handleBlur}
+              // onBlur={(e: React.FocusEvent<HTMLTextAreaElement>): void => {
+              //   if (isEdit && formik.initialValues.title !== formik.values.title)
+              //     formik.submitForm();
+              // }}
+              className="text-primary w-100"
+              value={formik.values.link ?? ''}
+              disabled={viewing}
+            />
+            <Form.Text className="text-danger">
+              {formik.touched.link && formik.errors.link ? (
+                <div className="text-danger">{formik.errors.link}</div>
+              ) : null}
+            </Form.Text>
+          </>
         </Form.Group>
 
         <Row>
@@ -213,22 +235,9 @@ const QuestionForm = ({ mode, question, submitForm, children, showCloseButton, s
 
         {(viewing || editing) &&
           <>
-            <AssignedAnswers
-              questionKey={questionKey}
-              questionTitle={title}
-              assignedAnswers={assignedAnswers}
-              isDisabled={isDisabled}
-            />
-
-            <RelatedFilters
-              questionKey={questionKey}
-              questionTitle={title}
-              relatedFilters={relatedFilters}
-            />
-
             <CreatedModifiedForm
-              created={question.created}
-              modified={question.modified}
+              created={answer.created}
+              modified={answer.modified}
               classes="text-primary"
             />
           </>
@@ -248,4 +257,4 @@ const QuestionForm = ({ mode, question, submitForm, children, showCloseButton, s
   );
 };
 
-export default QuestionForm;
+export default AnswerForm;

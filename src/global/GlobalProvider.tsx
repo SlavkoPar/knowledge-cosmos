@@ -154,11 +154,12 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
               variations: variations,
               hasSubCategories: hasSubCategories,
               level,
-              kind
+              kind,
+              isExpanded: false
             }
             cats.set(id, cat);
           })
-          dispatch({ type: GlobalActionTypes.SET_ALL_CATEGORIES, payload: { cats } });
+          dispatch({ type: GlobalActionTypes.SET_ALL_CATS, payload: { cats } });
         });
       }
       catch (error: any) {
@@ -244,16 +245,15 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
               parentGroup: parentShortGroup,
               header,
               title,
-              link,
               level,
               titlesUpTheTree: '',
-              variations,
               hasSubGroups,
-              kind: kind
+              kind: kind,
+              isExpanded: false
             }
             shortGroups.set(id, shortGroup);
           })
-          dispatch({ type: GlobalActionTypes.SET_ALL_GROUPS, payload: { shortGroups } });
+          dispatch({ type: GlobalActionTypes.SET_ALL_SHORT_GROUPS, payload: { shortGroups } });
         });
       }
       catch (error: any) {
@@ -264,13 +264,12 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
     });
   }, [dispatch]);
 
-  const getSubGroups = useCallback(async (groupKey: IGroupKey) => {
+
+  const getSubShortGroupsWas = useCallback(async (categoryId: string | null) => {
     return new Promise(async (resolve) => {
-      const { partitionKey, id } = groupKey;
       try {
-        //dispatch({ type: GlobalActionTypes.SET_LOADING, payload: {} });
-        const url = `${protectedResources.KnowledgeAPI.endpointGroup}/${partitionKey}/${id}`;
-        console.log('calling getSubGroups:', url)
+        const url = ''; //`${protectedResources.KnowledgeAPI.endpointGroup}/${partitionKey}/${categoryId}`;
+        console.log('calling getSubShortGroups:', url);
         console.time();
         await Execute("GET", url).then((groupDtos: IGroupDto[]) => {
           console.timeEnd();
@@ -291,6 +290,47 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
     })
   }, []);
 
+  const getSubShortGroups = useCallback(async (groupId: string | null) => {
+    const { shortGroupsLoaded } = globalState;
+    if (!shortGroupsLoaded) {
+      await loadShortGroups();
+    }
+    try {
+      const { shortGroups } = globalState;
+      let parentHeader = "";
+      console.log('globalState.shortGroups', { shortGroups }, groupId)
+      const subShortGroups: IShortGroup[] = [];
+      shortGroups.forEach((shortGroup, id) => {  // globalState.shortGroups is Map<string, IShortGroup>
+        if (shortGroup.id === groupId) {
+          parentHeader = shortGroup.header!;
+        }
+        else if (shortGroup.parentGroup === groupId) {
+          const { partitionKey, id, parentGroup, header, title, level, kind, hasSubGroups } = shortGroup;
+          const c: IShortGroup = {
+            partitionKey,
+            id,
+            header,
+            title,
+            parentGroup,
+            titlesUpTheTree: "",
+            hasSubGroups,
+            level,
+            kind,
+            isExpanded: false
+          }
+          subShortGroups.push(c);
+        }
+      })
+      return { subShortGroups, parentHeader };
+    }
+    catch (error: any) {
+      console.log(error)
+      dispatch({ type: GlobalActionTypes.SET_ERROR, payload: { error } });
+      return { subShortGroups: [], parentHeader: 'Kiks' };
+    }
+  }, [globalState.shortGroups]);
+
+
   //const searchAnswers = useCallback(async (execute: (method: string, endpoint: string) => Promise<any>, filter: string, count: number): Promise<any> => {
   const searchAnswers = async (filter: string, count: number): Promise<any> => {
     const { shortGroups } = globalState;
@@ -305,14 +345,13 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
           console.timeEnd();
           if (answerRowDtos) {
             const shortAnswers: IAnswerRow[] = answerRowDtos.map((shortAnswerDto: IAnswerRowDto) => {
-              const { PartitionKey, Id, ParentGroup, Title, Link } = shortAnswerDto;
+              const { PartitionKey, Id, ParentGroup, Title } = shortAnswerDto;
               //const group = shortGroups.get(ParentGroup);
               return {
                 partitionKey: PartitionKey,
                 id: Id,
                 parentGroup: ParentGroup,
                 title: Title,
-                link: Link,
                 groupTitle: '' // group ? group.title : 'Not found'
               }
             })
@@ -410,7 +449,8 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
             variations: [],
             hasSubCategories: false,
             level,
-            kind
+            kind,
+            isExpanded: false
           }
           categories.push(cat);
         }
@@ -443,7 +483,8 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
             variations: [],
             hasSubCategories: false,
             level,
-            kind
+            kind,
+            isExpanded: false
           }
           categories.push(cat);
         }
@@ -457,12 +498,11 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
     return [];
   }
 
-
   const getSubCats = useCallback(async (categoryId: string | null) => {
     try {
       const { cats } = globalState;
       let parentHeader = "";
-      console.log('globalState.cats', {cats}, categoryId)
+      console.log('globalState.cats', { cats }, categoryId)
       const subCats: ICat[] = [];
       cats.forEach((cat, id) => {  // globalState.cats is Map<string, ICat>
         if (cat.id === categoryId) {
@@ -481,7 +521,8 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
             variations: [],
             hasSubCategories,
             level,
-            kind
+            kind,
+            isExpanded: false
           }
           subCats.push(c);
         }
@@ -491,8 +532,8 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
     catch (error: any) {
       console.log(error)
       dispatch({ type: GlobalActionTypes.SET_ERROR, payload: { error } });
+      return { subCats: [], parentHeader: 'Kiks subCats' }
     }
-    return [];
   }, [globalState.cats]);
 
 
@@ -565,19 +606,20 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
       const groups: IShortGroup[] = [];
       shortGroups.forEach((c, id) => {
         if (c.kind === kind) {
-          const { partitionKey, id, header, title, link, level } = c;
+          const { partitionKey, id, header, title, level } = c;
           const shortGroup: IShortGroup = {
             partitionKey,
             id,
             header,
             title,
-            link,
+            //link,
             parentGroup: "",
             titlesUpTheTree: "",
-            variations: [],
+            //variations: [],
             hasSubGroups: false,
             level,
-            kind
+            kind,
+            isExpanded: false
           }
           groups.push(shortGroup);
         }
@@ -723,7 +765,7 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
       globalState, OpenDB, setLastRouteVisited,
       getUser, health,
       loadCats, getSubCats, getCatsByKind, searchQuestions, getQuestion,
-      loadShortGroups, getSubGroups, getGroupsByKind, searchAnswers, getAnswer,
+      loadShortGroups, getSubShortGroups, getGroupsByKind, searchAnswers, getAnswer,
       addHistory, getAnswersRated, addHistoryFilter
     }}>
       <GlobalDispatchContext.Provider value={dispatch}>

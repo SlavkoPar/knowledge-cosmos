@@ -101,11 +101,13 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
       return new Promise(async (resolve) => {
         try {
           console.log('---CategoryProvider.reloadCategoryNode categoryKeyExpanded:', categoryKeyExpanded)
-          const { id, partitionKey } = categoryKeyExpanded;
+          let { id, partitionKey } = categoryKeyExpanded;
           if (id) {
             const cat: ICat | undefined = cats.get(id);
+            console.log("rrrrrrrrrrrrrrrrrreloadCategoryNode", id, cat)
             if (cat) {
               categoryKeyExpanded.partitionKey = cat.partitionKey;
+              partitionKey = cat.partitionKey;
             }
             else {
               alert('reload cats' + id)

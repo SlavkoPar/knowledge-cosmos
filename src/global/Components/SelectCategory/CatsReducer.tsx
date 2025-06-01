@@ -1,6 +1,6 @@
 import React, { Reducer } from 'react'
-import { ICategory } from "categories/types";
-import { CatsActionTypes, CatsActions, ICatsState } from "global/types";
+import { ICat } from "global/types";
+import { CatsActions, CatsActionTypes, ICatsState } from './types';
 
 export const initialState: ICatsState = {
   loading: false,
@@ -52,8 +52,8 @@ export const CatsReducer: Reducer<ICatsState, CatsActions> = (state, action) => 
     }
 
     case CatsActionTypes.SET_PARENT_CAT: {
-      const { category } = action.payload;
-      const { id, title } = category;
+      const { cat } = action.payload;
+      const { id, title } = cat;
       return {
         ...state,
         parentCategory: id!,
@@ -66,13 +66,14 @@ export const CatsReducer: Reducer<ICatsState, CatsActions> = (state, action) => 
   }
 };
 
-function markForClean(categories: ICategory[], id: string) {
-  let deca = categories
+
+function markForClean(cats: ICat[], id: string | null) {
+  let deca = cats
     .filter(c => c.parentCategory === id)
     .map(c => c.id)
 
   deca.forEach(id => {
-    const unuci = id ? markForClean(categories, id) : [];
+    const unuci = id ? markForClean(cats, id) : [];
     deca = deca.concat(unuci);
   })
   return deca

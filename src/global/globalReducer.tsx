@@ -179,9 +179,9 @@ const reducer: Reducer<IGlobalState, GlobalActions> = (state, action) => {
             };
         }
 
-        case GlobalActionTypes.SET_ALL_CATEGORIES: {
+        case GlobalActionTypes.SET_ALL_CATS: {
             const { cats } = action.payload;
-            console.log("loadCats SET_ALL_CATEGORIES", cats)
+            console.log("loadCats SET_ALL_CATS", cats)
             return {
                 ...state,
                 cats,
@@ -189,9 +189,9 @@ const reducer: Reducer<IGlobalState, GlobalActions> = (state, action) => {
             };
         }
 
-        case GlobalActionTypes.SET_ALL_GROUPS: {
+        case GlobalActionTypes.SET_ALL_SHORT_GROUPS: {
             const { shortGroups } = action.payload;
-            console.log("loadShortGroups SET_ALL_GROUPS", shortGroups)
+            console.log("loadShortGroups SET_ALL_SHORT_GROUPS", shortGroups)
             return {
                 ...state,
                 shortGroups,

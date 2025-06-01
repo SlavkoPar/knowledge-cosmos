@@ -114,12 +114,12 @@ const Providered = ({ categoryId_questionId, fromChatBotDlg }: IProps) => {
                     <Col>
                         <div className="d-flex justify-content-start align-items-center">
                             <div className="w-75 my-1">
-                                {/* <AutoSuggestQuestions
+                                <AutoSuggestQuestions
                                     tekst={tekst}
                                     onSelectQuestion={onSelectQuestion}
                                     allCats={cats}
                                     searchQuestions={searchQuestions}
-                                /> */}
+                                />
                             </div>
                         </div>
                     </Col>

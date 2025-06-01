@@ -50,7 +50,7 @@ const ChatBotDlg = ({ show, onHide }: IProps) => {
     const [hasMoreAnswers, setHasMoreAnswers] = useState<boolean>(false);
 
     const { getSubCats, getQuestion, addHistory, addHistoryFilter, getAnswersRated, searchQuestions, setLastRouteVisited } = useGlobalContext();
-    const { dbp, canEdit, authUser, isDarkMode, variant, bg, cats, catsLoaded, lastRouteVisited } = useGlobalState();
+    const { canEdit, authUser, isDarkMode, variant, bg, cats, catsLoaded } = useGlobalState();
     const navigate = useNavigate();
 
     const [catsSelected, setCatsSelected] = useState(true);
@@ -98,7 +98,6 @@ const ChatBotDlg = ({ show, onHide }: IProps) => {
         ]))
 
     }
-
 
     const scrollableRef = useRef<HTMLDivElement>(null);
 
@@ -413,7 +412,21 @@ const ChatBotDlg = ({ show, onHide }: IProps) => {
                 <div className="d-flex flex-row mx-0 justify-content-start align-items-center">
                     <div className="d-flex flex-row mx-0 justify-content-start align-items-center">
                         <img width="22" height="18" src={A} alt="Answer" className='ms-1' />
-                        <div className="p-1 bg-info text-light flex-wrap text-wrap border rounded-1">{txt}</div>
+                        {link
+                            ? <div className="p-1 bg-info text-light flex-wrap text-wrap border rounded-1">
+                                <a 
+                                    href={link!}
+                                    rel="noopener noreferrer"
+                                    target="_blank"
+                                >
+                                    {txt}
+                                </a>
+                            </div>
+                            : <div className="p-1 bg-info text-light flex-wrap text-wrap border rounded-1">
+                                {txt}
+                            </div>
+
+                        }
                     </div>
 
                     {!isDisabled && chatBotAnswer &&
@@ -541,8 +554,8 @@ const ChatBotDlg = ({ show, onHide }: IProps) => {
             {/* backdrop="static" */}
             <Offcanvas show={show} onHide={onHide} placement='end' scroll={true} backdrop={true} onEntering={onEntering}> {/* backdropClassName='chat-bot-dlg' */}
                 <Offcanvas.Header closeButton>
-                    <Offcanvas.Title>
-                        Buddy Bre
+                    <Offcanvas.Title className="fs-6">
+                        I am your Buddy
                     </Offcanvas.Title>
                 </Offcanvas.Header>
                 <Offcanvas.Body className="p-0">
@@ -589,7 +602,13 @@ const ChatBotDlg = ({ show, onHide }: IProps) => {
 
                                 {showAnswer &&
                                     <div key="answer">
-                                        <AnswerComponent type={ChildType.ANSWER} isDisabled={false} txt={chatBotAnswer ? chatBotAnswer.answerTitle : 'no answers'} hasMoreAnswers={hasMoreAnswers} link={chatBotAnswer ? chatBotAnswer.answerLink : ''} />
+                                        <AnswerComponent 
+                                            type={ChildType.ANSWER} 
+                                            isDisabled={false} 
+                                            txt={chatBotAnswer ? chatBotAnswer.answerTitle : 'no answers'} 
+                                            hasMoreAnswers={hasMoreAnswers} 
+                                            link={chatBotAnswer ? chatBotAnswer.answerLink : ''} 
+                                        />
                                     </div>
                                 }
 
