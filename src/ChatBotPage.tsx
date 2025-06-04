@@ -381,7 +381,7 @@ const ChatBotPage: React.FC = () => {
 						<label className="text-info">Please enter the Question</label>
 					}
 					<div className="d-flex justify-content-start align-items-center">
-						<div className="w-75">
+						<div className="w-75 questions">
 							{isDisabled &&
 								<div>
 									{txt}

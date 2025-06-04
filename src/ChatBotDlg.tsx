@@ -271,8 +271,6 @@ const ChatBotDlg = ({ show, onHide }: IProps) => {
         }
         setPastEvents((prevHistory) => [...prevHistory, props]);
 
-        // next
-        //const next: INextAnswer = await (await hook).getNextChatBotAnswer();
         const next: INextAnswer = await getNextChatBotAnswer();
         const { nextChatBotAnswer, hasMoreAnswers } = next;
 
@@ -413,11 +411,12 @@ const ChatBotDlg = ({ show, onHide }: IProps) => {
                     <div className="d-flex flex-row mx-0 justify-content-start align-items-center">
                         <img width="22" height="18" src={A} alt="Answer" className='ms-1' />
                         {link
-                            ? <div className="p-1 bg-info text-light flex-wrap text-wrap border rounded-1">
-                                <a 
+                            ? <div className="p-1 bg-info text-light flex-wrap text-wrap border rounded-1 ">
+                                <a
                                     href={link!}
                                     rel="noopener noreferrer"
                                     target="_blank"
+                                    className="text-light text-decoration-none"
                                 >
                                     {txt}
                                 </a>
@@ -436,7 +435,7 @@ const ChatBotDlg = ({ show, onHide }: IProps) => {
                                 type="button"
                                 onClick={onAnswerFixed}
                                 disabled={!chatBotAnswer}
-                                className='align-middle ms-1 p-0'
+                                className='align-middle ms-1 px-1  py-0'
                                 variant="success"
                             >
                                 Fixed
@@ -446,7 +445,7 @@ const ChatBotDlg = ({ show, onHide }: IProps) => {
                                 type="button"
                                 onClick={getNextAnswer}
                                 disabled={!chatBotAnswer}
-                                className='align-middle ms-1 border border-1 rounded-1 p-0'
+                                className='align-middle ms-1 border border-1 rounded-1 px-1 py-0'
                                 variant="danger"
                             >
                                 Not fixed
@@ -506,39 +505,26 @@ const ChatBotDlg = ({ show, onHide }: IProps) => {
 
     const AutoSuggestComponent = (props: IChild) => {
         const { isDisabled, txt } = props;
-        return (
-            <Row className={`my-1 ${isDarkMode ? "dark" : ""}`} key={autoSuggestId}>
-                <Col xs={12} md={3} className='mb-1 text-start'>
-                    <label className="text-warning">Please enter the Question</label>
-                </Col>
-                <Col xs={0} md={12}>
+        return <div className="dark">
+            <label className="text-warning">Please enter the Question</label>
+            <div className="text-start">
+                <div className="w-90 questions">
                     {isDisabled &&
-                        <label className="text-info">Please enter the Question</label>
-                    }
-                    {/* <div className="d-flex justify-content-start align-items-center"> */}
-                    <div className="text-start">
-                        <div className="w-90">
-                            {isDisabled &&
-                                <div>
-                                    {txt}
-                                </div>
-                            }
-                            {!isDisabled &&
-                                <>
-                                    {/* <div>{Date.now().toString()}</div> */}
-                                    <AutoSuggestQuestions
-                                        tekst={txt}
-                                        onSelectQuestion={onSelectQuestion}
-                                        allCats={cats}
-                                        searchQuestions={searchQuestions}
-                                    />
-                                </>
-                            }
+                        <div>
+                            {txt}
                         </div>
-                    </div>
-                </Col>
-            </Row>
-        )
+                    }
+                    {!isDisabled &&
+                        <AutoSuggestQuestions
+                            tekst={txt}
+                            onSelectQuestion={onSelectQuestion}
+                            allCats={cats}
+                            searchQuestions={searchQuestions}
+                        />
+                    }
+                </div>
+            </div>
+        </div>
     }
 
     // const scrollToBottom = () => {
@@ -602,12 +588,12 @@ const ChatBotDlg = ({ show, onHide }: IProps) => {
 
                                 {showAnswer &&
                                     <div key="answer">
-                                        <AnswerComponent 
-                                            type={ChildType.ANSWER} 
-                                            isDisabled={false} 
-                                            txt={chatBotAnswer ? chatBotAnswer.answerTitle : 'no answers'} 
-                                            hasMoreAnswers={hasMoreAnswers} 
-                                            link={chatBotAnswer ? chatBotAnswer.answerLink : ''} 
+                                        <AnswerComponent
+                                            type={ChildType.ANSWER}
+                                            isDisabled={false}
+                                            txt={chatBotAnswer ? chatBotAnswer.answerTitle : 'no answers'}
+                                            hasMoreAnswers={hasMoreAnswers}
+                                            link={chatBotAnswer ? chatBotAnswer.answerLink : ''}
                                         />
                                     </div>
                                 }
@@ -629,7 +615,7 @@ const ChatBotDlg = ({ show, onHide }: IProps) => {
                                 }
 
                                 {showAutoSuggest &&
-                                    <div className="pb-35">
+                                    <div className="pb-35 questions">
                                         <AutoSuggestComponent
                                             type={ChildType.AUTO_SUGGEST}
                                             isDisabled={false}

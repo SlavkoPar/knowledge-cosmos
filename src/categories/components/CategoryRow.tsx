@@ -78,7 +78,7 @@ const CategoryRow = ({ category, questionId }: { category: ICategory, questionId
             <Button
                 variant='link'
                 size="sm"
-                className="py-0 px-1"
+                className="py-0 px-1  bg-light"
                 onClick={expand}
                 title="Expand"
                 disabled={alreadyAdding || (!hasSubCategories && numOfQuestions === 0)}
@@ -88,17 +88,17 @@ const CategoryRow = ({ category, questionId }: { category: ICategory, questionId
             <Button
                 variant='link'
                 size="sm"
-                className="py-0 px-1"
+                className="py-0 px-1  bg-light"
                 onClick={expand}
                 title="Expand"
-                disabled={alreadyAdding || (!hasSubCategories && numOfQuestions === 0)}
+                disabled= {true} //{alreadyAdding || (!hasSubCategories && numOfQuestions === 0)}
             >
                 <FontAwesomeIcon icon={faFolder} size='sm' />
             </Button>
             <Button
                 variant='link'
                 size="sm"
-                className={`py-0 mx-0 text-decoration-none ${isSelected ? 'fw-bold' : ''}`}
+                className={`py-0 mx-0 text-decoration-none bg-light  ${isSelected ? 'fw-bold' : ''}`}
                 title={id}
                 onClick={onSelectCategory}
                 disabled={alreadyAdding}

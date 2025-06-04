@@ -18,7 +18,7 @@ import EditAnswer from "groups/components/answers/EditAnswer";
 import { initialGroup, initialAnswer } from "groups/GroupsReducer";
 import ModalAddAnswer from './ModalAddAnswer';
 import AddGroup from './components/AddGroup';
-import { AutoSuggestAnswers } from 'categories/AutoSuggestAnswers';
+import { AutoSuggestAnswers } from 'groups/AutoSuggestAnswers';
 
 interface IProps {
     groupId_answerId?: string;
@@ -28,11 +28,11 @@ interface IProps {
 const Providered = ({ groupId_answerId, fromChatBotDlg }: IProps) => {
     console.log("=== Groups", groupId_answerId)
     const { state, reloadGroupNode } = useGroupContext();
-    const { groupKeyExpanded, groupId_answerId_done, groupNodeReLoading, groupNodeLoaded,  } = state;
+    const { groupKeyExpanded, groupId_answerId_done, groupNodeReLoading, groupNodeLoaded, } = state;
 
     const { setLastRouteVisited, searchAnswers, loadShortGroups } = useGlobalContext();
     const { isDarkMode, authUser, shortGroups, shortGroupsLoaded } = useGlobalState();
-    
+
 
     const [modalShow, setModalShow] = useState(false);
     const handleClose = () => {
@@ -95,7 +95,7 @@ const Providered = ({ groupId_answerId, fromChatBotDlg }: IProps) => {
         setLastRouteVisited(`/groups`);
     }, [setLastRouteVisited])
 
- useEffect(() => {
+    useEffect(() => {
         if (!shortGroupsLoaded) {
             loadShortGroups();
         }
@@ -120,10 +120,10 @@ const Providered = ({ groupId_answerId, fromChatBotDlg }: IProps) => {
                 <Row className={`${isDarkMode ? "dark" : ""}`}>
                     <Col>
                         <div className="d-flex justify-content-start align-items-center">
-                            <div className="w-75 my-1">
+                            <div className="w-75 my-1 answers">
                                 <AutoSuggestAnswers
                                     tekst={tekst}
-                                    onSelectQuestionAnswer={onSelectAnswer}
+                                    onSelectAnswer={onSelectAnswer}
                                     shortGroups={shortGroups}
                                     searchAnswers={searchAnswers}
                                 />

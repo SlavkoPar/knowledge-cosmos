@@ -4,7 +4,7 @@ import { IAssignedAnswer, IQuestionKey } from "categories/types";
 import { useCategoryContext } from "categories/CategoryProvider";
 import { useGlobalContext } from "global/GlobalProvider";
 import AssignedAnswer from "./AssignedAnswer";
-import { AutoSuggestAnswers } from 'categories/AutoSuggestAnswers'
+import { AutoSuggestAnswers } from 'groups/AutoSuggestAnswers'
 import { IWhoWhen } from "global/types";
 import { IAnswer, IAnswerKey } from "groups/types";
 import { initialAnswer } from 'groups/GroupsReducer'
@@ -19,8 +19,8 @@ interface IProps {
 
 const AssignedAnswers = ({ questionKey, questionTitle, assignedAnswers, isDisabled }: IProps) => {
 
-    const { globalState, searchAnswers } = useGlobalContext();
-    const { authUser, isDarkMode, variant, shortGroups } = globalState;
+    const { globalState, searchAnswers, loadShortGroups } = useGlobalContext();
+    const { authUser, isDarkMode, variant, shortGroups, shortGroupsLoaded } = globalState;
 
     //const [assignedAnswers2, setAssignAnswers2] = useState<IAssignedAnswer[]>([]);
 
@@ -31,19 +31,10 @@ const AssignedAnswers = ({ questionKey, questionTitle, assignedAnswers, isDisabl
         handleClose();
     }
 
-    // useEffect(() => {
-    //     (async () => {
-    //         if (assignedAnswers.length > 0) {
-    //             //const arr = await joinAssignedAnswers(assignedAnswers);
-    //             setAssignAnswers2(assignedAnswers);
-    //         }
-    //     })()
-    // }, [assignedAnswers])
-
     const { state, assignQuestionAnswer } = useCategoryContext();
     const [showAssign, setShowAssign] = useState(false);
 
-    const onSelectQuestionAnswer = async (answerKey: IAnswerKey) => {
+    const onSelectAnswer = async (answerKey: IAnswerKey) => {
         const assigned: IWhoWhen = {
             time: new Date(),
             nickName: globalState.authUser.nickName
@@ -56,9 +47,9 @@ const AssignedAnswers = ({ questionKey, questionTitle, assignedAnswers, isDisabl
 
     const onAnswerCreated = async (answer: IAnswer | null) => {
         if (answer) {
-            const { partitionKey, id } =  answer;
-            const answerKey = {partitionKey, id} 
-            await onSelectQuestionAnswer(answerKey);
+            const { partitionKey, id } = answer;
+            const answerKey = { partitionKey, id }
+            await onSelectAnswer(answerKey);
         }
         handleClose()
     }
@@ -74,6 +65,15 @@ const AssignedAnswers = ({ questionKey, questionTitle, assignedAnswers, isDisabl
         // User could have canceled question update
         //setShowAssign(false);
     }
+
+    useEffect(() => {
+        if (!shortGroupsLoaded) {
+            loadShortGroups();
+        }
+    }, [])
+
+    if (!shortGroupsLoaded)
+        return null;
 
     return (
         <div className={'mx-0 my-0 border rounded-2 px-1 py-1 border border-info bg-info'} >
@@ -162,7 +162,7 @@ const AssignedAnswers = ({ questionKey, questionTitle, assignedAnswers, isDisabl
                 <Modal.Header closeButton>
                     <Modal.Title>Assign the answer</Modal.Title>
                 </Modal.Header>
-                <Modal.Body style={{ height: '40vh', width: '50vw' }} className="question-answers">
+                <Modal.Body style={{ height: '40vh', width: '50vw' }} className="answers">
                     <AutoSuggestAnswers
                         tekst={''}
                         alreadyAssigned={
@@ -171,9 +171,11 @@ const AssignedAnswers = ({ questionKey, questionTitle, assignedAnswers, isDisabl
                                 : assignedAnswers.map((a: IAssignedAnswer) => a.answerKey.id)
                         }
                         shortGroups={shortGroups}
-                        onSelectQuestionAnswer={onSelectQuestionAnswer}
+                        onSelectAnswer={onSelectAnswer}
                         searchAnswers={searchAnswers}
                     />
+
+
                 </Modal.Body>
             </Modal>
         </div>

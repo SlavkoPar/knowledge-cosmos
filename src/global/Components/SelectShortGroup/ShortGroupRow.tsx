@@ -33,7 +33,7 @@ const ShortGroupRow = ({ shortGroup , dispatch, setParentShortGroup }: IShortGro
     }
 
     const Row1 =
-        <div className="d-flex justify-content-start align-items-center w-100 text-primary">
+        <div className="d-flex justify-content-start align-items-center text-primary">
             <Button
                 variant='link'
                 size="sm"
@@ -61,7 +61,7 @@ const ShortGroupRow = ({ shortGroup , dispatch, setParentShortGroup }: IShortGro
         <>
             <ListGroup.Item
                 variant={"primary"}
-                className="py-0 px-1 w-100"
+                className="py-0 px-1"
                 as="li"
             >
                 {Row1}

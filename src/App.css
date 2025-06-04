@@ -190,11 +190,11 @@ input[type=number] {
   overflow-x: hidden !important;
 }
 
-.category-row {
+/* .category-row { */
   /* rgb(13, 110, 253) */
    /* background-color: rgb(239, 217, 253); */
    /* color:#aaa */
-}
+/* } */
 
 .question-row {
    /* background-color: rgb(239, 217, 253); */

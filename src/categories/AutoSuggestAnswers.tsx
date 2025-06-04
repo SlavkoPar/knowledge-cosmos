@@ -10,7 +10,7 @@ import { IAnswerRow, IAnswerKey, IAnswerRowDto } from 'groups/types';
 import { IShortGroup } from 'global/types';
 
 
-interface IGrpMy {
+interface IGoupMy {
 	id: string,
 	parentGroupUp: string,
 	groupParentTitle: string,
@@ -39,11 +39,11 @@ interface IShortGroupIdTitle {
 	title: string;
 }
 
-const AnswerAutosuggestMulti = Autosuggest as { new(): Autosuggest<IAnswerRow, IGrpMy> };
+const AnswerAutosuggestMulti = Autosuggest as { new(): Autosuggest<IAnswerRow, IGoupMy> };
 
 export class AutoSuggestAnswers extends React.Component<{
 	tekst: string | undefined,
-	onSelectQuestionAnswer: (answerKey: IAnswerKey) => void,
+	onSelectGroupAnswer: (answerKey: IAnswerKey) => void,
 	alreadyAssigned?: string[],
 	shortGroups: Map<string, IShortGroup>,
 	searchAnswers: (filter: string, count: number) => Promise<IAnswerRow[]>
@@ -84,7 +84,7 @@ export class AutoSuggestAnswers extends React.Component<{
 		console.time();
 		const suggestions = await this.getSuggestions(value);
 		console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>', value, this.state.value,
-			suggestions.length, {suggestions})
+			suggestions.length, { suggestions })
 		console.timeEnd();
 
 		if (value === this.state.value) {
@@ -170,7 +170,6 @@ export class AutoSuggestAnswers extends React.Component<{
 		}
 		if (search.length < 2)
 			return [];
-
 		const groupAnswers = new Map<string | null, IAnswerRow[]>();
 		const answerKeys: IAnswerKey[] = [];
 		try {
@@ -209,7 +208,7 @@ export class AutoSuggestAnswers extends React.Component<{
 		if (answerKeys.length === 0)
 			return [];
 
-		console.log('kitaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa =>', groupAnswers.size, {groupAnswers})
+		console.log('kitaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa =>', groupAnswers.size, { groupAnswers })
 
 		// if (groupAnswers.size === 0)
 		// 	return [];
@@ -255,13 +254,13 @@ export class AutoSuggestAnswers extends React.Component<{
 					// 	}
 					// }
 					// else {
-						groupSection.shortAnswers.push(shortAnswer);
+					groupSection.shortAnswers.push(shortAnswer);
 					// }
 				});
 				groupSections.push(groupSection);
-				console.log('AutoSuggestAnswers', {groupSection});
+				console.log('AutoSuggestAnswers', { groupSection });
 			});
-			console.log({groupSections})
+			console.log({ groupSections })
 			return groupSections;
 		}
 		catch (error: any) {
@@ -281,7 +280,7 @@ export class AutoSuggestAnswers extends React.Component<{
 	protected onSuggestionSelected(event: React.FormEvent<any>, data: Autosuggest.SuggestionSelectedEventData<IAnswerRow>): void {
 		const answer: IAnswerRow = data.suggestion;
 		alert(`Selected answer is ${answer.partitionKey} / ${answer.id}.`);
-		this.props.onSelectQuestionAnswer({ partitionKey: answer.partitionKey, id: answer.id });
+		this.props.onSelectGroupAnswer({ partitionKey: answer.partitionKey, id: answer.id });
 	}
 
 	/*
@@ -298,7 +297,7 @@ export class AutoSuggestAnswers extends React.Component<{
 		const matches = AutosuggestHighlightMatch(suggestion.title, params.query);
 		const parts = AutosuggestHighlightParse(suggestion.title, matches);
 		return (
-			<span style={{ textAlign: 'left' }}>
+			<span style={{ textAlign: 'left' }} className='bg-info'>
 				{parts.map((part, index) => {
 					const className = part.highlight ? 'react-autosuggest__suggestion-match' : undefined;
 					return (
@@ -311,7 +310,7 @@ export class AutoSuggestAnswers extends React.Component<{
 		);
 	}
 
-	protected renderSectionTitle(section: IGrpMy): JSX.Element {
+	protected renderSectionTitle(section: IGoupMy): JSX.Element {
 		const { parentGroupUp, groupParentTitle, groupTitle } = section;
 		// let str = (groupParentTitle ? (groupParentTitle + " / ") : "") + groupTitle;
 		// if (parentGroupUp)
@@ -387,7 +386,7 @@ export class AutoSuggestAnswers extends React.Component<{
 		return suggestion.title;
 	}
 
-	protected getSectionSuggestions(section: IGrpMy) {
+	protected getSectionSuggestions(section: IGoupMy) {
 		console.log('****************************** getSectionSuggestions', section)
 		return section.shortAnswers;
 	}

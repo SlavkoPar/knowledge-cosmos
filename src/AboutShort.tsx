@@ -36,9 +36,9 @@ const AboutShort: React.FC<IAboutShort> = (props: IAboutShort) => {
         <div className="card card-block col-5 m-3">
           <div className="card-body">
             <h5 className="card-title">Knowledge is asset for each company</h5>
-            <h6 className="card-subtitle mb-2 text-muted">We use MS Azure Platform and Cosmos DB for NoSQL</h6>
+            <h6 className="card-subtitle mb-2 text-muted">Do your Q/A maintenance using our app, at Microsoft Cloud Azure Platform</h6>
             <p className="card-text">
-              Cosmos DB, with Vector Search is suitable for AI agents.
+              Integrate our <b>ChatBot JavaScript Library</b> at your site.
             </p>
           </div>
         </div>

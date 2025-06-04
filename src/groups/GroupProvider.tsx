@@ -24,7 +24,7 @@ type Props = {
 
 export const GroupProvider: React.FC<Props> = ({ children }) => {
 
-  const { loadCats } = useGlobalContext()
+  const { loadShortGroups } = useGlobalContext()
   const globalState = useGlobalState();
   const { dbp, cats } = globalState;
 
@@ -188,7 +188,7 @@ export const GroupProvider: React.FC<Props> = ({ children }) => {
                 console.log('Group successfully created')
                 dispatch({ type: ActionTypes.SET_ADDED_GROUP, payload: { group: { ...group, answerRows: [] } } });
                 dispatch({ type: ActionTypes.CLOSE_GROUP_FORM })
-                await loadCats(); // reload
+                await loadShortGroups(); // reload
               }
             }
           });
@@ -343,7 +343,7 @@ export const GroupProvider: React.FC<Props> = ({ children }) => {
             const { groupDto, msg } = response as IGroupDtoEx;
             if (msg == "OK") {
               dispatch({ type: ActionTypes.DELETE, payload: { id: groupDto!.Id } });
-              await loadCats(); // reload
+              await loadShortGroups(); // reload
             }
             else if (msg === "HasSubGroups") {
               dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error("First remove sub groups"), whichRowId: groupDto!.Id } });
@@ -459,7 +459,7 @@ export const GroupProvider: React.FC<Props> = ({ children }) => {
                 console.log('Answer successfully created')
                 dispatch({ type: ActionTypes.SET_ANSWER, payload: { answer } });
                 //dispatch({ type: ActionTypes.CLOSE_ANSWER_FORM })
-                await loadCats(); // reload
+                await loadShortGroups(); // reload
               }
             }
           });
@@ -542,7 +542,7 @@ export const GroupProvider: React.FC<Props> = ({ children }) => {
                 console.log('Answer successfully deleted')
                 dispatch({ type: ActionTypes.DELETE_ANSWER, payload: { answer } });
                 //dispatch({ type: ActionTypes.CLOSE_ANSWER_FORM })
-                await loadCats(); // reload
+                await loadShortGroups(); // reload
               }
               else {
                 dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error(msg) } });

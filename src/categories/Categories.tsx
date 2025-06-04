@@ -113,7 +113,7 @@ const Providered = ({ categoryId_questionId, fromChatBotDlg }: IProps) => {
                 <Row className={`${isDarkMode ? "dark" : ""}`}>
                     <Col>
                         <div className="d-flex justify-content-start align-items-center">
-                            <div className="w-75 my-1">
+                            <div className="w-75 my-1 questions">
                                 <AutoSuggestQuestions
                                     tekst={tekst}
                                     onSelectQuestion={onSelectQuestion}

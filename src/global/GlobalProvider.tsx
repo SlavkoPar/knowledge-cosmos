@@ -150,7 +150,7 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
               header,
               title,
               link,
-              titlesUpTheTree: '',
+              titlesUpTheTree,
               variations: variations,
               hasSubCategories: hasSubCategories,
               level,
@@ -181,15 +181,27 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
           console.log('questionRowDtos:', { dtos }, protectedResources.KnowledgeAPI.endpointCategory);
           console.timeEnd();
           if (dtos) {
-            const list: IQuestionRow[] = dtos.map((q: IQuestionRowDto) => ({
-              partitionKey: q.PartitionKey,
-              id: q.Id,
-              parentCategory: q.ParentCategory,
-              numOfAssignedAnswers: q.NumOfAssignedAnswers ?? 0,
-              title: q.Title,
-              categoryTitle: '',
-              isSelected: q.Included !== undefined
-            }))
+            const list: IQuestionRow[] = dtos.map((dto: IQuestionRowDto) => {
+              const { PartitionKey, Id, ParentCategory, Title, NumOfAssignedAnswers, Included } = dto;
+              return {
+                partitionKey: PartitionKey,
+                id: Id,
+                parentCategory: ParentCategory,
+                title: Title,
+                categoryTitle: '',
+                numOfAssignedAnswers: NumOfAssignedAnswers ?? 0,
+                isSelected: Included !== undefined
+              }
+            })
+            // const list: IQuestionRow[] = dtos.map((q: IQuestionRowDto) => ({
+            //   partitionKey: q.PartitionKey,
+            //   id: q.Id,
+            //   parentCategory: q.ParentCategory,
+            //   numOfAssignedAnswers: q.NumOfAssignedAnswers ?? 0,
+            //   title: q.Title,
+            //   categoryTitle: '',
+            //   isSelected: q.Included !== undefined
+            // }))
             resolve(list);
           }
           else {
@@ -246,7 +258,7 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
               header,
               title,
               level,
-              titlesUpTheTree: '',
+              titlesUpTheTree,
               hasSubGroups,
               kind: kind,
               isExpanded: false
@@ -334,28 +346,26 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
   //const searchAnswers = useCallback(async (execute: (method: string, endpoint: string) => Promise<any>, filter: string, count: number): Promise<any> => {
   const searchAnswers = async (filter: string, count: number): Promise<any> => {
     const { shortGroups } = globalState;
-
     return new Promise(async (resolve) => {
       try {
         console.time();
         const filterEncoded = encodeURIComponent(filter);
         const url = `${protectedResources.KnowledgeAPI.endpointAnswer}/${filterEncoded}/${count}/null`;
-        await Execute("GET", url).then((answerRowDtos: IAnswerRowDto[]) => {
-          console.log({ answerRowDtos }, protectedResources.KnowledgeAPI.endpointGroup);
+        await Execute("GET", url).then((dtos: IAnswerRowDto[]) => {
+          console.log('ANSWERSSSSS', { answerRowDtos: dtos }, protectedResources.KnowledgeAPI.endpointGroup);
           console.timeEnd();
-          if (answerRowDtos) {
-            const shortAnswers: IAnswerRow[] = answerRowDtos.map((shortAnswerDto: IAnswerRowDto) => {
-              const { PartitionKey, Id, ParentGroup, Title } = shortAnswerDto;
-              //const group = shortGroups.get(ParentGroup);
+          if (dtos) {
+            const list: IAnswerRow[] = dtos.map((dto: IAnswerRowDto) => {
+              const { PartitionKey, Id, ParentGroup, Title } = dto;
               return {
                 partitionKey: PartitionKey,
                 id: Id,
                 parentGroup: ParentGroup,
                 title: Title,
-                groupTitle: '' // group ? group.title : 'Not found'
+                groupTitle: ''
               }
             })
-            resolve(shortAnswers);
+            resolve(list);
           }
           else {
             // reject()

@@ -57,7 +57,7 @@ const SupportPage: React.FC = () => {
 			<Row className={`${isDarkMode ? "dark" : ""}`}>
 				<Col>
 					<div className="d-flex justify-content-start align-items-center">
-						<div className="w-75">
+						<div className="w-75 questions">
 							<AutoSuggestQuestions
 								tekst={tekst}
 								onSelectQuestion={onSelectQuestion}

@@ -118,6 +118,12 @@
 .react-autosuggest__suggestion--highlighted',
 */
 
+.light .answers .react-autosuggest__section-title {
+ 	color: rgb(13, 110, 253);
+ 	background-color: #E8EAFB;
+ 	/* #343a40; */
+ }
+
   .light .answers .react-autosuggest__section-title {
   	font-size: 14px;
   	font-weight: bold;
