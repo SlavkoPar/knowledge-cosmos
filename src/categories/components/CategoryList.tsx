@@ -1,38 +1,37 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { ListGroup } from "react-bootstrap";
 import CategoryRow from "categories/components/CategoryRow";
 import { CategoryKey, ICategory, IParentInfo } from "categories/types";
 import { useCategoryContext } from "categories/CategoryProvider";
 
 
-const CategoryList = ({ title, categoryKey, level }: IParentInfo) => {
+const CategoryList = ({ title, categoryKey, level, isExpanded }: IParentInfo) => {
     const { state, getSubCategories } = useCategoryContext();
-    const { categories, categoryKeyExpanded } = state;
-    // { error, }
-    const { partitionKey, id } = categoryKey;
-    const { questionId } = categoryKeyExpanded!;
+    const { categoryKeyExpanded } = state;
+    const { partitionKey, id, questionId } = categoryKeyExpanded!;
+
+    const [subCategories, setSubCategories] = useState<ICategory[]>([]);
 
     useEffect(() => {
         (async () => {
-            await getSubCategories(categoryKey)
-                .then((response: boolean) => {
-                });
+            //if (isExpanded) {
+                await getSubCategories(categoryKey)
+                    .then((list: ICategory[]) => {
+                        console.log("+++++++>>>>>>> CategoryList ", { categoryKey, list });
+                        setSubCategories(list)
+                    });
+            //}
         })()
-    }, [getSubCategories, categoryKey]);
-
-    const mySubCategories = categoryKey.id === 'null'
-        ? categories.filter(c => c.parentCategory === null)
-        : categories.filter(c => c.parentCategory === id);
-    // console.log("+++++++>>>>>>> CategoryList ", { categoryKey, mySubCategories });
+    }, [getSubCategories, categoryKey, isExpanded]);
 
     return (
         <div className={level! > 1 ? 'ms-2' : ''}>
             <>
                 <ListGroup as="ul" variant='dark' className="mb-0">
-                    {mySubCategories.map((c: ICategory) =>
+                    {subCategories.map((c: ICategory) =>
                         <CategoryRow
                             category={{ ...c, isSelected: c.id === id }}
-                            questionId={questionId}
+                            questionId={c.partitionKey === partitionKey && c.id === id ? questionId : null}
                             key={c.id}
                         />
                     )}

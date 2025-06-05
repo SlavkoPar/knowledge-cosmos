@@ -18,20 +18,23 @@ const AddCategory = ({ categoryKey, inLine }: { categoryKey: ICategoryKey, inLin
 
     const [formValues] = useState(category);
 
-    const submitForm = async (categoryObject: ICategory) => {
-        delete categoryObject.inAdding;
-        const object: ICategory = {
-            ...categoryObject,
-            partitionKey: categoryKey.partitionKey?? '',  // TODO proveri
-            id: categoryObject.title.split(' ')[0].toUpperCase(),
+    const submitForm = async (category: ICategory) => {
+        delete category.inAdding;
+        //const id = categoryObject.title.split(' ')[0].toUpperCase();
+        //const id = categoryObject.title.replace(' ', '_').toUpperCase();
+        // set { partitionKey, id } at server
+        const cat: ICategory = {
+            ...category,
+            //partitionKey: id,  // partitionKey is equal to id for categories
+            //id,
             created: {
                 time: new Date(),
                 nickName: nickName
             },
             modified: undefined
         }
-        console.log("**********object", object)
-        await createCategory(object);
+        console.log("**********object", cat)
+        await createCategory(cat);
     }
 
     return (

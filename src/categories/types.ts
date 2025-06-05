@@ -226,7 +226,7 @@ export class Category {
 				: undefined,
 			questionRows: dto.QuestionRowDtos
 				? dto.QuestionRowDtos.map(questionRowDto => new QuestionRow(questionRowDto/*, dto.Id*/).questionRow)
-				: []
+				: [],
 		}
 	}
 	category: ICategory;
@@ -395,6 +395,7 @@ export interface IParentInfo {
 	level?: number,
 	title?: string, // to easier follow getting the list of sub-categories
 	inAdding?: boolean,
+	isExpanded?: boolean
 }
 
 export interface ICategoriesState {

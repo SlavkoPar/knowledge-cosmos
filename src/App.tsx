@@ -24,7 +24,7 @@ function App() {
   console.log('-----------> App')
 
   const { getUser, OpenDB, setLastRouteVisited } = useGlobalContext();
-  const { dbp, authUser, isAuthenticated, everLoggedIn, catsLoaded, shortGroupsLoaded, lastRouteVisited } = useGlobalState()
+  const { dbp, authUser, isAuthenticated, everLoggedIn, catsLoaded, shortGroupsLoaded, lastRouteVisited, nodesReLoaded } = useGlobalState()
   const { nickName, role } = authUser;
 
   const formInitialValues = {
@@ -65,6 +65,8 @@ function App() {
 
   const searchParams = new URLSearchParams(location.search);
 
+  const showChatBotDlg = (locationPathname.startsWith('/categories') && catsLoaded) ||
+    (locationPathname.startsWith('/groups') && shortGroupsLoaded);
   useEffect(() => {
     (async () => {
       const isAuthRoute = locationPathname.startsWith('/invitation') ||
@@ -131,9 +133,16 @@ function App() {
           </div>
         </Col>
       </Row>
-          {/* {<ModalChatBot show={modalChatBotShow} onHide={()=>{ setModalChatBotShow(false) }} />} */}
-          {<ChatBotDlg show={modalChatBotShow} onHide={() => { setModalChatBotShow(false) }} />}
-          <Button onClick={() => setModalChatBotShow(!modalChatBotShow)} className="border rounded-5 me-1 mb-1 buddy-fixed"><b>Welcome,</b><br/> I am Stamena,<br/> and You are not.<br/>I am here to help You!</Button>
+      {/* {<ModalChatBot show={modalChatBotShow} onHide={()=>{ setModalChatBotShow(false) }} />} */}
+      {nodesReLoaded &&
+        <>
+          <ChatBotDlg show={modalChatBotShow} onHide={() => { setModalChatBotShow(false) }} />
+          <Button onClick={() => setModalChatBotShow(!modalChatBotShow)} className="border rounded-5 me-1 mb-1 buddy-fixed">
+            <b>Welcome,</b><br /> I am Stamena,<br /> and You are not.
+            <br />I am here to help You!
+          </Button>
+        </>
+      }
     </Container>
   );
 }

@@ -24,7 +24,7 @@ type Props = {
 
 export const GroupProvider: React.FC<Props> = ({ children }) => {
 
-  const { loadShortGroups } = useGlobalContext()
+  const { loadShortGroups, setNodesReloaded } = useGlobalContext()
   const globalState = useGlobalState();
   const { dbp, cats } = globalState;
 
@@ -106,7 +106,7 @@ export const GroupProvider: React.FC<Props> = ({ children }) => {
               groupKeyExpanded.partitionKey = cat.partitionKey;
             }
             else {
-              alert('reload cats' + id)
+              alert('reload goups' + id)
               //return
             }
           }
@@ -158,6 +158,7 @@ export const GroupProvider: React.FC<Props> = ({ children }) => {
           console.timeEnd();
           const subGroups = groupDtos!.map((groupDto: IGroupDto) => new Group(groupDto).group);
           dispatch({ type: ActionTypes.SET_SUB_GROUPS, payload: { subGroups } });
+          setTimeout(() => setNodesReloaded(), 5000); // TODO actually when last node has been loaded
           resolve(true);
         });
       }

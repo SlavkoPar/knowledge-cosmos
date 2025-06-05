@@ -9,15 +9,20 @@ const QuestionList = ({ title, categoryKey, level }: IParentInfo) => {
 
   const { state, loadCategoryQuestions } = useCategoryContext();
   const { categories, categoryKeyExpanded, questionLoading, error } = state;
-
-  const category: ICategory = categories.find(c => c.id === categoryKey.id)!;
-  const { partitionKey, id, questionRows, numOfQuestions, hasMoreQuestions } = category;
-
   const { questionId } = categoryKeyExpanded!;
 
-  console.assert(partitionKey === category.partitionKey);
-
-  console.log('^^^^^^^^^^^^^ QuestionList', questionRows)
+  let numOfQuestions = 0;
+  let questionRows: IQuestionRow[] = [];
+  let hasMoreQuestions = false;
+  const category: ICategory = categories.find(c => c.id === categoryKey.id)!;
+  if (category) { // CLEAN_SUB_TREE could have removed it
+    numOfQuestions = category.numOfQuestions;
+    questionRows = category.questionRows;
+    hasMoreQuestions = category.hasMoreQuestions??false;
+    const { partitionKey, id } = category;
+    console.assert(partitionKey === category.partitionKey);
+    console.log('^^^^^^^^^^^^^ QuestionList', questionRows)
+  }
 
   async function loadMore() {
     try {
@@ -43,6 +48,7 @@ const QuestionList = ({ title, categoryKey, level }: IParentInfo) => {
     }
   }, [numOfQuestions])
 
+  
   const [infiniteRef, { rootRef }] = useInfiniteScroll({
     loading: questionLoading,
     hasNextPage: hasMoreQuestions!,

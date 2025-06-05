@@ -142,9 +142,6 @@ export interface IShortGroup {
 	isExpanded: boolean;
 }
 
-
-
-
 export interface IGlobalState {
 	isAuthenticated: boolean | null;
 	dbp: IDBPDatabase | null;
@@ -161,6 +158,7 @@ export interface IGlobalState {
 	catsLoaded?: number;
 	shortGroups: Map<string, IShortGroup>;
 	shortGroupsLoaded?: number;
+	nodesReLoaded: boolean; // categoryNodeLoaded || groupNodeLoaded  ( to prevent showing of ChatBotDlg)
 	lastRouteVisited: string
 }
 
@@ -186,12 +184,12 @@ export interface IGlobalContext {
 	OpenDB: () => Promise<any>;
 	setLastRouteVisited: (lastRouteVisited: string) => void;
 	health: () => void;
-	loadCats: () => void;
+	loadCats: () => Promise<boolean>;
 	getSubCats: (categoryId: string | null) => Promise<any>;
 	getCatsByKind: (kind: number) => Promise<ICat[]>;
 	searchQuestions: (filter: string, count: number) => Promise<IQuestionRow[]>;
 	getQuestion: (questionKey: IQuestionKey) => Promise<IQuestionEx>;
-	loadShortGroups: () => void;
+	loadShortGroups: () => Promise<boolean>;
 	getSubShortGroups: (categoryId: string | null) => Promise<any>;
 	getGroupsByKind: (kind: number) => Promise<IShortGroup[]>;
 	searchAnswers: (filter: string, count: number) => Promise<IAnswerRow[]>;
@@ -199,6 +197,7 @@ export interface IGlobalContext {
 	addHistory: (history: IHistory) => Promise<void>;
 	getAnswersRated: (questionKey: IQuestionKey) => Promise<any>;
 	addHistoryFilter: (historyFilterDto: IHistoryFilterDto) => Promise<void>;
+	setNodesReloaded: () => void;
 }
 
 export enum GlobalActionTypes {
@@ -211,6 +210,7 @@ export enum GlobalActionTypes {
 	LIGHT_MODE = "LIGHT_MODE",
 	SET_ALL_CATS = 'SET_ALL_CATS',
 	SET_ALL_SHORT_GROUPS = 'SET_ALL_SHORT_GROUPS',
+	SET_NODES_RELOADED = 'SET_NODES_RELOADED',
 	SET_QUESTION_AFTER_ASSIGN_ANSWER = 'SET_QUESTION_AFTER_ASSIGN_ANSWER',
 	SET_LAST_ROUTE_VISITED = 'SET_LAST_ROUTE_VISITED'
 }
@@ -280,6 +280,8 @@ export type GlobalPayload = {
 	[GlobalActionTypes.SET_ALL_SHORT_GROUPS]: {
 		shortGroups: Map<string, IShortGroup>
 	};
+
+	[GlobalActionTypes.SET_NODES_RELOADED]: undefined;
 
 	[GlobalActionTypes.SET_QUESTION_AFTER_ASSIGN_ANSWER]: {
 		question: IQuestion

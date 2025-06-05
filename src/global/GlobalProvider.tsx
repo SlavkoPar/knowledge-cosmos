@@ -112,26 +112,28 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
   // ---------------------------
   const loadCats = useCallback(async (): Promise<any> => {
     const { catsLoaded } = globalState;
-    if (catsLoaded) {
-      var diffMs = (Date.now() - catsLoaded!); // milliseconds between
-      var diffMins = Math.round(((diffMs % 86400000) % 3600000) / 60000); // minutes
-      console.log({ diffMins })
-      if (diffMins < 30)
-        return;
-    }
+    // if (catsLoaded) {
+    //   var diffMs = (Date.now() - catsLoaded!); // milliseconds between
+    //   var diffMins = Math.round(((diffMs % 86400000) % 3600000) / 60000); // minutes
+    //   console.log({ diffMins })
+    //   if (diffMins < 30)
+    //     return;
+    // }
     return new Promise(async (resolve) => {
       try {
         console.time();
-        await Execute("GET", protectedResources.KnowledgeAPI.endpointCategory, null).then((response: ICategoryDto[] | Response) => {
-          console.log({ response }, protectedResources.KnowledgeAPI.endpointCategory)
+        const url = protectedResources.KnowledgeAPI.endpointCategory;
+        await Execute("GET", url, null)
+                .then((categoryDtos: ICategoryDto[]) => {   //  | Response
+          console.log('loadCats', protectedResources.KnowledgeAPI.endpointCategory)
           const categories = new Map<string, ICategory>();
           const cats = new Map<string, ICat>();
           console.timeEnd();
-          if (response instanceof Response) {
-            throw (response);
-          }
-          const data: ICategoryDto[] = response;
-          data.forEach((categoryDto: ICategoryDto) => categories.set(categoryDto.Id, new Category(categoryDto).category));
+          // if (categoryDtos instanceof Response) {
+          //   throw (categoryDtos);
+          // }
+          //const data: ICategoryDto[] = categoryDtos;
+          categoryDtos.forEach((categoryDto: ICategoryDto) => categories.set(categoryDto.Id, new Category(categoryDto).category));
           //
           categories.forEach(category => {
             let { partitionKey, id, parentCategory, header, title, link, variations, hasSubCategories, level, kind } = category;
@@ -160,6 +162,7 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
             cats.set(id, cat);
           })
           dispatch({ type: GlobalActionTypes.SET_ALL_CATS, payload: { cats } });
+          resolve(true)
         });
       }
       catch (error: any) {
@@ -218,28 +221,25 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
   }
   //}, []);
 
-  const loadShortGroups = useCallback(async (): Promise<any> => {
+  const loadShortGroups = useCallback(async (): Promise<boolean> => {
     const { shortGroupsLoaded } = globalState;
-    if (shortGroupsLoaded) {
-      var diffMs = (Date.now() - shortGroupsLoaded!); // milliseconds between
-      var diffMins = Math.round(((diffMs % 86400000) % 3600000) / 60000); // minutes
-      console.log({ diffMins })
-      if (diffMins < 30)
-        return;
-    }
+    // if (shortGroupsLoaded) {
+    //   var diffMs = (Date.now() - shortGroupsLoaded!); // milliseconds between
+    //   var diffMins = Math.round(((diffMs % 86400000) % 3600000) / 60000); // minutes
+    //   console.log({ diffMins })
+    //   if (diffMins < 30)
+    //     return;
+    // }
     return new Promise(async (resolve) => {
       try {
         console.time();
-        await Execute("GET", protectedResources.KnowledgeAPI.endpointGroup, null).then((response: IGroupDto[] | Response) => {
-          console.log({ response }, protectedResources.KnowledgeAPI.endpointShortGroup)
+        await Execute("GET", protectedResources.KnowledgeAPI.endpointGroup, null)
+          .then((groupDtos: IGroupDto[]) => {
+          console.log({ groupDtos }, protectedResources.KnowledgeAPI.endpointShortGroup)
           const groups = new Map<string, IGroup>();
           const shortGroups = new Map<string, IShortGroup>();
           console.timeEnd();
-          if (response instanceof Response) {
-            throw (response);
-          }
-          const data: IGroupDto[] = response;
-          data.forEach((groupDto: IGroupDto) => groups.set(groupDto.Id, new Group(groupDto).group));
+          groupDtos.forEach((groupDto: IGroupDto) => groups.set(groupDto.Id, new Group(groupDto).group));
           //
           groups.forEach(group => {
             const { partitionKey, id, parentGroup, header, title, link, level, variations, hasSubGroups, kind } = group;
@@ -266,13 +266,14 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
             shortGroups.set(id, shortGroup);
           })
           dispatch({ type: GlobalActionTypes.SET_ALL_SHORT_GROUPS, payload: { shortGroups } });
+          resolve(true)
         });
       }
       catch (error: any) {
         console.log(error)
         dispatch({ type: GlobalActionTypes.SET_ERROR, payload: { error } });
       }
-      resolve(true);
+      resolve(false);
     });
   }, [dispatch]);
 
@@ -385,9 +386,8 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
   const OpenDB = useCallback(async (): Promise<any> => {
     try {
       await loadCats();
-      console.log(111111111111)
       //await loadShortGroups();
-      console.log(22222)
+      console.log('*** loadCats')
       return true;
     }
     catch (err: any) {
@@ -563,6 +563,12 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
     //     console.log(err);
     //   });
   };
+
+  const setNodesReloaded = () => {
+    if (!globalState.nodesReLoaded) {
+      dispatch({ type: GlobalActionTypes.SET_NODES_RELOADED })
+    }
+  }
 
   const getAnswer = async (answerKey: IAnswerKey): Promise<any> => {
     return new Promise(async (resolve) => {
@@ -776,6 +782,7 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
       getUser, health,
       loadCats, getSubCats, getCatsByKind, searchQuestions, getQuestion,
       loadShortGroups, getSubShortGroups, getGroupsByKind, searchAnswers, getAnswer,
+      setNodesReloaded,
       addHistory, getAnswersRated, addHistoryFilter
     }}>
       <GlobalDispatchContext.Provider value={dispatch}>

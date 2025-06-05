@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { MouseEventHandler, useEffect, useState } from "react";
 import { Button, ListGroup, Modal } from "react-bootstrap";
 import { IAssignedAnswer, IQuestionKey } from "categories/types";
 import { useCategoryContext } from "categories/CategoryProvider";
@@ -66,14 +66,12 @@ const AssignedAnswers = ({ questionKey, questionTitle, assignedAnswers, isDisabl
         //setShowAssign(false);
     }
 
-    useEffect(() => {
+    const handleNewAnswer = () => {
         if (!shortGroupsLoaded) {
             loadShortGroups();
         }
-    }, [])
-
-    if (!shortGroupsLoaded)
-        return null;
+        setShowAssign(true);
+    }
 
     return (
         <div className={'mx-0 my-0 border rounded-2 px-1 py-1 border border-info bg-info'} >
@@ -103,12 +101,8 @@ const AssignedAnswers = ({ questionKey, questionTitle, assignedAnswers, isDisabl
                         style={{ border: '1px solid silver', fontSize: '12px' }}
                         variant={variant}
                         disabled={isDisabled}
-                        onClick={
-                            (e) => {
-                                setShowAssign(true);
-                                e.preventDefault()
-                            }
-                        }>
+                        onClick={handleNewAnswer} // event.preventDefault()}
+                    >
                         Assign answer
                     </Button>
                     <Button
@@ -178,7 +172,7 @@ const AssignedAnswers = ({ questionKey, questionTitle, assignedAnswers, isDisabl
 
                 </Modal.Body>
             </Modal>
-        </div>
+        </div >
     );
 };
 

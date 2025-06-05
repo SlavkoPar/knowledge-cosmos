@@ -26,7 +26,7 @@ type Props = {
 
 export const CategoryProvider: React.FC<Props> = ({ children }) => {
 
-  const { loadCats } = useGlobalContext()
+  const { loadCats, setNodesReloaded } = useGlobalContext()
   const globalState = useGlobalState();
   const { dbp, cats } = globalState;
 
@@ -97,16 +97,17 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
   // }, [dispatch]);
 
   const reloadCategoryNode = useCallback(
-    async (categoryKeyExpanded: ICategoryKeyExpanded, fromChatBotDlg: string = 'false'): Promise<any> => {
+    async (catKeyExp: ICategoryKeyExpanded, fromChatBotDlg: string = 'false'): Promise<any> => {
       return new Promise(async (resolve) => {
         try {
-          console.log('---CategoryProvider.reloadCategoryNode categoryKeyExpanded:', categoryKeyExpanded)
-          let { id, partitionKey } = categoryKeyExpanded;
-          if (id) {
+          console.log('---CategoryProvider.reloadCategoryNode categoryKeyExpanded:', catKeyExp)
+          let { id, partitionKey } = catKeyExp;
+          console.assert(id);
+          if (id && partitionKey === '') {
             const cat: ICat | undefined = cats.get(id);
             console.log("rrrrrrrrrrrrrrrrrreloadCategoryNode", id, cat)
             if (cat) {
-              categoryKeyExpanded.partitionKey = cat.partitionKey;
+              catKeyExp.partitionKey = cat.partitionKey;
               partitionKey = cat.partitionKey;
             }
             else {
@@ -118,7 +119,6 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
           //dispatch({ type: ActionTypes.CLEAN_SUB_TREE, payload: { categoryKey: null/*new CategoryKey(parentCat).categoryKey*/ } });
           // ---------------------------------------------------------------------------
           console.time();
-
           //const query = categoryKey ? `${categoryKey.partitionKey}/${categoryKey.id}` : 'null/null';
           //const query = `${partitionKey}/${id}`;
           const url = `${protectedResources.KnowledgeAPI.endpointCat}/${partitionKey}/${id}`;
@@ -134,7 +134,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
               })
               dispatch({
                 type: ActionTypes.SET_CATEGORY_NODES_UP_THE_TREE, payload: {
-                  categoryKeyExpanded,
+                  categoryKeyExpanded: catKeyExp,
                   categoryNodesUpTheTree,
                   fromChatBotDlg: fromChatBotDlg === 'true'
                 }
@@ -158,12 +158,14 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
         const url = `${protectedResources.KnowledgeAPI.endpointCategory}/${partitionKey}/${id}`;
         console.log('CategoryProvider getSubCategories url:', url)
         console.time();
-        await Execute("GET", url).then((categoryDtos: ICategoryDto[]) => {
-          console.timeEnd();
-          const subCategories = categoryDtos!.map((categoryDto: ICategoryDto) => new Category(categoryDto).category);
-          dispatch({ type: ActionTypes.SET_SUB_CATEGORIES, payload: { subCategories } });
-          resolve(true);
-        });
+        await Execute("GET", url)
+          .then((dtos: ICategoryDto[]) => {
+            console.timeEnd();
+            const subCategories = dtos!.map((dto: ICategoryDto) => new Category(dto).category);
+            dispatch({ type: ActionTypes.SET_SUB_CATEGORIES, payload: { subCategories } });
+            //setTimeout(() => setNodesReloaded(), 5000); // TODO actually when last node has been loaded
+            resolve(subCategories);
+          });
       }
       catch (error: any) {
         console.log(error)
@@ -183,17 +185,21 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
         const url = `${protectedResources.KnowledgeAPI.endpointCategory}`;
         console.time()
         await Execute("POST", url, categoryDto, id)
-          .then(async (categoryDtoEx: ICategoryDtoEx | null) => {
+          .then(async (categoryDtoEx: ICategoryDtoEx) => {   //  | null
             console.timeEnd();
-            if (categoryDtoEx) {
-              const { categoryDto } = categoryDtoEx;
-              if (categoryDto) {
-                const category = new Category(categoryDto).category;
-                console.log('Category successfully created')
-                dispatch({ type: ActionTypes.SET_ADDED_CATEGORY, payload: { category: { ...category, questionRows: [] } } });
-                dispatch({ type: ActionTypes.CLOSE_CATEGORY_FORM })
-                await loadCats(); // reload
-              }
+            const { categoryDto } = categoryDtoEx;
+            if (categoryDto) {
+              const category = new Category(categoryDto).category;
+              const parentCategoryKey: ICategoryKey = { partitionKey: category.parentCategory, id: category.parentCategory };
+              console.log('Category successfully created', {category})
+              //dispatch({ type: ActionTypes.SET_ADDED_CATEGORY, payload: { category: { ...category, questionRows: [] } } });
+              dispatch({ type: ActionTypes.CLEAN_SUB_TREE, payload: { categoryKey: parentCategoryKey } });
+              dispatch({ type: ActionTypes.CLOSE_CATEGORY_FORM })
+              await loadCats()
+                .then(done => {
+                  const catKeyExp: ICategoryKeyExpanded = { ...new CategoryKey(category).categoryKey!, questionId: '' }
+                  reloadCategoryNode(catKeyExp);
+                })
             }
           });
       }
@@ -492,7 +498,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
             if (questionDto) {
               questionRet = new Question(questionDto).question;
               console.log('Question successfully updated: ', questionRet)
-              const { partitionKey, parentCategory} = questionRet;
+              const { partitionKey, parentCategory } = questionRet;
               if (categoryChanged) {
                 const catKeyExpanded: ICategoryKeyExpanded = {
                   partitionKey,

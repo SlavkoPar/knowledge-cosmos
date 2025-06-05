@@ -25,6 +25,7 @@ const initGlobalState: IGlobalState = {
     catsLoaded: undefined,
     shortGroups: new Map<string, IShortGroup>(),
     shortGroupsLoaded: undefined,
+    nodesReLoaded: false,
     lastRouteVisited: '/categories'
 }
 
@@ -181,7 +182,7 @@ const reducer: Reducer<IGlobalState, GlobalActions> = (state, action) => {
 
         case GlobalActionTypes.SET_ALL_CATS: {
             const { cats } = action.payload;
-            console.log("loadCats SET_ALL_CATS", cats)
+            console.log("GlobalActionTypes.SET_ALL_CATS", cats)
             return {
                 ...state,
                 cats,
@@ -198,6 +199,14 @@ const reducer: Reducer<IGlobalState, GlobalActions> = (state, action) => {
                 shortGroupsLoaded: Date.now()
             };
         }
+
+        case GlobalActionTypes.SET_NODES_RELOADED: {
+            return {
+                ...state,
+                nodesReLoaded: true
+            };
+        }
+
 
         default: {
             throw Error('Unknown action: ' + str);

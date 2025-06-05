@@ -266,7 +266,7 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
       const { category } = action.payload;
       return {
         ...state,
-        categories: state.categories.map((c: ICategory) => c.inAdding ? category : c),
+        categories: state.categories.map((c: ICategory) => c.inAdding ? {...category, inAdding: false} : c),
         mode: Mode.NULL,
         loading: false
       }
@@ -425,14 +425,14 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
 
       const ids = markForClean(categories, categoryKey.id)
       console.log('clean:', ids)
-      if (ids.length > 0) {
-        categories = categories.filter(c => !ids.includes(c.id))
-      }
-      return {
+
+      const cats = ids.length > 0 ? categories.filter(c => !ids.includes(c.id)) : categories
+
+      const x = {
         ...state,
-        categories: categories.map((c: ICategory) => c.id === id
+        categories: cats.map((c: ICategory) => c.id === id
           ? { ...c, isExpanded: false }
-          : c
+          : { ...c }
         ),
         loading: false,
         //mode: state.mode,// expanding ? state.mode : Mode.NULL,  // TODO  close form only if inside of colapsed node
@@ -441,6 +441,7 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
 
         //categoryNodeLoaded: true // prevent reloadCategoryNode
       };
+      return x;
     }
 
     // First we add a new question to the category.guestions

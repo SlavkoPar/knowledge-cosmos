@@ -36,9 +36,12 @@ const AboutShort: React.FC<IAboutShort> = (props: IAboutShort) => {
         <div className="card card-block col-5 m-3">
           <div className="card-body">
             <h5 className="card-title">Knowledge is asset for each company</h5>
-            <h6 className="card-subtitle mb-2 text-muted">Do your Q/A maintenance using our app, at Microsoft Cloud Azure Platform</h6>
+            <h6 className="card-subtitle mb-2 text-muted">Use our App for maintenace of your Q/A</h6>
             <p className="card-text">
-              Integrate our <b>ChatBot JavaScript Library</b> at your site.
+              <ul className="m-3">
+                <li>Q/A will be safe at Microsoft Cloud Azure Platform</li>
+                <li>Just integrate our <i>'ChatBot JavaScript Library'</i> at your site</li>
+              </ul>
             </p>
           </div>
         </div>

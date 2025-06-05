@@ -140,7 +140,7 @@ const Providered = ({ categoryId_questionId, fromChatBotDlg }: IProps) => {
                 <Row className="my-1">
                     <Col xs={12} md={5}>
                         <div>
-                            <CategoryList categoryKey={catKeyExpanded} level={0} title="root" />
+                            <CategoryList categoryKey={catKeyExpanded} level={0} title="root" isExpanded={true} />
                         </div>
                     </Col>
                     <Col xs={0} md={7}>

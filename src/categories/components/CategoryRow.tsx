@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit, faRemove, faCaretRight, faCaretDown, faPlus, faFolder } from '@fortawesome/free-solid-svg-icons'
@@ -17,9 +16,10 @@ import EditCategory from "categories/components/EditCategory";
 import ViewCategory from "categories/components/ViewCategory";
 import QuestionList from './questions/QuestionList';
 
-const CategoryRow = ({ category, questionId }: { category: ICategory, questionId: string | null }) => {
-    const { partitionKey, id, title, level, hasSubCategories, numOfQuestions, questionRows,
-                inAdding,  isExpanded, isSelected } = category;
+const CategoryRow = ({ category, questionId }: { category: ICategory, questionId: string|null }) => {
+    
+    const { partitionKey, id, title, level, hasSubCategories, 
+            numOfQuestions, questionRows, inAdding,  isExpanded, isSelected } = category;
     const [categoryKey] = useState<ICategoryKey>({ partitionKey, id }); // otherwise reloads
     const [categoryKeyExpanded] = useState<ICategoryKeyExpanded>({ partitionKey, id, questionId }); // otherwise reloads
 
@@ -45,13 +45,14 @@ const CategoryRow = ({ category, questionId }: { category: ICategory, questionId
         deleteCategory(category);
     };
 
-    const expand = async () => {
+    const handleExpandClick = async () => {
         if (isExpanded)
             await collapseCategory(categoryKey);
         else
             await expandCategory(categoryKey, questionId ?? 'null');
     }
 
+   
     const edit = async () => {
         // Load data from server and reinitialize category
         await editCategory(categoryKey, questionId ?? 'null');
@@ -68,7 +69,7 @@ const CategoryRow = ({ category, questionId }: { category: ICategory, questionId
         if (!isExpanded && isSelected) {
             onSelectCategory()
         }
-    }, [isExpanded, isSelected])
+    }, [isExpanded, isSelected, onSelectCategory])
 
     const [hoverRef, hoverProps] = useHover();
 
@@ -79,7 +80,7 @@ const CategoryRow = ({ category, questionId }: { category: ICategory, questionId
                 variant='link'
                 size="sm"
                 className="py-0 px-1  bg-light"
-                onClick={expand}
+                onClick={( e) => { handleExpandClick(); e.stopPropagation()} }
                 title="Expand"
                 disabled={alreadyAdding || (!hasSubCategories && numOfQuestions === 0)}
             >
@@ -89,7 +90,7 @@ const CategoryRow = ({ category, questionId }: { category: ICategory, questionId
                 variant='link'
                 size="sm"
                 className="py-0 px-1  bg-light"
-                onClick={expand}
+                // onClick={expand}
                 title="Expand"
                 disabled= {true} //{alreadyAdding || (!hasSubCategories && numOfQuestions === 0)}
             >
@@ -216,7 +217,7 @@ const CategoryRow = ({ category, questionId }: { category: ICategory, questionId
                     {isExpanded &&
                         <>
                             { hasSubCategories &&
-                                <CategoryList level={level + 1} categoryKey={categoryKey} title={title} />
+                                <CategoryList level={level + 1} categoryKey={categoryKey} title={title} isExpanded={isExpanded} />
                             }
                             { showQuestions &&
                                 <QuestionList level={level + 1} categoryKey={categoryKey} title={title} />
