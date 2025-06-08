@@ -1,5 +1,6 @@
 import { Reducer } from 'react'
-import { Mode, ActionTypes, ICategoriesState, ICategory, IQuestion, CategoriesActions, ILocStorage, ICategoryKey, ICategoryKeyExtended, IQuestionRow, Question, IQuestionRowDto, IQuestionKey, CategoryKey, QuestionKey } from "categories/types";
+import { Mode, ActionTypes, ICategoriesState, ICategory, IQuestion, CategoriesActions, ILocStorage, ICategoryKey, ICategoryKeyExtended, IQuestionRow, Question, IQuestionRowDto, IQuestionKey, CategoryKey, QuestionKey, ICategoryDto, QuestionRow } from "categories/types";
+import { Dto2WhoWhen } from 'global/types';
 
 export const initialQuestion: IQuestion = {
   partitionKey: '',
@@ -25,8 +26,10 @@ export const initialCategory: ICategory = {
   header: '',
   level: 0,
   variations: [],
+  rootId: '',
   parentCategory: 'null',
   hasSubCategories: false,
+  subCategories: [],
   questionRows: [],
   numOfQuestions: 0,
   hasMoreQuestions: false,
@@ -153,13 +156,23 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
     }
 
     case ActionTypes.SET_CATEGORY_NODES_UP_THE_TREE: {
-      const { categoryNodesUpTheTree, categoryKeyExpanded, fromChatBotDlg } = action.payload;
+      // const { categoryNodesUpTheTree, categoryKeyExpanded, fromChatBotDlg } = action.payload;
+      const { categoryKeyExpanded, fromChatBotDlg, category } = action.payload;
       const { id, questionId } = categoryKeyExpanded;
       console.log('====== >>>>>>> CategoriesReducer ActionTypes.SET_CATEGORY_NODES_UP_THE_TREE payload ', action.payload)
+      //const mts = state.categories.find(c => c.id === 'MTS')!
+
+      // const cats = dddeepClone(mts, category!);
+      const categories: ICategory[] = state.categories.map(c => c.id === 'MTS'
+          ? { ...category }
+          : { ...c }
+        )
+
       return {
         ...state,
-        categories: fromChatBotDlg ? [] : [...state.categories],
-        categoryNodesUpTheTree,
+        categories,
+        //categories: fromChatBotDlg ? [] : [...state.categories],
+        // categoryNodesUpTheTree,
         categoryId_questionId_done: `${id}_${questionId}`,
         categoryNodeLoading: false,
         categoryNodeLoaded: true,
@@ -170,26 +183,34 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
     }
 
     case ActionTypes.SET_SUB_CATEGORIES: {
-      const { subCategories } = action.payload;
+      const { id, subCategories } = action.payload;
       const { categoryNodesUpTheTree, categories } = state;
-      const ids = categoryNodesUpTheTree.map(c => c.id);
+      //const ids = categoryNodesUpTheTree.map(c => c.id);
       let idRemove: string = '';
-      console.log('===========>>>>>>>>>> CategoriesReducer ActionTypes.SET_SUB_CATEGORIES', { ids, subCategories })
+      //const mts = subCategories.find(c => c.id === 'MTS')!
+      // mts.subCategories = [ {...initialCategory, id: '111'} , {...initialCategory, id:'222'} ]
+      // const z = deepClone(mts);
+      console.log('===========>>>>>>>>>> CategoriesReducer ActionTypes.SET_SUB_CATEGORIES', { subCategories })
+      //const cat: ICategory | undefined = findCategory(categories, id);
+      //console.log("))))))))))))))))))))))))ActionTypes.SET_SUB_CATEGORIES findCategory:", { id, cat })
+      //if (cat) {
+      //  cat.subCategories = subCategories;
+      //}
       subCategories.forEach((subCategory: ICategory) => {
         const { id, hasSubCategories, numOfQuestions } = subCategory;
-        if (ids.length > 0) {
-          if (ids.includes(id)) {
-            idRemove = id;
-            if (hasSubCategories || numOfQuestions > 0) {
-              subCategory.isExpanded = true;
-              subCategory.isSelected = false;
-            }
-            else {
-              subCategory.isExpanded = false;
-              subCategory.isSelected = true;
-            }
-          }
+        //if (ids.length > 0) {
+        //  if (ids.includes(id)) {
+        idRemove = id;
+        if (hasSubCategories || numOfQuestions > 0) {
+          subCategory.isExpanded = true;
+          subCategory.isSelected = false;
         }
+        else {
+          subCategory.isExpanded = false;
+          subCategory.isSelected = true;
+        }
+        //}
+        //}
       })
       return {
         ...state,
@@ -266,7 +287,7 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
       const { category } = action.payload;
       return {
         ...state,
-        categories: state.categories.map((c: ICategory) => c.inAdding ? {...category, inAdding: false} : c),
+        categories: state.categories.map((c: ICategory) => c.inAdding ? { ...category, inAdding: false } : c),
         mode: Mode.NULL,
         loading: false
       }
@@ -403,14 +424,21 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
 
     case ActionTypes.SET_EXPANDED: {
       const { categoryKey } = action.payload;
+      const { id } = categoryKey;
       let { categories } = state;
       console.log('ActionTypes.SET_EXPANDED:', { categoryKey })
+      const cat: ICategory | undefined = findCategory(categories, id);
+      console.log("---))) ActionTypes.SET_EXPANDED findCategory:", { id, cat })
+      if (cat) {
+        cat.isExpanded = true;  // TODO do not change redux history
+      }
+
       return {
         ...state,
-        categories: categories.map((c: ICategory) => c.id === categoryKey.id
-          ? { ...c, isExpanded: true }
-          : c
-        ),
+        // categories: categories.map((c: ICategory) => c.id === categoryKey.id
+        //   ? { ...c, isExpanded: true }
+        //   : c
+        // ),
         loading: false,
         mode: Mode.NULL, // : state.mode,// expanding ? state.mode : Mode.NULL,  // TODO  close form only if inside of colapsed node
         categoryKeyExpanded: { ...categoryKey, questionId: null },
@@ -660,6 +688,25 @@ function resetRows(categories: ICategory[],
   )
 }
 
+function findCategory(categories: ICategory[], id: string | null): ICategory | undefined {
+  let cat: ICategory | undefined = categories.find(c => c.id === (id ?? 'null'));
+  if (!cat) {
+    try {
+      categories.forEach(c => {
+        cat = findCategory(c.subCategories, id);
+        if (cat) {
+          throw new Error("Stop the loop");
+        }
+      })
+    }
+    catch (e) {
+      console.log("Loop stopped");
+    }
+  }
+  return cat;
+}
+
+
 function markForClean(categories: ICategory[], id: string | null) {
   let deca = categories
     .filter(c => c.parentCategory === id)
@@ -672,16 +719,40 @@ function markForClean(categories: ICategory[], id: string | null) {
   return deca
 }
 
-// class QuestionRow {
-//   constructor(question: IQuestion) {
-//     const {partitionKey, id, parentCategory, numOfAssignedAnswers, title} = question;
-//     this.questionRow = {
-//       partitionKey,
-//       id,
-//       parentCategory,
-//       title,
-//       numOfAssignedAnswers
-//     }
-//   }
-//   questionRow: IQuestionRow
-// }
+export class DeepClone {
+  constructor(dto: ICategoryDto) {
+    const { PartitionKey, Id, Kind, RootId, ParentCategory, Title, Link, Header, Level, Variations, NumOfQuestions,
+            HasSubCategories, SubCategories, Created, Modified, QuestionRowDtos, IsExpanded } = dto;
+
+    const subCategories = SubCategories!.length === 0
+      ? []
+      : SubCategories!.map((dto: ICategoryDto) => {
+        return new DeepClone(dto).category;
+      })
+    this.category = {
+      partitionKey: PartitionKey,
+      id: Id,
+      kind: Kind,
+      rootId: RootId!,
+      parentCategory: ParentCategory!,
+      title: Title,
+      link: Link,
+      header: Header,
+      level: Level!,
+      variations: Variations ?? [],
+      numOfQuestions: NumOfQuestions!,
+      hasSubCategories: HasSubCategories!,
+      subCategories,
+      created: new Dto2WhoWhen(Created!).whoWhen,
+      modified: Modified
+        ? new Dto2WhoWhen(Modified).whoWhen
+        : undefined,
+      questionRows: QuestionRowDtos
+        ? QuestionRowDtos.map(questionRowDto => new QuestionRow(questionRowDto/*, dto.Id*/).questionRow)
+        : [],
+      isExpanded: IsExpanded === true
+    }
+  }
+  category: ICategory;
+}
+

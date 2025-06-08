@@ -42,11 +42,13 @@ const QuestionList = ({ title, categoryKey, level }: IParentInfo) => {
     }
   }
 
+  /* OZIVI
   useEffect(() => {
     if (numOfQuestions > 0 && questionRows.length === 0) { // TODO
       loadMore();
     }
   }, [numOfQuestions])
+  */
 
   
   const [infiniteRef, { rootRef }] = useInfiniteScroll({

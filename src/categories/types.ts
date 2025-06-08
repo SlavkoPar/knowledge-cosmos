@@ -134,27 +134,29 @@ export interface IVariation {
 	name: string;
 }
 
+
+// export interface ICategory extends ICategoryRow {
 export interface ICategory extends IRecord {
 	partitionKey: string; // | null is a valid value so you can store data with null value in indexeddb 
 	id: string;
 	kind: number;
+	rootId: string;
 	parentCategory: string | null; // | null is a valid value so you can store data with null value in indexeddb 
 	title: string;
 	link: string | null;
 	header: string;
 	level: number;
+	hasSubCategories: boolean;
+	subCategories: ICategory[];
 	variations: string[];
-	questionRows: IQuestionRow[];
 	numOfQuestions: number;
+	questionRows: IQuestionRow[];
 	hasMoreQuestions?: boolean;
 	isExpanded?: boolean;
 	isSelected?: boolean; // when category has no subCategories
-	hasSubCategories: boolean;
 	titlesUpTheTree?: string;
 }
 
-// export interface ICategory extends ICategoryRow {
-// }
 
 
 export class QuestionRow {
@@ -195,7 +197,7 @@ export class QuestionRowDto {
 
 
 export class CategoryKey {
-	constructor(cat: ICat | ICategory | undefined) {
+	constructor(cat: ICat | ICategory | ICategoryKeyExtended) {
 		this.categoryKey = cat
 			? {
 				partitionKey: cat.partitionKey,
@@ -206,32 +208,65 @@ export class CategoryKey {
 	categoryKey: ICategoryKey | null;
 }
 
+
+
+
+export interface ICategoryDto extends IRecordDto {
+	PartitionKey: string;
+	Id: string;
+	Kind: number;
+	RootId?: string;
+	ParentCategory: string | null;
+	Title: string;
+	Link: string | null;
+	Header: string;
+	Variations: string[];
+	Level: number;
+	HasSubCategories?: boolean;
+	SubCategories?: ICategoryDto[];
+	NumOfQuestions?: number;
+	QuestionRowDtos?: IQuestionRowDto[];
+	HasMoreQuestions?: boolean;
+	IsExpanded?: boolean;
+}
+
 export class Category {
 	constructor(dto: ICategoryDto) {
+		const { PartitionKey, Id, Kind, RootId, ParentCategory, Title, Link, Header, Level, Variations, NumOfQuestions,
+				  HasSubCategories, SubCategories, Created, Modified, QuestionRowDtos, IsExpanded } = dto;
+
+		const subCategories = SubCategories!.length === 0
+			? []
+			: SubCategories!.map((dto: ICategoryDto) => {
+				return new Category(dto).category;
+			})
+
 		this.category = {
-			partitionKey: dto.PartitionKey,
-			id: dto.Id,
-			kind: dto.Kind,
-			parentCategory: dto.ParentCategory!,
-			title: dto.Title,
-			link: dto.Link,
-			header: dto.Header,
-			level: dto.Level!,
-			variations: dto.Variations ?? [],
-			numOfQuestions: dto.NumOfQuestions!,
-			hasSubCategories: dto.HasSubCategories!,
-			created: new Dto2WhoWhen(dto.Created!).whoWhen,
-			modified: dto.Modified
-				? new Dto2WhoWhen(dto.Modified).whoWhen
+			partitionKey: PartitionKey,
+			id: Id,
+			kind: Kind,
+			rootId: RootId!,
+			parentCategory: ParentCategory!,
+			title: Title,
+			link: Link,
+			header: Header,
+			level: Level!,
+			variations: Variations ?? [],
+			numOfQuestions: NumOfQuestions!,
+			hasSubCategories: HasSubCategories!,
+			subCategories,
+			created: new Dto2WhoWhen(Created!).whoWhen,
+			modified: Modified
+				? new Dto2WhoWhen(Modified).whoWhen
 				: undefined,
-			questionRows: dto.QuestionRowDtos
-				? dto.QuestionRowDtos.map(questionRowDto => new QuestionRow(questionRowDto/*, dto.Id*/).questionRow)
+			questionRows: QuestionRowDtos
+				? QuestionRowDtos.map(questionRowDto => new QuestionRow(questionRowDto/*, dto.Id*/).questionRow)
 				: [],
+			isExpanded: IsExpanded === true
 		}
 	}
 	category: ICategory;
 }
-
 
 export class CategoryDto {
 	constructor(category: ICategory) {
@@ -352,21 +387,7 @@ export interface IQuestionsMore {
 	hasMoreQuestions: boolean;
 }
 
-export interface ICategoryDto extends IRecordDto {
-	PartitionKey: string;
-	Id: string;
-	Kind: number;
-	ParentCategory: string | null;
-	Title: string;
-	Link: string | null;
-	Header: string;
-	Variations: string[];
-	Level?: number;
-	NumOfQuestions?: number;
-	HasSubCategories?: boolean;
-	QuestionRowDtos?: IQuestionRowDto[];
-	HasMoreQuestions?: boolean;
-}
+
 
 export interface ICategoryDtoEx {
 	categoryDto: ICategoryDto | null;
@@ -395,12 +416,13 @@ export interface IParentInfo {
 	level?: number,
 	title?: string, // to easier follow getting the list of sub-categories
 	inAdding?: boolean,
-	isExpanded?: boolean
+	isExpanded?: boolean,
+	subCategories?: ICategory[]
 }
 
 export interface ICategoriesState {
 	mode: string | null;
-	categories: ICategory[];
+	categories: ICategory[]; // Map<string, ICategory>;
 	categoryNodesUpTheTree: ICategoryKeyExtended[];
 	categoryKeyExpanded: ICategoryKeyExpanded | null;
 	categoryId_questionId_done?: string;
@@ -576,12 +598,14 @@ export type CategoriesPayload = {
 	[ActionTypes.CATEGORY_NODE_RE_LOADING]: undefined;
 
 	[ActionTypes.SET_CATEGORY_NODES_UP_THE_TREE]: {
-		categoryNodesUpTheTree: ICategoryKeyExtended[]; /// we could have used Id only
+		// categoryNodesUpTheTree: ICategoryKeyExtended[]; /// we could have used Id only
 		categoryKeyExpanded: ICategoryKeyExpanded;
 		fromChatBotDlg: boolean;
+		category: ICategory;
 	};
 
 	[ActionTypes.SET_SUB_CATEGORIES]: {
+		id: string | null;
 		subCategories: ICategory[];
 	};
 

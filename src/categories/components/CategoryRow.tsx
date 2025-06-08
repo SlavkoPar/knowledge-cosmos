@@ -18,7 +18,7 @@ import QuestionList from './questions/QuestionList';
 
 const CategoryRow = ({ category, questionId }: { category: ICategory, questionId: string|null }) => {
     
-    const { partitionKey, id, title, level, hasSubCategories, 
+    const { partitionKey, id, title, level, hasSubCategories, subCategories,
             numOfQuestions, questionRows, inAdding,  isExpanded, isSelected } = category;
     const [categoryKey] = useState<ICategoryKey>({ partitionKey, id }); // otherwise reloads
     const [categoryKeyExpanded] = useState<ICategoryKeyExpanded>({ partitionKey, id, questionId }); // otherwise reloads
@@ -217,7 +217,7 @@ const CategoryRow = ({ category, questionId }: { category: ICategory, questionId
                     {isExpanded &&
                         <>
                             { hasSubCategories &&
-                                <CategoryList level={level + 1} categoryKey={categoryKey} title={title} isExpanded={isExpanded} />
+                                <CategoryList level={level + 1} categoryKey={categoryKey} title={title} isExpanded={isExpanded} subCategories={subCategories} />
                             }
                             { showQuestions &&
                                 <QuestionList level={level + 1} categoryKey={categoryKey} title={title} />

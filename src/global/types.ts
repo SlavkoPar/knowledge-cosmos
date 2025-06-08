@@ -113,19 +113,55 @@ export enum ROLES {
 	VIEWER = 'VIEWER'
 }
 
+export interface ICatDto {
+	PartitionKey: string;
+	Id: string;
+	Kind: number;
+	ParentCategory: string | null;
+	Title: string;
+	Link: string | null,
+	Header: string;
+	Variations: string[];
+	Level: number;
+	HasSubCategories: boolean;
+	NumOfQuestions: number;
+}
+
 export interface ICat {
 	partitionKey: string,
 	id: string;
 	parentCategory: string | null;
-	header: string;
 	title: string;
 	link: string | null;
+	header: string;
 	titlesUpTheTree: string; // traverse up the tree, until root
 	variations: string[];
 	hasSubCategories: boolean;
+	numOfQuestions: number,
 	level: number;
 	kind: number;
-	isExpanded: boolean;
+	isExpanded?: boolean;
+}
+
+export class Cat {
+	constructor(catDto: ICatDto) {
+		const { PartitionKey, Id, Kind, ParentCategory, Title, Link, Header, Variations, Level, HasSubCategories, NumOfQuestions } = catDto;
+		this.cat = {
+			partitionKey: PartitionKey,
+			id: Id,
+			parentCategory: ParentCategory,
+			title: Title,
+			link: Link,
+			header: Header,
+			titlesUpTheTree: '', // traverse up the tree, until root
+			variations: Variations,
+			hasSubCategories: HasSubCategories,
+			numOfQuestions: NumOfQuestions,
+			level: Level,
+			kind: Kind
+		}
+	}
+	cat: ICat;
 }
 
 

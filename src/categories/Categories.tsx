@@ -3,7 +3,7 @@ import { Container, Row, Col, Button } from "react-bootstrap";
 
 import { useParams } from 'react-router-dom';
 
-import { Mode, ActionTypes, ICategoryKey, IQuestionKey, ICategoryKeyExpanded } from "./types";
+import { Mode, ActionTypes, ICategoryKey, IQuestionKey, ICategoryKeyExpanded, ICategory } from "./types";
 
 import { useGlobalContext, useGlobalState } from 'global/GlobalProvider';
 
@@ -27,8 +27,8 @@ interface IProps {
 
 const Providered = ({ categoryId_questionId, fromChatBotDlg }: IProps) => {
     console.log("=== Categories", categoryId_questionId)
-    const { state, reloadCategoryNode } = useCategoryContext();
-    const { categoryKeyExpanded, categoryId_questionId_done, categoryNodeReLoading, categoryNodeLoaded } = state;
+    const { state, reloadCategoryNode, getSubCategories } = useCategoryContext();
+    const { categories, categoryKeyExpanded, categoryId_questionId_done, categoryNodeReLoading, categoryNodeLoaded } = state;
 
     const { setLastRouteVisited, searchQuestions } = useGlobalContext();
     const { isDarkMode, authUser, cats } = useGlobalState();
@@ -58,7 +58,17 @@ const Providered = ({ categoryId_questionId, fromChatBotDlg }: IProps) => {
 
     useEffect(() => {
         (async () => {
-            if (!categoryNodeReLoading) {
+            await getSubCategories({partitionKey: null, id: null})
+                .then((list: ICategory[]) => {
+                    console.log("+++++++>>>>>>> CategoryList ", { catKeyExpanded, list });
+                    //setSubCats(list)
+                });
+        })()
+    }, [getSubCategories]);
+
+    useEffect(() => {
+        (async () => {
+            if (!categoryNodeReLoading && categories.length > 0) {
                 if (categoryId_questionId) {
                     if (categoryId_questionId === 'add_question') {
                         const sNewQuestion = localStorage.getItem('New_Question');
@@ -76,19 +86,19 @@ const Providered = ({ categoryId_questionId, fromChatBotDlg }: IProps) => {
                         const questionId = arr[1];
                         const keyExp = { partitionKey: null, id: categoryId, questionId }
                         // setCatKeyExpanded(keyExp);
-                        console.log('zovem reloadCategoryNode 1111111111111111111)', {categoryId_questionId}, {categoryId_questionId_done})
+                        console.log('zovem reloadCategoryNode 1111111111111111111)', { categoryId_questionId }, { categoryId_questionId_done })
                         await reloadCategoryNode(keyExp, fromChatBotDlg ?? 'false')
                             .then(() => { return null; });
                     }
                 }
                 else if (categoryKeyExpanded && !categoryNodeLoaded) {
-                    console.log('zovem reloadCategoryNode 2222222222222)', {categoryKeyExpanded}, {categoryNodeLoaded})
+                    console.log('zovem reloadCategoryNode 2222222222222)', { categoryKeyExpanded }, { categoryNodeLoaded })
                     await reloadCategoryNode(categoryKeyExpanded)
-                            .then(() => { return null; });
+                        .then(() => { return null; });
                 }
             }
         })()
-    }, [categoryKeyExpanded, categoryNodeReLoading, categoryNodeLoaded, reloadCategoryNode, categoryId_questionId, categoryId_questionId_done])
+    }, [categoryKeyExpanded, categoryNodeReLoading, categoryNodeLoaded, reloadCategoryNode, categoryId_questionId, categoryId_questionId_done, categories])
 
     useEffect(() => {
         setLastRouteVisited(`/categories`);
@@ -102,7 +112,8 @@ const Providered = ({ categoryId_questionId, fromChatBotDlg }: IProps) => {
     }
 
     console.log('===>>> Categories !!!!!!!!!!!!!!!!!')
-    if (!categoryNodeLoaded)
+    //if (!categoryNodeLoaded)
+    if (categories.length === 0)
         return null
 
     return (
@@ -140,7 +151,7 @@ const Providered = ({ categoryId_questionId, fromChatBotDlg }: IProps) => {
                 <Row className="my-1">
                     <Col xs={12} md={5}>
                         <div>
-                            <CategoryList categoryKey={catKeyExpanded} level={0} title="root" isExpanded={true} />
+                            <CategoryList categoryKey={catKeyExpanded} level={0} title="root" isExpanded={true} subCategories={categories} />
                         </div>
                     </Col>
                     <Col xs={0} md={7}>
@@ -156,9 +167,11 @@ const Providered = ({ categoryId_questionId, fromChatBotDlg }: IProps) => {
                                 <ViewQuestion inLine={false} />
                             }
                             {catKeyExpanded.questionId && state.mode === Mode.EditingQuestion &&
-                                <EditQuestion questionKey={{parentCategory: catKeyExpanded.id ?? undefined,
-                                                            partitionKey: catKeyExpanded.partitionKey,
-                                                            id: catKeyExpanded.questionId}}
+                                <EditQuestion questionKey={{
+                                    parentCategory: catKeyExpanded.id ?? undefined,
+                                    partitionKey: catKeyExpanded.partitionKey,
+                                    id: catKeyExpanded.questionId
+                                }}
                                     inLine={false}
                                 />
                             }

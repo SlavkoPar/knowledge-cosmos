@@ -6,13 +6,16 @@ import {
   IGroupData, IAnswerData,
   IRoleData, IUserData,
   IRegisterUser,
-  ICat, IShortGroup,
+  ICat, Cat,
+  IShortGroup,
   IParentInfo,
   IWhoWhen,
   IHistory, IHistoryDtoEx, IHistoryData, HistoryDto,
   IHistoryDtoListEx,
   IHistoryListEx,
-  IHistoryFilterDto
+  IHistoryFilterDto,
+  ICatDto,
+  
 } from 'global/types'
 
 import { globalReducer, initialGlobalState } from "global/globalReducer";
@@ -124,41 +127,38 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
         console.time();
         const url = protectedResources.KnowledgeAPI.endpointCategory;
         await Execute("GET", url, null)
-                .then((categoryDtos: ICategoryDto[]) => {   //  | Response
+                .then((catDtos: ICatDto[]) => {   //  | Response
           console.log('loadCats', protectedResources.KnowledgeAPI.endpointCategory)
-          const categories = new Map<string, ICategory>();
           const cats = new Map<string, ICat>();
           console.timeEnd();
           // if (categoryDtos instanceof Response) {
           //   throw (categoryDtos);
           // }
           //const data: ICategoryDto[] = categoryDtos;
-          categoryDtos.forEach((categoryDto: ICategoryDto) => categories.set(categoryDto.Id, new Category(categoryDto).category));
+          catDtos.forEach((catDto: ICatDto) => cats.set(catDto.Id, new Cat(catDto).cat));
           //
-          categories.forEach(category => {
-            let { partitionKey, id, parentCategory, header, title, link, variations, hasSubCategories, level, kind } = category;
+          cats.forEach(cat => {
+            let { partitionKey, id, parentCategory, title, variations, hasSubCategories, level, kind } = cat;
             let titlesUpTheTree = id;
             let parentCat = parentCategory;
             while (parentCat) {
-              const cat2 = categories.get(parentCat)!;
+              const cat2 = cats.get(parentCat)!;
               titlesUpTheTree = cat2!.id + ' / ' + titlesUpTheTree;
               parentCat = cat2.parentCategory;
             }
-            category.titlesUpTheTree = titlesUpTheTree;
-            const cat: ICat = {
-              partitionKey,
-              id,
-              parentCategory, //: parentCat,
-              header,
-              title,
-              link,
-              titlesUpTheTree,
-              variations: variations,
-              hasSubCategories: hasSubCategories,
-              level,
-              kind,
-              isExpanded: false
-            }
+            cat.titlesUpTheTree = titlesUpTheTree;
+            // const cat: ICat = {
+            //   partitionKey,
+            //   id,
+            //   parentCategory, //: parentCat,
+            //   title,
+            //   titlesUpTheTree,
+            //   variations: variations,
+            //   hasSubCategories: hasSubCategories!,
+            //   level,
+            //   kind,
+            //   isExpanded: false
+            // }
             cats.set(id, cat);
           })
           dispatch({ type: GlobalActionTypes.SET_ALL_CATS, payload: { cats } });
@@ -447,7 +447,7 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
       const categories: ICat[] = [];
       cats.forEach((c, id) => {
         if (c.kind === kind) {
-          const { partitionKey, id, header, title, link, level } = c;
+          const { partitionKey, id, title, level, link, header } = c;
           const cat: ICat = {
             partitionKey,
             id: id,
@@ -458,6 +458,7 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
             titlesUpTheTree: "",
             variations: [],
             hasSubCategories: false,
+            numOfQuestions: 0,
             level,
             kind,
             isExpanded: false
@@ -492,6 +493,7 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
             titlesUpTheTree: "",
             variations: [],
             hasSubCategories: false,
+            numOfQuestions: 0,
             level,
             kind,
             isExpanded: false
@@ -515,26 +517,25 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
       console.log('globalState.cats', { cats }, categoryId)
       const subCats: ICat[] = [];
       cats.forEach((cat, id) => {  // globalState.cats is Map<string, ICat>
-        if (cat.id === categoryId) {
-          parentHeader = cat.header!;
+        if (id === categoryId) {
+          parentHeader = "" ; //cat.header!;
         }
         else if (cat.parentCategory === categoryId) {
-          const { partitionKey, id, parentCategory, header, title, link, level, kind, hasSubCategories } = cat;
-          const c: ICat = {
-            partitionKey,
-            id,
-            header,
-            title,
-            link,
-            parentCategory,
-            titlesUpTheTree: "",
-            variations: [],
-            hasSubCategories,
-            level,
-            kind,
-            isExpanded: false
-          }
-          subCats.push(c);
+          // const { partitionKey, id, parentCategory, title, level, kind, hasSubCategories } = cat;
+          // const c: ICat = {
+          //   partitionKey,
+          //   id,
+          //   title,
+          //   parentCategory,
+          //   titlesUpTheTree: "",
+          //   variations: [],
+          //   hasSubCategories,
+          //   level,
+          //   kind,
+          //   isExpanded: false
+          // }
+          // subCats.push(c);
+          subCats.push(cat);
         }
       })
       return { subCats, parentHeader };
