@@ -6,8 +6,7 @@ import { isMobile } from 'react-device-detect'
 
 import { debounce, escapeRegexCharacters } from 'common/utilities'
 import './AutoSuggestQuestions.css'
-import { IQuestionKey, IQuestionRow } from 'categories/types';
-import { ICat } from 'global/types';
+import { ICategoryRow, IQuestionKey, IQuestionRow } from 'categories/types';
 
 
 interface ICatMy {
@@ -44,13 +43,13 @@ const QuestionAutosuggestMulti = Autosuggest as { new(): Autosuggest<IQuestionRo
 export class AutoSuggestQuestions extends React.Component<{
 	tekst: string | undefined,
 	onSelectQuestion: (questionKey: IQuestionKey, underFilter: string) => void,
-	allCats: Map<string, ICat>,
+	allCats: Map<string, ICategoryRow>,
 	searchQuestions: (filter: string, count: number) => Promise<IQuestionRow[]>
 }, any> {
 	// region Fields
 	state: any;
 	isMob: boolean;
-	allCats: Map<string, ICat>;
+	allCats: Map<string, ICategoryRow>;
 	searchQuestions: (filter: string, count: number) => Promise<IQuestionRow[]>;
 	debouncedLoadSuggestions: (value: string) => void;
 	//inputAutosuggest: React.RefObject<HTMLInputElement>;
@@ -273,7 +272,7 @@ export class AutoSuggestQuestions extends React.Component<{
 					if (cat) {
 						const { title, titlesUpTheTree/*, variations*/ } = cat!;
 						catSection.categoryTitle = title;
-						catSection.parentCategoryUp = titlesUpTheTree;
+						catSection.parentCategoryUp = titlesUpTheTree!;
 						//variationsss = variations;
 					}
 					else {

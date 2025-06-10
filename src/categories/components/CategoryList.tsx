@@ -4,10 +4,14 @@ import CategoryRow from "categories/components/CategoryRow";
 import { CategoryKey, ICategory, IParentInfo } from "categories/types";
 import { useCategoryContext } from "categories/CategoryProvider";
 
-const CategoryList = ({ title, categoryKey, level, isExpanded, subCategories }: IParentInfo) => {
-    const { state, getSubCategories } = useCategoryContext();
+const CategoryList = ({ title, categoryRow, level, isExpanded }: IParentInfo) => {
+
+    // 1) TODO zar ne treba uzimati subcategories from categorysubCategories 
+    // 2) TODO proveri partitionKey, id from <Categories 
+    const { state, getSubCategoryRows } = useCategoryContext();
     const { categoryKeyExpanded } = state;
     const { partitionKey, id, questionId } = categoryKeyExpanded!;
+    const { subCategories } = categoryRow;
 
     // const [subCats, setSubCats] = useState<ICategory[]>([]);
 
@@ -15,7 +19,7 @@ const CategoryList = ({ title, categoryKey, level, isExpanded, subCategories }: 
     //     (async () => {
     //         //if (isExpanded) {
     //         if (categoryKey.id === null) { // for root only
-    //             await getSubCategories(categoryKey)
+    //             await getSubCategoryRows(categoryKey)
     //                 .then((list: ICategory[]) => {
     //                     console.log("+++++++>>>>>>> CategoryList ", { categoryKey, list });
     //                     setSubCats(list)
@@ -31,7 +35,7 @@ const CategoryList = ({ title, categoryKey, level, isExpanded, subCategories }: 
                 <ListGroup as="ul" variant='dark' className="mb-0">
                     {subCategories!.map((c: ICategory) =>
                         <CategoryRow
-                            category={{ ...c, isSelected: c.id === id }}
+                            categoryRow={{ ...c, isSelected: c.id === id }}
                             questionId={c.partitionKey === partitionKey && c.id === id ? questionId : null}
                             key={c.id}
                         />

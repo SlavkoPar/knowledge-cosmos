@@ -1,10 +1,10 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, JSX } from "react";
 import * as Yup from "yup";
 import { useFormik } from "formik";
 import { Form, CloseButton, Row, Stack, Dropdown } from "react-bootstrap";
 import { CreatedModifiedForm } from "common/CreateModifiedForm"
 import { FormButtons } from "common/FormButtons"
-import { FormMode, ActionTypes, ICategoryFormProps, ICategory, IVariation, ICategoryKey, ICategoryKeyExpanded } from "categories/types";
+import { FormMode, ActionTypes, ICategoryFormProps, ICategory, IVariation, ICategoryKey, ICategoryKeyExpanded, CategoryRow } from "categories/types";
 
 import { useCategoryDispatch } from "categories/CategoryProvider";
 import QuestionList from "categories/components/questions/QuestionList";
@@ -197,7 +197,7 @@ const CategoryForm = ({ inLine, mode, category, questionId, submitForm, children
         <Form.Group>
           <Form.Label className="m-1 mb-0">Questions ({`${formik.values.numOfQuestions}`}) </Form.Label>
           {showQuestions &&
-            <QuestionList level={1} categoryKey={categoryKey} title={title} />
+            <QuestionList level={1} categoryRow={category} />  // ICategory extends ICategoryRow
           }
         </Form.Group>
 

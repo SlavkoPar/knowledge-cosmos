@@ -1,5 +1,5 @@
 // Define the Global State
-import { ICategory, ICategoryKey, IQuestion, IQuestionEx, IQuestionKey, IQuestionRow } from 'categories/types';
+import { ICategory, ICategoryKey, ICategoryRow, ICategoryRowDto, IQuestion, IQuestionEx, IQuestionKey, IQuestionRow } from 'categories/types';
 import { IGroup, IGroupKey, IAnswerRow, IAnswer, IAnswerKey } from 'groups/types';
 //import { IOption } from 'common/types';
 import { IDBPDatabase } from 'idb';
@@ -113,57 +113,6 @@ export enum ROLES {
 	VIEWER = 'VIEWER'
 }
 
-export interface ICatDto {
-	PartitionKey: string;
-	Id: string;
-	Kind: number;
-	ParentCategory: string | null;
-	Title: string;
-	Link: string | null,
-	Header: string;
-	Variations: string[];
-	Level: number;
-	HasSubCategories: boolean;
-	NumOfQuestions: number;
-}
-
-export interface ICat {
-	partitionKey: string,
-	id: string;
-	parentCategory: string | null;
-	title: string;
-	link: string | null;
-	header: string;
-	titlesUpTheTree: string; // traverse up the tree, until root
-	variations: string[];
-	hasSubCategories: boolean;
-	numOfQuestions: number,
-	level: number;
-	kind: number;
-	isExpanded?: boolean;
-}
-
-export class Cat {
-	constructor(catDto: ICatDto) {
-		const { PartitionKey, Id, Kind, ParentCategory, Title, Link, Header, Variations, Level, HasSubCategories, NumOfQuestions } = catDto;
-		this.cat = {
-			partitionKey: PartitionKey,
-			id: Id,
-			parentCategory: ParentCategory,
-			title: Title,
-			link: Link,
-			header: Header,
-			titlesUpTheTree: '', // traverse up the tree, until root
-			variations: Variations,
-			hasSubCategories: HasSubCategories,
-			numOfQuestions: NumOfQuestions,
-			level: Level,
-			kind: Kind
-		}
-	}
-	cat: ICat;
-}
-
 
 export interface IShortGroup {
 	partitionKey: string,
@@ -190,8 +139,8 @@ export interface IGlobalState {
 	bg: string,
 	loading: boolean;
 	error?: Error;
-	cats: Map<string, ICat>;
-	catsLoaded?: number;
+	categoryRows: Map<string, ICategoryRow>;
+	categoryRowsLoaded?: number;
 	shortGroups: Map<string, IShortGroup>;
 	shortGroupsLoaded?: number;
 	nodesReLoaded: boolean; // categoryNodeLoaded || groupNodeLoaded  ( to prevent showing of ChatBotDlg)
@@ -222,7 +171,7 @@ export interface IGlobalContext {
 	health: () => void;
 	loadCats: () => Promise<boolean>;
 	getSubCats: (categoryId: string | null) => Promise<any>;
-	getCatsByKind: (kind: number) => Promise<ICat[]>;
+	getCatsByKind: (kind: number) => Promise<ICategoryRow[]>;
 	searchQuestions: (filter: string, count: number) => Promise<IQuestionRow[]>;
 	getQuestion: (questionKey: IQuestionKey) => Promise<IQuestionEx>;
 	loadShortGroups: () => Promise<boolean>;
@@ -310,7 +259,7 @@ export type GlobalPayload = {
 	[GlobalActionTypes.DARK_MODE]: undefined;
 
 	[GlobalActionTypes.SET_ALL_CATS]: {
-		cats: Map<string, ICat>
+		categoryRows: Map<string, ICategoryRow>
 	};
 
 	[GlobalActionTypes.SET_ALL_SHORT_GROUPS]: {

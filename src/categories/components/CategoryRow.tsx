@@ -6,7 +6,7 @@ import QPlus from 'assets/QPlus.png';
 import { ListGroup, Button, Badge } from "react-bootstrap";
 
 import { useGlobalState } from 'global/GlobalProvider'
-import { ActionTypes, ICategoryInfo, ICategoryKey, ICategoryKeyExpanded, Mode } from "categories/types";
+import { ActionTypes, ICategoryInfo, ICategoryKey, ICategoryKeyExpanded, ICategoryRow, Mode } from "categories/types";
 import { useCategoryContext, useCategoryDispatch } from 'categories/CategoryProvider'
 import { useHover } from 'hooks/useHover';
 import { ICategory } from 'categories/types'
@@ -16,18 +16,18 @@ import EditCategory from "categories/components/EditCategory";
 import ViewCategory from "categories/components/ViewCategory";
 import QuestionList from './questions/QuestionList';
 
-const CategoryRow = ({ category, questionId }: { category: ICategory, questionId: string|null }) => {
-    
+const CategoryRow = ({ categoryRow, questionId }: { categoryRow: ICategoryRow, questionId: string | null }) => {
+
     const { partitionKey, id, title, level, hasSubCategories, subCategories,
-            numOfQuestions, questionRows, inAdding,  isExpanded, isSelected } = category;
+        numOfQuestions, questionRows, inAdding, isExpanded, isSelected } = categoryRow;
     const [categoryKey] = useState<ICategoryKey>({ partitionKey, id }); // otherwise reloads
-    const [categoryKeyExpanded] = useState<ICategoryKeyExpanded>({ partitionKey, id, questionId }); // otherwise reloads
+    const [catKeyExpanded] = useState<ICategoryKeyExpanded>({ partitionKey, id, questionId }); // otherwise reloads
 
     const { canEdit, isDarkMode, variant, bg, authUser } = useGlobalState();
 
     const { state, viewCategory, editCategory, deleteCategory, expandCategory, collapseCategory } = useCategoryContext();
     //const { mode, categoryInViewingOrEditing } = state;
-    const { mode } = state;
+    const { mode, categoryKeyExpanded } = state;
 
     //const bold = categoryInViewingOrEditing && categoryInViewingOrEditing.id === id;
 
@@ -35,24 +35,25 @@ const CategoryRow = ({ category, questionId }: { category: ICategory, questionId
 
     const alreadyAdding = mode === Mode.AddingCategory;
     // TODO proveri ovo
-    const showQuestions = (isExpanded && numOfQuestions > 0) // || questions.find(q => q.inAdding) // && !questions.find(q => q.inAdding); // We don't have questions loaded
-    
+    const showQuestions = isExpanded && numOfQuestions > 0 // || questions.find(q => q.inAdding) // && !questions.find(q => q.inAdding); // We don't have questions loaded
+    console.log("----------------QuestionRow", id, numOfQuestions, isExpanded, questionRows)
+
     const del = () => {
-        category.modified = {
+        categoryRow.modified = {
             time: new Date(),
             nickName: authUser.nickName
         }
-        deleteCategory(category);
+        deleteCategory(categoryRow);
     };
 
     const handleExpandClick = async () => {
         if (isExpanded)
             await collapseCategory(categoryKey);
         else
-            await expandCategory(categoryKey, questionId ?? 'null');
+            await expandCategory(categoryRow, questionId ?? null);
     }
 
-   
+
     const edit = async () => {
         // Load data from server and reinitialize category
         await editCategory(categoryKey, questionId ?? 'null');
@@ -66,9 +67,14 @@ const CategoryRow = ({ category, questionId }: { category: ICategory, questionId
     }
 
     useEffect(() => {
-        if (!isExpanded && isSelected) {
-            onSelectCategory()
+        if (!isExpanded) { //} && isSelected) {
+            if (categoryKeyExpanded && categoryKeyExpanded.id === catKeyExpanded.id) {
+                expandCategory(categoryRow, questionId);
+            }
         }
+        else if (isSelected)
+            onSelectCategory();
+
     }, [isExpanded, isSelected, onSelectCategory])
 
     const [hoverRef, hoverProps] = useHover();
@@ -80,7 +86,7 @@ const CategoryRow = ({ category, questionId }: { category: ICategory, questionId
                 variant='link'
                 size="sm"
                 className="py-0 px-1  bg-light"
-                onClick={( e) => { handleExpandClick(); e.stopPropagation()} }
+                onClick={(e) => { handleExpandClick(); e.stopPropagation() }}
                 title="Expand"
                 disabled={alreadyAdding || (!hasSubCategories && numOfQuestions === 0)}
             >
@@ -92,7 +98,7 @@ const CategoryRow = ({ category, questionId }: { category: ICategory, questionId
                 className="py-0 px-1  bg-light"
                 // onClick={expand}
                 title="Expand"
-                disabled= {true} //{alreadyAdding || (!hasSubCategories && numOfQuestions === 0)}
+                disabled={true} //{alreadyAdding || (!hasSubCategories && numOfQuestions === 0)}
             >
                 <FontAwesomeIcon icon={faFolder} size='sm' />
             </Button>
@@ -131,7 +137,7 @@ const CategoryRow = ({ category, questionId }: { category: ICategory, questionId
                                 type: ActionTypes.ADD_SUB_CATEGORY,
                                 payload: {
                                     categoryKey,
-                                    level: category.level + 1
+                                    level: categoryRow.level + 1
                                 }
                             })
                             // if (!isExpanded)
@@ -152,7 +158,7 @@ const CategoryRow = ({ category, questionId }: { category: ICategory, questionId
                         className="py-0 mx-1 text-secondary float-end"
                         title="Add Question"
                         onClick={async () => {
-                            const categoryInfo: ICategoryInfo = { categoryKey: {partitionKey, id: category.id}, level: category.level }
+                            const categoryInfo: ICategoryInfo = { categoryKey: { partitionKey, id: categoryRow.id }, level: categoryRow.level }
                             if (!isExpanded) {
                                 await dispatch({ type: ActionTypes.SET_EXPANDED, payload: { categoryKey } });
                             }
@@ -216,11 +222,13 @@ const CategoryRow = ({ category, questionId }: { category: ICategory, questionId
                 >
                     {isExpanded &&
                         <>
-                            { hasSubCategories &&
-                                <CategoryList level={level + 1} categoryKey={categoryKey} title={title} isExpanded={isExpanded} subCategories={subCategories} />
+                            {hasSubCategories &&
+                                // subCategories={subCategories}
+                                <CategoryList level={level + 1} categoryRow={categoryRow} title={title} isExpanded={isExpanded} />
                             }
-                            { showQuestions &&
-                                <QuestionList level={level + 1} categoryKey={categoryKey} title={title} />
+                            {showQuestions &&
+                                // <QuestionList level={level + 1} cat={categoryRow} title={title} />
+                                <QuestionList level={level + 1} categoryRow={categoryRow} />
                             }
                         </>
                     }

@@ -1,7 +1,6 @@
-import { ICategory, ICategoryKey, IQuestion, IQuestionEx, IQuestionKey, IQuestionRow } from 'categories/types';
+import { ICategory, ICategoryKey, ICategoryRow, IQuestion, IQuestionEx, IQuestionKey, IQuestionRow } from 'categories/types';
 
-import { ActionMap, ICat } from "global/types";
-
+import { ActionMap } from "global/types";
 
 /////////////////////////////////////////////////////////////////////////
 // DropDown Select Category
@@ -10,14 +9,14 @@ export interface ICatsState {
 	loading: boolean,
 	parentCategory: string | null,
 	title: string,
-	cats: ICat[], // drop down categories
+	cats: ICategoryRow[], // drop down categories
 	error?: Error;
 }
 
 export interface ICatInfo {
 	categoryKey: ICategoryKey | null,
 	level: number,
-	setParentCategory: (cat: ICat) => void;
+	setParentCategory: (cat: ICategoryRow) => void;
 }
 
 export enum CatsActionTypes {
@@ -32,7 +31,7 @@ export type CatsPayload = {
 	[CatsActionTypes.SET_LOADING]: false;
 
 	[CatsActionTypes.SET_SUB_CATS]: {
-		subCats: ICat[];
+		subCats: ICategoryRow[];
 	};
 
 	[CatsActionTypes.SET_EXPANDED]: {
@@ -45,7 +44,7 @@ export type CatsPayload = {
 	};
 
 	[CatsActionTypes.SET_PARENT_CAT]: {
-		cat: ICat;
+		cat: ICategoryRow;
 	};
 
 };

@@ -10,8 +10,8 @@ import { AutoSuggestQuestions } from 'categories/AutoSuggestQuestions';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFolder } from '@fortawesome/free-solid-svg-icons'
 
-import { IQuestion, IQuestionEx, IQuestionKey, QuestionKey } from 'categories/types';
-import { ICat, IHistory, USER_ANSWER_ACTION, IHistoryFilterDto } from 'global/types';
+import { ICategoryRow, IQuestion, IQuestionEx, IQuestionKey, QuestionKey } from 'categories/types';
+import { IHistory, USER_ANSWER_ACTION, IHistoryFilterDto } from 'global/types';
 import { IChatBotAnswer, INewQuestion, INextAnswer, useAI } from 'hooks/useAI'
 
 import Q from 'assets/Q.png';
@@ -28,7 +28,7 @@ type ICatLevel = {
     level: number;
     catId: string | null;
     header: string;
-    subCats: ICat[];
+    subCats: ICategoryRow[];
     subCatIdSelected: string | null;
 }
 
@@ -50,7 +50,7 @@ const ChatBotDlg = ({ show, onHide }: IProps) => {
     const [hasMoreAnswers, setHasMoreAnswers] = useState<boolean>(false);
 
     const { getSubCats, getQuestion, addHistory, addHistoryFilter, getAnswersRated, searchQuestions, setLastRouteVisited } = useGlobalContext();
-    const { canEdit, authUser, isDarkMode, variant, bg, cats, catsLoaded } = useGlobalState();
+    const { canEdit, authUser, isDarkMode, variant, bg, categoryRows: cats, categoryRowsLoaded: catsLoaded } = useGlobalState();
     const navigate = useNavigate();
 
     const [catsSelected, setCatsSelected] = useState(true);
@@ -338,7 +338,7 @@ const ChatBotDlg = ({ show, onHide }: IProps) => {
                                 {/* mx-auto */}
                                 {/* d-flex */}
                                 {/* <ListGroup as='ul' horizontal className="flex-wrap list-unstyled mx-auto"> */}
-                                {subCats.map(({ id, title, link }: ICat) => (
+                                {subCats.map(({ id, title, link }: ICategoryRow) => (
                                     // <div key={id} className="px-1 text-start">
                                     // <li className="list-group-item" style={{flexBasis: '33%'}}>
                                     link

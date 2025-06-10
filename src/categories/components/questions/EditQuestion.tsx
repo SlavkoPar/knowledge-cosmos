@@ -12,19 +12,19 @@ const EditQuestion = ({ questionKey, inLine }: { questionKey: IQuestionKey, inLi
     const { loadCats } = useGlobalContext();
 
     const dispatch = useCategoryDispatch();
-    const { state, updateQuestion, reloadCategoryNode } = useCategoryContext();
-    const { questionLoading, categories, questionInViewingOrEditing } = state;
+    const { state, updateQuestion, reloadCategoryRowNode } = useCategoryContext();
+    const { questionLoading, categoryRows: categories, questionInViewingOrEditing } = state;
     //const { partitionKey, id, parentCategory } = questionInViewingOrEditing!;
     //const category = categories.find(c => c.id === parentCategory);
     const [question, setQuestion] = useState<IQuestion | null>(null);
     useEffect(() => {
         //const q = category!.questions.find(q => q.inEditing)
         //if (category) {
-            //const q = category!.questions.find(q => q.id === id)
-            console.log("#################################### EditQuestion setQuestion ...", { questionInViewingOrEditing })
-            //if (q) {
-                setQuestion(questionInViewingOrEditing);
-            //}
+        //const q = category!.questions.find(q => q.id === id)
+        console.log("#################################### EditQuestion setQuestion ...", { questionInViewingOrEditing })
+        //if (q) {
+        setQuestion(questionInViewingOrEditing);
+        //}
         //}
     }, [questionInViewingOrEditing]) // questionLoading
 
@@ -54,7 +54,7 @@ const EditQuestion = ({ questionKey, inLine }: { questionKey: IQuestionKey, inLi
         if (question!.parentCategory !== q.parentCategory) {
             await loadCats(); // reload, group could have been changed
             dispatch({ type: ActionTypes.CLEAN_TREE, payload: { id: q.parentCategory } })
-            await reloadCategoryNode({ partitionKey: '', id: q.parentCategory, questionId: q.id });
+            await reloadCategoryRowNode({ partitionKey: '', id: q.parentCategory, questionId: q.id });
         }
         if (categoryChanged) {
             setTimeout(() => dispatch({ type: ActionTypes.CLOSE_QUESTION_FORM, payload: { question: q } }), 1000);

@@ -12,7 +12,7 @@ import {
 } from 'groups/types';
 
 import { initialGroupsState, GroupsReducer } from 'groups/GroupsReducer';
-import { IWhoWhen, ICat, Dto2WhoWhen, WhoWhen2Dto } from 'global/types';
+import { IWhoWhen, Dto2WhoWhen, WhoWhen2Dto, IShortGroup } from 'global/types';
 import { protectedResources } from 'authConfig';
 
 const GroupsContext = createContext<IGroupsContext>({} as any);
@@ -26,7 +26,7 @@ export const GroupProvider: React.FC<Props> = ({ children }) => {
 
   const { loadShortGroups, setNodesReloaded } = useGlobalContext()
   const globalState = useGlobalState();
-  const { dbp, cats } = globalState;
+  const { dbp, shortGroups } = globalState;
 
   const [state, dispatch] = useReducer(GroupsReducer, initialGroupsState);
   const { groupNodesUpTheTree } = state;
@@ -101,9 +101,9 @@ export const GroupProvider: React.FC<Props> = ({ children }) => {
           console.log('---GroupProvider.reloadGroupNode groupKeyExpanded:', groupKeyExpanded)
           const { id, partitionKey } = groupKeyExpanded;
           if (id) {
-            const cat: ICat | undefined = cats.get(id);
-            if (cat) {
-              groupKeyExpanded.partitionKey = cat.partitionKey;
+            const shortGroup: IShortGroup | undefined = shortGroups.get(id);
+            if (shortGroup) {
+              groupKeyExpanded.partitionKey = shortGroup.partitionKey;
             }
             else {
               alert('reload goups' + id)

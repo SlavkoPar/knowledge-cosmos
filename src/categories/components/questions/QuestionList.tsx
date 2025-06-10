@@ -1,40 +1,46 @@
 import React, { forwardRef, useCallback, useEffect, useRef, useState } from "react";
-import { ICategory, IParentInfo, IQuestion, IQuestionKey, IQuestionRow } from "categories/types";
+import { CategoryKey, ICategory, ICategoryRow, ILoadCategoryQuestions, IParentInfo, IQuestion, IQuestionKey, IQuestionRow } from "categories/types";
 import { useCategoryContext } from "categories/CategoryProvider";
 import useInfiniteScroll from "react-infinite-scroll-hook";
 import { List, ListItem, Loading } from "common/components/InfiniteList";
 import QuestionRow from "categories/components/questions/QuestionRow";
 
-const QuestionList = ({ title, categoryKey, level }: IParentInfo) => {
-
+//const QuestionList = ({ title, categoryRow, level }: IParentInfo) => {
+const QuestionList = ({ level, categoryRow }: { level: number, categoryRow: ICategoryRow }) => {
   const { state, loadCategoryQuestions } = useCategoryContext();
-  const { categories, categoryKeyExpanded, questionLoading, error } = state;
+  const { categoryKeyExpanded, questionLoading, error } = state;
   const { questionId } = categoryKeyExpanded!;
+  const { partitionKey, id, questionRows } = categoryRow;
 
-  let numOfQuestions = 0;
-  let questionRows: IQuestionRow[] = [];
+  
   let hasMoreQuestions = false;
-  const category: ICategory = categories.find(c => c.id === categoryKey.id)!;
-  if (category) { // CLEAN_SUB_TREE could have removed it
-    numOfQuestions = category.numOfQuestions;
-    questionRows = category.questionRows;
-    hasMoreQuestions = category.hasMoreQuestions??false;
-    const { partitionKey, id } = category;
-    console.assert(partitionKey === category.partitionKey);
-    console.log('^^^^^^^^^^^^^ QuestionList', questionRows)
-  }
+  // const category: ICategory = categories.find(c => c.id === categoryKey.id)!;
+  // if (category) { // CLEAN_SUB_TREE could have removed it
+  //   numOfQuestions = category.numOfQuestions;
+  //   questionRows = category.questionRows;
+  //   hasMoreQuestions = category.hasMoreQuestions??false;
+  //   const { partitionKey, id } = category;
+  //   console.assert(partitionKey === category.partitionKey);
+  //   console.log('^^^^^^^^^^^^^ QuestionList', questionRows)
+  // }
 
   async function loadMore() {
     try {
-      const parentInfo: IParentInfo = {
-        categoryKey,
+      // const parentInfo: IParentInfo = {
+      //   categoryRow,
+      //   startCursor: questionRows.length,
+      //   includeQuestionId: questionId ?? null
+      // }
+
+      const x: ILoadCategoryQuestions = {
+        categoryKey: new CategoryKey(categoryRow).categoryKey!,
         startCursor: questionRows.length,
         includeQuestionId: questionId ?? null
       }
       console.log('^^^^^^^^^^^^^ loadMore')
-      console.log('^^^^^^^^^^^^^', { parentInfo })
+      console.log('^^^^^^^^^^^^^', { x })
       console.log('^^^^^^^^^^^^^ loadMore')
-      await loadCategoryQuestions(parentInfo);
+      await loadCategoryQuestions(x);
     }
     catch (error) {
     }
@@ -42,13 +48,12 @@ const QuestionList = ({ title, categoryKey, level }: IParentInfo) => {
     }
   }
 
-  /* OZIVI
-  useEffect(() => {
-    if (numOfQuestions > 0 && questionRows.length === 0) { // TODO
-      loadMore();
-    }
-  }, [numOfQuestions])
-  */
+  // useEffect(() => {
+  //   //if (numOfQuestions > 0 && questionRows.length === 0) { // TODO
+  //   if (questionRows.length === 0) { // TODO
+  //     loadMore();
+  //   }
+  // }, [numOfQuestions, questionRows])
 
   
   const [infiniteRef, { rootRef }] = useInfiniteScroll({
@@ -59,7 +64,7 @@ const QuestionList = ({ title, categoryKey, level }: IParentInfo) => {
     rootMargin: '0px 0px 100px 0px',
   });
 
-
+console.log("QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQuestionList", id, questionRows)
   // if (questionLoading)
   //   return <div> ... loading</div>
 
@@ -78,7 +83,7 @@ const QuestionList = ({ title, categoryKey, level }: IParentInfo) => {
           return <QuestionRow
             key={questionRow.id}
             questionRow={questionRow}
-            categoryInAdding={category!.inAdding}
+            categoryInAdding={categoryRow!.inAdding}
           />
         })}
         {hasMoreQuestions && (

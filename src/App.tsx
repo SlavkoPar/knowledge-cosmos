@@ -24,7 +24,7 @@ function App() {
   console.log('-----------> App')
 
   const { getUser, OpenDB, setLastRouteVisited } = useGlobalContext();
-  const { dbp, authUser, isAuthenticated, everLoggedIn, catsLoaded, shortGroupsLoaded, lastRouteVisited, nodesReLoaded } = useGlobalState()
+  const { dbp, authUser, isAuthenticated, everLoggedIn, categoryRowsLoaded: catsLoaded, shortGroupsLoaded, lastRouteVisited, nodesReLoaded } = useGlobalState()
   const { nickName, role } = authUser;
 
   const formInitialValues = {

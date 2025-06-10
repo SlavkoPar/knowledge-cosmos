@@ -5,7 +5,7 @@ import { useFormik } from "formik";
 import { Form, CloseButton, Row, Col, Stack } from "react-bootstrap";
 import { CreatedModifiedForm } from "common/CreateModifiedForm"
 import { FormButtons } from "common/FormButtons"
-import { ActionTypes, CategoryKey, FormMode, ICategory, ICategoryKey, IQuestion, IQuestionFormProps } from "categories/types";
+import { ActionTypes, CategoryKey, FormMode, ICategoryRow, ICategory, ICategoryKey, IQuestion, IQuestionFormProps } from "categories/types";
 
 import { Select } from 'common/components/Select';
 import { sourceOptions } from 'common/sourceOptions'
@@ -18,7 +18,6 @@ import AssignedAnswers from './AssignedAnswers';
 import { useGlobalContext } from 'global/GlobalProvider';
 import VariationList from 'categories/VariationList';
 import RelatedFilters from './RelatedFilters';
-import { ICat } from 'global/types';
 
 const QuestionForm = ({ mode, question, submitForm, children, showCloseButton, source = 0, closeModal }: IQuestionFormProps) => {
 
@@ -81,7 +80,7 @@ const QuestionForm = ({ mode, question, submitForm, children, showCloseButton, s
 
   const isDisabled = mode === FormMode.viewing;
 
-  const setParentCategory = (cat: ICat) => {
+  const setParentCategory = (cat: ICategoryRow) => {
     formik.setFieldValue('parentCategory', cat.id);
     formik.setFieldValue('categoryTitle', cat.title);
   }

@@ -1,5 +1,5 @@
 import React, { Reducer } from 'react'
-import { ICat } from "global/types";
+import { ICategoryRow } from "categories/types";
 import { CatsActions, CatsActionTypes, ICatsState } from './types';
 
 export const initialState: ICatsState = {
@@ -67,7 +67,7 @@ export const CatsReducer: Reducer<ICatsState, CatsActions> = (state, action) => 
 };
 
 
-function markForClean(cats: ICat[], id: string | null) {
+function markForClean(cats: ICategoryRow[], id: string | null) {
   let deca = cats
     .filter(c => c.parentCategory === id)
     .map(c => c.id)

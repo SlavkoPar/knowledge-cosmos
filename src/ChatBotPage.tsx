@@ -9,8 +9,8 @@ import { useGlobalContext, useGlobalState } from 'global/GlobalProvider';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus, faQuestion } from '@fortawesome/free-solid-svg-icons'
 import CatList from 'global/Components/SelectCategory/CatList';
-import { ICategory, IQuestion, IQuestionEx, IQuestionKey, QuestionKey } from 'categories/types';
-import { IWhoWhen, ICat, IHistory, USER_ANSWER_ACTION, IHistoryFilterDto } from 'global/types';
+import { ICategory, IQuestion, IQuestionEx, IQuestionKey, QuestionKey, ICategoryRow } from 'categories/types';
+import { IWhoWhen, IHistory, USER_ANSWER_ACTION, IHistoryFilterDto } from 'global/types';
 import AssignedAnswersChatBot from 'global/ChatBotPage/AssignedAnswersChatBot';
 import { IChatBotAnswer, INewQuestion, INextAnswer, useAI } from './hooks/useAI'
 import { IAnswer } from 'groups/types';
@@ -48,7 +48,7 @@ const ChatBotPage: React.FC = () => {
 	const [hasMoreAnswers, setHasMoreAnswers] = useState<boolean>(false);
 
 	const { getCatsByKind, getQuestion, addHistory, addHistoryFilter, getAnswersRated, searchQuestions, setLastRouteVisited } = useGlobalContext();
-	const { dbp, canEdit, authUser, isDarkMode, variant, bg, cats, catsLoaded, lastRouteVisited } = useGlobalState();
+	const { dbp, canEdit, authUser, isDarkMode, variant, bg, categoryRows: cats, categoryRowsLoaded: catsLoaded, lastRouteVisited } = useGlobalState();
 
 	const setParentCategory = (cat: ICategory) => {
 		alert(cat.title)
@@ -57,10 +57,10 @@ const ChatBotPage: React.FC = () => {
 	const [catsSelected, setCatsSelected] = useState(false);
 	const [showAutoSuggest, setShowAutoSuggest] = useState(false);
 
-	const [catsOptions, setCatOptions] = useState<ICat[]>([]);
+	const [catsOptions, setCatOptions] = useState<ICategoryRow[]>([]);
 	const [catsOptionsSel, setCatsOptionsSel] = useState<Map<string, boolean>>(new Map<string, boolean>());
 
-	const [catsUsage, setCatUsage] = useState<ICat[]>([]);
+	const [catsUsage, setCatUsage] = useState<ICategoryRow[]>([]);
 	const [catsUsageSel, setCatUsageSel] = useState<Map<string, boolean>>(new Map<string, boolean>());
 
 	const [pastEvents, setPastEvents] = useState<IChild[]>([]);
@@ -427,7 +427,7 @@ const ChatBotPage: React.FC = () => {
 						</div>
 						<div className='text-center'>
 							{/* <ListGroup horizontal> */}
-							{catsOptions.map(({ id, title }: ICat) => (
+							{catsOptions.map(({ id, title }: ICategoryRow) => (
 								// <ListGroup.Item>
 								<Form.Check // prettier-ignore
 									id={id}
@@ -452,7 +452,7 @@ const ChatBotPage: React.FC = () => {
 								<i className='bg-secondary'> Select 'Usage' for test </i>
 							</div>
 							<div className='text-center'>
-								{catsUsage.map(({ id, title }: ICat) => (
+								{catsUsage.map(({ id, title }: ICategoryRow) => (
 									<Form.Check // prettier-ignore
 										id={id}
 										label={title}

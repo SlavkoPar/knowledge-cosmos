@@ -1,6 +1,7 @@
 
 import { Reducer } from 'react'
-import { IGlobalState, GlobalActionTypes, GlobalActions, ROLES, IAuthUser, IGlobalStateFromLocalStorage, ICat, IShortGroup } from "./types";
+import { IGlobalState, GlobalActionTypes, GlobalActions, ROLES, IAuthUser, IGlobalStateFromLocalStorage, IShortGroup } from "./types";
+import { ICategoryRow } from 'categories/types';
 
 const initialAuthUser: IAuthUser = {
     nickName: '',
@@ -21,8 +22,8 @@ const initGlobalState: IGlobalState = {
     variant: 'dark',
     bg: 'dark',
     loading: false,
-    cats: new Map<string, ICat>(),
-    catsLoaded: undefined,
+    categoryRows: new Map<string, ICategoryRow>(),
+    categoryRowsLoaded: undefined,
     shortGroups: new Map<string, IShortGroup>(),
     shortGroupsLoaded: undefined,
     nodesReLoaded: false,
@@ -181,12 +182,12 @@ const reducer: Reducer<IGlobalState, GlobalActions> = (state, action) => {
         }
 
         case GlobalActionTypes.SET_ALL_CATS: {
-            const { cats } = action.payload;
-            console.log("GlobalActionTypes.SET_ALL_CATS", cats)
+            const { categoryRows } = action.payload;
+            console.log("GlobalActionTypes.SET_ALL_CATS", categoryRows)
             return {
                 ...state,
-                cats,
-                catsLoaded: Date.now()
+                categoryRows: categoryRows,
+                categoryRowsLoaded: Date.now()
             };
         }
 

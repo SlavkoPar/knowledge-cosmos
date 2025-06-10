@@ -25,9 +25,9 @@ const AddQuestion = ({ questionRow, inLine, closeModal, showCloseButton, source,
     // { error, execute }
 
     const dispatch = useCategoryDispatch();
-    const { state, createQuestion, reloadCategoryNode } = useCategoryContext();
+    const { state, createQuestion, reloadCategoryRowNode } = useCategoryContext();
     if (!closeModal) {
-        const cat = state.categories.find(c => c.id === questionRow.parentCategory)
+        const cat = state.categoryRows.find(c => c.id === questionRow.parentCategory)
         questionRow.categoryTitle = cat ? cat.title : '';
     }
     // const question: IQuestion = {
@@ -62,7 +62,7 @@ const AddQuestion = ({ questionRow, inLine, closeModal, showCloseButton, source,
             else if (closeModal) {
                 closeModal();
                 dispatch({ type: ActionTypes.CLEAN_TREE, payload: { id: q.parentCategory } })
-                await reloadCategoryNode({ partitionKey: '', id: q.parentCategory, questionId: q.id });
+                await reloadCategoryRowNode({ partitionKey: '', id: q.parentCategory, questionId: q.id });
             }
         }
     }

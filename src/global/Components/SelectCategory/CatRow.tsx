@@ -5,15 +5,15 @@ import { faCaretRight, faCaretDown } from '@fortawesome/free-solid-svg-icons'
 import { ListGroup, Button } from "react-bootstrap";
 
 import { useGlobalState } from 'global/GlobalProvider'
-import { ICat } from "global/types";
+import { ICategoryRow } from "categories/types";
 
 import CatList from "global/Components/SelectCategory/CatList";
 import { CatsActions, CatsActionTypes } from './types';
 
 interface ICatRow {
-    cat: ICat;
+    cat: ICategoryRow;
     dispatch: React.Dispatch<CatsActions>;
-    setParentCat: (cat: ICat) => void;
+    setParentCat: (cat: ICategoryRow) => void;
 }
 
 const CatRow = ({ cat , dispatch, setParentCat }: ICatRow) => {
@@ -26,7 +26,7 @@ const CatRow = ({ cat , dispatch, setParentCat }: ICatRow) => {
         dispatch({ type: CatsActionTypes.SET_EXPANDED, payload: { id, expanding: !isExpanded } });
     }
 
-    const onSelectCat = (cat: ICat) => {
+    const onSelectCat = (cat: ICategoryRow) => {
         // Load data from server and reinitialize category
         // viewCategory(id);
         setParentCat(cat);

@@ -3,7 +3,7 @@ import { Container, Row, Col, Button } from "react-bootstrap";
 
 import { useParams } from 'react-router-dom';
 
-import { Mode, ActionTypes, ICategoryKey, IQuestionKey, ICategoryKeyExpanded, ICategory } from "./types";
+import { Mode, ActionTypes, ICategoryKey, IQuestionKey, ICategoryKeyExpanded, ICategory, ICategoryRow } from "./types";
 
 import { useGlobalContext, useGlobalState } from 'global/GlobalProvider';
 
@@ -27,11 +27,11 @@ interface IProps {
 
 const Providered = ({ categoryId_questionId, fromChatBotDlg }: IProps) => {
     console.log("=== Categories", categoryId_questionId)
-    const { state, reloadCategoryNode, getSubCategories } = useCategoryContext();
-    const { categories, categoryKeyExpanded, categoryId_questionId_done, categoryNodeReLoading, categoryNodeLoaded } = state;
+    const { state, reloadCategoryRowNode, getSubCategoryRows } = useCategoryContext();
+    const { categoryRows: categories, categoryKeyExpanded, categoryId_questionId_done, categoryNodeReLoading, categoryNodeLoaded } = state;
 
     const { setLastRouteVisited, searchQuestions } = useGlobalContext();
-    const { isDarkMode, authUser, cats } = useGlobalState();
+    const { isDarkMode, authUser, categoryRows } = useGlobalState();
 
     const [modalShow, setModalShow] = useState(false);
     const handleClose = () => {
@@ -54,17 +54,19 @@ const Providered = ({ categoryId_questionId, fromChatBotDlg }: IProps) => {
         questionId: categoryKeyExpanded ? categoryKeyExpanded.questionId : null
     })
 
+    const categoryRow: ICategoryRow = { ...initialCategory, subCategories: categories }
+
     let tekst = '';
 
     useEffect(() => {
         (async () => {
-            await getSubCategories({partitionKey: null, id: null})
+            await getSubCategoryRows({ partitionKey: null, id: null })
                 .then((list: ICategory[]) => {
                     console.log("+++++++>>>>>>> CategoryList ", { catKeyExpanded, list });
                     //setSubCats(list)
                 });
         })()
-    }, [getSubCategories]);
+    }, [getSubCategoryRows]);
 
     useEffect(() => {
         (async () => {
@@ -86,19 +88,19 @@ const Providered = ({ categoryId_questionId, fromChatBotDlg }: IProps) => {
                         const questionId = arr[1];
                         const keyExp = { partitionKey: null, id: categoryId, questionId }
                         // setCatKeyExpanded(keyExp);
-                        console.log('zovem reloadCategoryNode 1111111111111111111)', { categoryId_questionId }, { categoryId_questionId_done })
-                        await reloadCategoryNode(keyExp, fromChatBotDlg ?? 'false')
+                        console.log('zovem reloadCategoryRowNode 1111111111111111111)', { categoryId_questionId }, { categoryId_questionId_done })
+                        await reloadCategoryRowNode(keyExp, fromChatBotDlg ?? 'false')
                             .then(() => { return null; });
                     }
                 }
                 else if (categoryKeyExpanded && !categoryNodeLoaded) {
-                    console.log('zovem reloadCategoryNode 2222222222222)', { categoryKeyExpanded }, { categoryNodeLoaded })
-                    await reloadCategoryNode(categoryKeyExpanded)
+                    console.log('zovem reloadCategoryRowNode 2222222222222)', { categoryKeyExpanded }, { categoryNodeLoaded })
+                    await reloadCategoryRowNode(categoryKeyExpanded)
                         .then(() => { return null; });
                 }
             }
         })()
-    }, [categoryKeyExpanded, categoryNodeReLoading, categoryNodeLoaded, reloadCategoryNode, categoryId_questionId, categoryId_questionId_done, categories])
+    }, [categoryKeyExpanded, categoryNodeReLoading, categoryNodeLoaded, reloadCategoryRowNode, categoryId_questionId, categoryId_questionId_done, categories])
 
     useEffect(() => {
         setLastRouteVisited(`/categories`);
@@ -128,7 +130,7 @@ const Providered = ({ categoryId_questionId, fromChatBotDlg }: IProps) => {
                                 <AutoSuggestQuestions
                                     tekst={tekst}
                                     onSelectQuestion={onSelectQuestion}
-                                    allCats={cats}
+                                    allCats={categoryRows}
                                     searchQuestions={searchQuestions}
                                 />
                             </div>
@@ -151,7 +153,7 @@ const Providered = ({ categoryId_questionId, fromChatBotDlg }: IProps) => {
                 <Row className="my-1">
                     <Col xs={12} md={5}>
                         <div>
-                            <CategoryList categoryKey={catKeyExpanded} level={0} title="root" isExpanded={true} subCategories={categories} />
+                            <CategoryList categoryRow={categoryRow} level={0} title="root" isExpanded={true} />
                         </div>
                     </Col>
                     <Col xs={0} md={7}>

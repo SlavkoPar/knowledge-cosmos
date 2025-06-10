@@ -2,10 +2,9 @@ import React, { useEffect, useReducer, useState } from "react";
 import { ListGroup } from "react-bootstrap";
 import CatRow from "global/Components/SelectCategory/CatRow";
 import { CatsReducer, initialState } from "global/Components/SelectCategory/CatsReducer";
-import { ICat } from "global/types";
 import { useGlobalContext } from "global/GlobalProvider";
 import { CatsActionTypes, ICatInfo } from "./types";
-import { ICategoryKey } from "categories/types";
+import { ICategoryKey, ICategoryRow } from "categories/types";
 
 const CatList = ({ categoryKey, level, setParentCategory }: ICatInfo) => {
     const [state, dispatch] = useReducer(CatsReducer, initialState);
@@ -28,7 +27,7 @@ const CatList = ({ categoryKey, level, setParentCategory }: ICatInfo) => {
     const mySubCats = state.cats.filter(c => c.parentCategory === id);
     console.log({ mySubCategories: mySubCats })
 
-    const setParentCat = (cat: ICat) => {
+    const setParentCat = (cat: ICategoryRow) => {
         dispatch({ type: CatsActionTypes.SET_PARENT_CAT, payload: { cat } })
         setParentCategory!(cat);
     }
