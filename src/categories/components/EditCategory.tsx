@@ -11,9 +11,7 @@ const EditCategory = ({ inLine }: { inLine: boolean }) => {
 
     const { state, updateCategory } = useCategoryContext();
 
-    const { categoryRows: categories, categoryInViewingOrEditing, categoryKeyExpanded } = state;
-    const { id } = categoryInViewingOrEditing!;
-    const category = categories.find(c => c.id === id);
+    const { categoryInViewingOrEditing, categoryKeyExpanded } = state;
     const { questionId } = categoryKeyExpanded!;
 
     const submitForm = async (categoryObject: ICategory) => {
@@ -31,7 +29,7 @@ const EditCategory = ({ inLine }: { inLine: boolean }) => {
     return (
         <CategoryForm
             inLine={inLine}
-            category={category!}
+            category={{...categoryInViewingOrEditing!}}
             questionId={questionId}
             mode={FormMode.editing}
             submitForm={submitForm}

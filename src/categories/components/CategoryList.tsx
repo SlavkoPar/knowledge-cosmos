@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { ListGroup } from "react-bootstrap";
 import CategoryRow from "categories/components/CategoryRow";
-import { CategoryKey, ICategory, IParentInfo } from "categories/types";
+import { CategoryKey, ICategory, ICategoryRow, IParentInfo } from "categories/types";
 import { useCategoryContext } from "categories/CategoryProvider";
 
 const CategoryList = ({ title, categoryRow, level, isExpanded }: IParentInfo) => {
@@ -33,9 +33,10 @@ const CategoryList = ({ title, categoryRow, level, isExpanded }: IParentInfo) =>
         <div className={level! > 1 ? 'ms-2' : ''}>
             <>
                 <ListGroup as="ul" variant='dark' className="mb-0">
-                    {subCategories!.map((c: ICategory) =>
+                    {subCategories!.map((c: ICategoryRow) =>
                         <CategoryRow
-                            categoryRow={{ ...c, isSelected: c.id === id }}
+                            //categoryRow={{ ...c, isSelected: c.id === id }}
+                            categoryRow={{...c}}
                             questionId={c.partitionKey === partitionKey && c.id === id ? questionId : null}
                             key={c.id}
                         />

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit, faRemove, faCaretRight, faCaretDown, faPlus, faFolder } from '@fortawesome/free-solid-svg-icons'
 import QPlus from 'assets/QPlus.png';
@@ -20,7 +20,10 @@ const CategoryRow = ({ categoryRow, questionId }: { categoryRow: ICategoryRow, q
 
     const { partitionKey, id, title, level, hasSubCategories, subCategories,
         numOfQuestions, questionRows, inAdding, isExpanded, isSelected } = categoryRow;
-    const [categoryKey] = useState<ICategoryKey>({ partitionKey, id }); // otherwise reloads
+
+    const categoryKey: ICategoryKey = { partitionKey, id }
+    
+    // const [categoryKey] = useState<ICategoryKey>({ partitionKey, id }); // otherwise reloads
     const [catKeyExpanded] = useState<ICategoryKeyExpanded>({ partitionKey, id, questionId }); // otherwise reloads
 
     const { canEdit, isDarkMode, variant, bg, authUser } = useGlobalState();
@@ -36,7 +39,7 @@ const CategoryRow = ({ categoryRow, questionId }: { categoryRow: ICategoryRow, q
     const alreadyAdding = mode === Mode.AddingCategory;
     // TODO proveri ovo
     const showQuestions = isExpanded && numOfQuestions > 0 // || questions.find(q => q.inAdding) // && !questions.find(q => q.inAdding); // We don't have questions loaded
-    console.log("----------------QuestionRow", id, numOfQuestions, isExpanded, questionRows)
+    console.log("----------------CategoryRow", id, numOfQuestions, questionRows, isExpanded, isSelected)
 
     const del = () => {
         categoryRow.modified = {
@@ -56,26 +59,35 @@ const CategoryRow = ({ categoryRow, questionId }: { categoryRow: ICategoryRow, q
 
     const edit = async () => {
         // Load data from server and reinitialize category
-        await editCategory(categoryKey, questionId ?? 'null');
+        await editCategory(categoryRow, questionId ?? 'null');
     }
 
-    const onSelectCategory = async () => {
-        if (canEdit)
-            await editCategory(categoryKey, questionId ?? 'null');
-        else
-            await viewCategory(categoryKey, questionId ?? 'null');
-    }
+    // const onSelectCategory = useCallback(() =>
+    //     async (): Promise<any> => {
+    //         if (canEdit)
+    //             await editCategory(categoryRow, questionId ?? 'null');
+    //         else
+    //             await viewCategory(categoryRow, questionId ?? 'null');
+    //     }, [])
+
+    const onSelectCategory =
+        async (): Promise<any> => {
+            if (canEdit)
+                await editCategory(categoryRow, questionId ?? 'null');
+            else
+                await viewCategory(categoryRow, questionId ?? 'null');
+        }
 
     useEffect(() => {
-        if (!isExpanded) { //} && isSelected) {
-            if (categoryKeyExpanded && categoryKeyExpanded.id === catKeyExpanded.id) {
+        if (!isExpanded && !isSelected) {
+            if (categoryKeyExpanded && categoryKeyExpanded.id === id ) { // catKeyExpanded.id) {
                 expandCategory(categoryRow, questionId);
             }
         }
-        else if (isSelected)
-            onSelectCategory();
+        // else if (isSelected)
+        //     onSelectCategory();
 
-    }, [isExpanded, isSelected, onSelectCategory])
+    }, [id, isExpanded, isSelected, expandCategory, categoryKeyExpanded]) // isSelected
 
     const [hoverRef, hoverProps] = useHover();
 
@@ -211,7 +223,7 @@ const CategoryRow = ({ categoryRow, questionId }: { categoryRow: ICategoryRow, q
                 }
             </ListGroup.Item>
 
-            {state.error && state.whichRowId == id && <div className="text-danger">{state.error.message}</div>}
+            {state.error && state.whichRowId === id && <div className="text-danger">{state.error.message}</div>}
 
             {/* !inAdding && */}
             {(isExpanded || inAdding) && // Row2

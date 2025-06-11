@@ -13,7 +13,7 @@ const AddCategory = ({ categoryKey, inLine }: { categoryKey: ICategoryKey, inLin
     const { createCategory, state } = useCategoryContext();
 
     // do not use categoryKey
-    const category: ICategory = state.categoryRows.find(c => c.inAdding)!;
+    const category: ICategory = state.rootCategoryRows.find(c => c.inAdding)!;
     console.assert(category, 'category.inAdding should have been found')
 
     const [formValues] = useState(category);

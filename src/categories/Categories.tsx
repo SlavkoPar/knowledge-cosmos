@@ -28,7 +28,7 @@ interface IProps {
 const Providered = ({ categoryId_questionId, fromChatBotDlg }: IProps) => {
     console.log("=== Categories", categoryId_questionId)
     const { state, reloadCategoryRowNode, getSubCategoryRows } = useCategoryContext();
-    const { categoryRows: categories, categoryKeyExpanded, categoryId_questionId_done, categoryNodeReLoading, categoryNodeLoaded } = state;
+    const { rootCategoryRows: categories, categoryKeyExpanded, categoryId_questionId_done, categoryNodeReLoading, categoryNodeLoaded } = state;
 
     const { setLastRouteVisited, searchQuestions } = useGlobalContext();
     const { isDarkMode, authUser, categoryRows } = useGlobalState();
@@ -60,6 +60,7 @@ const Providered = ({ categoryId_questionId, fromChatBotDlg }: IProps) => {
 
     useEffect(() => {
         (async () => {
+            // SET_ROOT_CATEGORY_ROWS  Level:1
             await getSubCategoryRows({ partitionKey: null, id: null })
                 .then((list: ICategory[]) => {
                     console.log("+++++++>>>>>>> CategoryList ", { catKeyExpanded, list });

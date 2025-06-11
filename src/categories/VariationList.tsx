@@ -11,7 +11,7 @@ const VariationList = ({ categoryKey, variations }: { categoryKey: ICategoryKey,
   const { canEdit } = useGlobalState();
 
   const { state } = useCategoryContext();
-  const { categoryRows: categories, error } = state;
+  const { rootCategoryRows: categories, error } = state;
 
 
   //const group = categories.find(c => c.id === parentCategory)!

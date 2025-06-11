@@ -36,8 +36,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
   const { dbp, categoryRows: cats } = globalState;
 
   const [state, dispatch] = useReducer(CategoriesReducer, initialCategoriesState);
-  const { categoryNodesUpTheTree } = state;
-  console.log('----->>> CategoryProvider', { initialCategoriesState, categoryNodesUpTheTree })
+  console.log('----->>> CategoryProvider')
 
 
   const Execute = async (
@@ -121,11 +120,8 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
             }
           }
           //dispatch({ type: ActionTypes.CATEGORY_NODE_LOADING, payload: { loading: true } })
-          //dispatch({ type: ActionTypes.CLEAN_SUB_TREE, payload: { categoryKey: null/*new CategoryKey(parentCat).categoryKey*/ } });
           // ---------------------------------------------------------------------------
           console.time();
-          //const query = categoryKey ? `${categoryKey.partitionKey}/${categoryKey.id}` : 'null/null';
-          //const query = `${partitionKey}/${id}`;
           const url = `${protectedResources.KnowledgeAPI.endpointCategoryRow}/${partitionKey}/${id}/true`;
           console.log('calling CatController.GetCatsUpTheTree', url)
           await Execute("GET", url)
@@ -135,20 +131,9 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
               console.timeEnd();
               if (categoryRowDto) {
                 const categoryRow = new CategoryRow(categoryRowDto).categoryRow;
-                //if (categoryDto) {
-                // const categoryNodesUpTheTree = categoryDto.map((categoryDto: ICategoryDto) => {
-                //   const { PartitionKey, Id, Title } = categoryDto;
-                //   return { partitionKey: PartitionKey, id: Id, title: Title } as ICategoryKeyExtended
-                // })
-                //}
-                // const len = categoryNodesUpTheTree.length;
-                // if (len > 0) {
-                //   await getSubCategories(new CategoryKey(categoryNodesUpTheTree[len-1]).categoryKey!)
-                // }
                 dispatch({
                   type: ActionTypes.SET_CATEGORY_ROWS_UP_THE_TREE, payload: {
                     categoryKeyExpanded: catKeyExp,
-                    //categoryNodesUpTheTree,
                     fromChatBotDlg: fromChatBotDlg === 'true',
                     categoryRow
                   }
@@ -186,7 +171,12 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
                 : false;
               return new CategoryRow(dto).categoryRow;
             })
-            dispatch({ type: ActionTypes.SET_SUB_CATEGORIES, payload: { id, subCategoryRows } });
+            if (id === null) {
+              dispatch({ type: ActionTypes.SET_ROOT_CATEGORY_ROWS, payload: { id, rootCategoryRows: subCategoryRows } });
+            }
+            else {
+              dispatch({ type: ActionTypes.SET_SUB_CATEGORIES, payload: { id, subCategoryRows } });
+            }
             //setTimeout(() => setNodesReloaded(), 5000); // TODO actually when last node has been loaded
             resolve(subCategoryRows);
           });
@@ -276,11 +266,12 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
         else {
           console.log('getCategory vratio:', category)
           category.rootId = rootId;
-          const categoryRow = new MyCategoryRow(category).categoryRow;
+          //const categoryRow = new MyCategoryRow(category).categoryRow;
           category.isExpanded = true;
+          category.isSelected = false;
           category.rootId = rootId;
-          //dispatch({ type: ActionTypes.SET_CATEGORY, payload: { category } });
-          dispatch({ type: ActionTypes.SET_EXPANDED, payload: { categoryRow } });
+          dispatch({ type: ActionTypes.SET_CATEGORY, payload: { category } });
+          //dispatch({ type: ActionTypes.SET_EXPANDED, payload: { categoryRow } });
           return categoryRow;
         }
         //})
@@ -303,24 +294,29 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
       }
     }, [dispatch]);
 
-  const viewCategory = useCallback(async (categoryKey: ICategoryKey, includeQuestionId: string | null) => {
+
+  const viewCategory = useCallback(async (categoryRow: ICategoryRow, includeQuestionId: string | null) => {
     dispatch({ type: ActionTypes.SET_LOADING });
-    const category = await getCategory(categoryKey, includeQuestionId);
+    const categoryKey = new CategoryKey(categoryRow).categoryKey!;
+    const category: ICategory = await getCategory(categoryKey, includeQuestionId);
     if (category instanceof Error)
       dispatch({ type: ActionTypes.SET_ERROR, payload: { error: category } });
-    else
-      dispatch({ type: ActionTypes.VIEW_CATEGORY, payload: { category } });
+    else {
+      category.rootId = categoryRow.rootId;
+      dispatch({ type: ActionTypes.SET_CATEGORY_TO_VIEW, payload: { category } });
+    }
   }, [dispatch]);
 
-
-  const editCategory = useCallback(async (categoryKey: ICategoryKey, includeQuestionId: string | null) => {
-    return;
+  const editCategory = useCallback(async (categoryRow: ICategoryRow, includeQuestionId: string | null) => {
     dispatch({ type: ActionTypes.SET_LOADING });
-    const category = await getCategory(categoryKey, includeQuestionId);
+    const categoryKey = new CategoryKey(categoryRow).categoryKey!;
+    const category: ICategory = await getCategory(categoryKey, includeQuestionId);
     if (category instanceof Error)
       dispatch({ type: ActionTypes.SET_ERROR, payload: { error: category } });
-    else
-      dispatch({ type: ActionTypes.EDIT_CATEGORY, payload: { category } });
+    else {
+      category.rootId = categoryRow.rootId;
+      dispatch({ type: ActionTypes.SET_CATEGORY_TO_EDIT, payload: { category } });
+    }
   }, [dispatch]);
 
 
@@ -344,9 +340,14 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
               const { categoryDto, msg } = response as ICategoryDtoEx;
               if (categoryDto) {
                 const category = new Category(categoryDto).category;
-                const { id, partitionKey } = category;
-                dispatch({ type: ActionTypes.CLEAN_SUB_TREE, payload: { categoryKey: { partitionKey, id } } });
-                dispatch({ type: ActionTypes.SET_CATEGORY, payload: { category } });
+                const { id, partitionKey, rootId } = category;
+                //dispatch({ type: ActionTypes.CLEAN_SUB_TREE, payload: { categoryKey: { partitionKey, id } } });
+                //dispatch({ type: ActionTypes.SET_CATEGORY, payload: { category } });
+                //const categoryRow = new MyCategoryRow(category).categoryRow;
+                category.isExpanded = false;
+                category.isSelected = true;
+                category.rootId = rootId;
+                dispatch({ type: ActionTypes.SET_CATEGORY_TO_EDIT, payload: { category } });
                 if (closeForm) {
                   dispatch({ type: ActionTypes.CLOSE_CATEGORY_FORM })
                 }
@@ -434,52 +435,52 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
   //
 
   const PAGE_SIZE = 12;
-  const loadCategoryQuestions = useCallback( async ({categoryKey, startCursor, includeQuestionId} : ILoadCategoryQuestions) : Promise<any> => {
+  const loadCategoryQuestions = useCallback(async ({ categoryKey, startCursor, includeQuestionId }: ILoadCategoryQuestions): Promise<any> => {
+    try {
+      const { partitionKey, id } = categoryKey;
+      dispatch({ type: ActionTypes.SET_CATEGORY_QUESTIONS_LOADING, payload: { questionLoading: true } })
       try {
-        const { partitionKey, id } = categoryKey;
-        dispatch({ type: ActionTypes.SET_CATEGORY_QUESTIONS_LOADING, payload: { questionLoading: true } })
-        try {
-          const url = `${protectedResources.KnowledgeAPI.endpointQuestion}/${partitionKey}/${id}/${startCursor}/${PAGE_SIZE}/${includeQuestionId}`;
-          console.time()
-          console.log('>>>>>>>>>>>>')
-          console.log('>>>>>>>>>>>>loadCategoryQuestions URL:', { url }, { includeQuestionId })
-          console.log('>>>>>>>>>>>>')
-          await Execute!("GET", url).then((categoryDtoEx: ICategoryDtoEx) => {
-            console.timeEnd();
-            const { categoryDto, msg } = categoryDtoEx;
-            console.log('>>>>>>>>>>>>loadCategoryQuestions categoryDto:', { categoryDto })
-            if (categoryDto !== null) {
-              const category = new Category(categoryDto).category;
-              // const { Title, QuestionRowDtos, HasMoreQuestions } = categoryDto;
-              // QuestionRowDtos!.forEach((questionRowDto: IQuestionRowDto) => {
-              //   if (includeQuestionId && questionRowDto.Id === includeQuestionId) {
-              //     questionRowDto.Included = true;
-              //   }
-              //   questionRowDto.CategoryTitle = Title; // TODO treba li
-              //   questionRowDtos.push(questionRowDto);
-              // })
-              // const questionRows: IQuestionRow[] = questionRowDtos.map(dto => new QuestionRow(dto).questionRow);
-              // dispatch({
-              //   type: ActionTypes.LOAD_CATEGORY_QUESTIONS,
-              //   payload: { id, questionRows, hasMoreQuestions: HasMoreQuestions! }
-              // });
-              dispatch({
-                type: ActionTypes.LOAD_CATEGORY_QUESTIONS,
-                payload: { categoryRow: category }
-              });
-            }
-          });
-        }
-        catch (error: any) {
-          console.log(error)
-          dispatch({ type: ActionTypes.SET_ERROR, payload: { error } });
-        }
+        const url = `${protectedResources.KnowledgeAPI.endpointQuestion}/${partitionKey}/${id}/${startCursor}/${PAGE_SIZE}/${includeQuestionId}`;
+        console.time()
+        console.log('>>>>>>>>>>>>')
+        console.log('>>>>>>>>>>>>loadCategoryQuestions URL:', { url }, { includeQuestionId })
+        console.log('>>>>>>>>>>>>')
+        await Execute!("GET", url).then((categoryDtoEx: ICategoryDtoEx) => {
+          console.timeEnd();
+          const { categoryDto, msg } = categoryDtoEx;
+          console.log('>>>>>>>>>>>>loadCategoryQuestions categoryDto:', { categoryDto })
+          if (categoryDto !== null) {
+            const category = new Category(categoryDto).category;
+            // const { Title, QuestionRowDtos, HasMoreQuestions } = categoryDto;
+            // QuestionRowDtos!.forEach((questionRowDto: IQuestionRowDto) => {
+            //   if (includeQuestionId && questionRowDto.Id === includeQuestionId) {
+            //     questionRowDto.Included = true;
+            //   }
+            //   questionRowDto.CategoryTitle = Title; // TODO treba li
+            //   questionRowDtos.push(questionRowDto);
+            // })
+            // const questionRows: IQuestionRow[] = questionRowDtos.map(dto => new QuestionRow(dto).questionRow);
+            // dispatch({
+            //   type: ActionTypes.LOAD_CATEGORY_QUESTIONS,
+            //   payload: { id, questionRows, hasMoreQuestions: HasMoreQuestions! }
+            // });
+            dispatch({
+              type: ActionTypes.LOAD_CATEGORY_QUESTIONS,
+              payload: { categoryRow: category }
+            });
+          }
+        });
       }
       catch (error: any) {
-        console.log(error);
-        dispatch({ type: ActionTypes.SET_ERROR, payload: error });
+        console.log(error)
+        dispatch({ type: ActionTypes.SET_ERROR, payload: { error } });
       }
-    }, [dispatch]);
+    }
+    catch (error: any) {
+      console.log(error);
+      dispatch({ type: ActionTypes.SET_ERROR, payload: error });
+    }
+  }, [dispatch]);
 
 
   const createQuestion = useCallback(
@@ -641,7 +642,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
     const questionEx: IQuestionEx = await getQuestion(questionKey);
     const { question, msg } = questionEx;
     if (question)
-      dispatch({ type: ActionTypes.VIEW_QUESTION, payload: { question } });
+      dispatch({ type: ActionTypes.SET_QUESTION_TO_VIEW, payload: { question } });
     else
       dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error(msg) } });
   }, []);
@@ -651,7 +652,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
     const questionEx: IQuestionEx = await getQuestion(questionKey);
     const { question, msg } = questionEx;
     if (question)
-      dispatch({ type: ActionTypes.EDIT_QUESTION, payload: { question } });
+      dispatch({ type: ActionTypes.SET_QUESTION_TO_EDIT, payload: { question } });
     else
       dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error(msg) } });
   }, []);
@@ -740,10 +741,10 @@ export const useCategoryDispatch = () => {
 
 class MyCategoryRow {
   constructor(category: ICategory) {
-    const { partitionKey, id, kind, parentCategory, title, link, header, variations, level,
+    const { partitionKey, id, rootId, parentCategory, kind, title, link, header, variations, level,
       hasSubCategories, subCategories,
       numOfQuestions, questionRows,
-      isExpanded, rootId } = category;
+      isExpanded, isSelected } = category;
     this.categoryRow = {
       partitionKey,
       id,
@@ -760,6 +761,7 @@ class MyCategoryRow {
       level,
       kind,
       isExpanded,
+      isSelected,
       rootId
     }
   }

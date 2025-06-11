@@ -13,7 +13,7 @@ const EditQuestion = ({ questionKey, inLine }: { questionKey: IQuestionKey, inLi
 
     const dispatch = useCategoryDispatch();
     const { state, updateQuestion, reloadCategoryRowNode } = useCategoryContext();
-    const { questionLoading, categoryRows: categories, questionInViewingOrEditing } = state;
+    const { questionLoading, rootCategoryRows: categories, questionInViewingOrEditing } = state;
     //const { partitionKey, id, parentCategory } = questionInViewingOrEditing!;
     //const category = categories.find(c => c.id === parentCategory);
     const [question, setQuestion] = useState<IQuestion | null>(null);

@@ -27,7 +27,7 @@ const AddQuestion = ({ questionRow, inLine, closeModal, showCloseButton, source,
     const dispatch = useCategoryDispatch();
     const { state, createQuestion, reloadCategoryRowNode } = useCategoryContext();
     if (!closeModal) {
-        const cat = state.categoryRows.find(c => c.id === questionRow.parentCategory)
+        const cat = state.rootCategoryRows.find(c => c.id === questionRow.parentCategory)
         questionRow.categoryTitle = cat ? cat.title : '';
     }
     // const question: IQuestion = {
