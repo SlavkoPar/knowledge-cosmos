@@ -172,7 +172,9 @@ const CategoryRow = ({ categoryRow, questionId }: { categoryRow: ICategoryRow, q
                         onClick={async () => {
                             const categoryInfo: ICategoryInfo = { categoryKey: { partitionKey, id: categoryRow.id }, level: categoryRow.level }
                             if (!isExpanded) {
-                                await dispatch({ type: ActionTypes.SET_EXPANDED, payload: { categoryKey } });
+                                // await dispatch({ type: ActionTypes.SET_EXPANDED, payload: { categoryKey } });
+                                // alert('sta je');
+                                await expandCategory(categoryRow, null);
                             }
                             await dispatch({ type: ActionTypes.ADD_QUESTION, payload: { categoryInfo } });
                         }}

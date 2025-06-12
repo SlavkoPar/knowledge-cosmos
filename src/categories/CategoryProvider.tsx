@@ -270,7 +270,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
           category.isExpanded = true;
           category.isSelected = false;
           category.rootId = rootId;
-          dispatch({ type: ActionTypes.SET_CATEGORY, payload: { category } });
+          dispatch({ type: ActionTypes.SET_CATEGORY_ROW, payload: { categoryRow: category } });
           //dispatch({ type: ActionTypes.SET_EXPANDED, payload: { categoryRow } });
           return categoryRow;
         }
@@ -322,11 +322,10 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
 
   const updateCategory = useCallback(
     async (category: ICategory, closeForm: boolean) => {
-      const { partitionKey, id, variations, title, kind, modified } = category;
+      const { partitionKey, id, variations, title, kind, modified, rootId } = category;
       dispatch({ type: ActionTypes.SET_CATEGORY_LOADING, payload: { id, loading: false } });
       try {
         const categoryDto = new CategoryDto(category).categoryDto;
-
         const url = `${protectedResources.KnowledgeAPI.endpointCategory}`;
         console.time()
         await Execute("PUT", url, categoryDto)
@@ -340,7 +339,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
               const { categoryDto, msg } = response as ICategoryDtoEx;
               if (categoryDto) {
                 const category = new Category(categoryDto).category;
-                const { id, partitionKey, rootId } = category;
+                const { id, partitionKey } = category;
                 //dispatch({ type: ActionTypes.CLEAN_SUB_TREE, payload: { categoryKey: { partitionKey, id } } });
                 //dispatch({ type: ActionTypes.SET_CATEGORY, payload: { category } });
                 //const categoryRow = new MyCategoryRow(category).categoryRow;
@@ -739,31 +738,3 @@ export const useCategoryDispatch = () => {
   return useContext(CategoryDispatchContext)
 };
 
-class MyCategoryRow {
-  constructor(category: ICategory) {
-    const { partitionKey, id, rootId, parentCategory, kind, title, link, header, variations, level,
-      hasSubCategories, subCategories,
-      numOfQuestions, questionRows,
-      isExpanded, isSelected } = category;
-    this.categoryRow = {
-      partitionKey,
-      id,
-      parentCategory,
-      title,
-      link,
-      header,
-      titlesUpTheTree: '', // traverse up the tree, until root
-      variations,
-      hasSubCategories,
-      subCategories,
-      numOfQuestions,
-      questionRows,
-      level,
-      kind,
-      isExpanded,
-      isSelected,
-      rootId
-    }
-  }
-  categoryRow: ICategoryRow;
-}

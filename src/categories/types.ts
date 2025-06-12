@@ -179,7 +179,7 @@ export interface ICategory extends ICategoryRow {
 
 export class CategoryRow {
 	constructor(categoryRowDto: ICategoryRowDto) {
-		const { PartitionKey, Id,  RootId, ParentCategory, Kind, Title, Link, Header, Variations, Level,
+		const { PartitionKey, Id, RootId, ParentCategory, Kind, Title, Link, Header, Variations, Level,
 			HasSubCategories, SubCategories,
 			NumOfQuestions, QuestionRowDtos,
 			IsExpanded } = categoryRowDto;
@@ -608,7 +608,7 @@ export enum ActionTypes {
 	CLEAN_TREE = 'CLEAN_TREE',
 	SET_ERROR = 'SET_ERROR',
 	ADD_SUB_CATEGORY = 'ADD_SUB_CATEGORY',
-	SET_CATEGORY = 'SET_CATEGORY',
+	SET_CATEGORY_ROW = 'SET_CATEGORY_ROW',
 	SET_ADDED_CATEGORY = 'SET_ADDED_CATEGORY',
 	SET_CATEGORY_TO_VIEW = 'SET_CATEGORY_TO_VIEW',
 	SET_CATEGORY_TO_EDIT = 'SET_CATEGORY_TO_EDIT',
@@ -617,7 +617,6 @@ export enum ActionTypes {
 
 	CLOSE_CATEGORY_FORM = 'CLOSE_CATEGORY_FORM',
 	CANCEL_CATEGORY_FORM = 'CANCEL_CATEGORY_FORM',
-	SET_EXPANDED = 'SET_EXPANDED',
 	SET_COLLAPSED = 'SET_COLLAPSED',
 
 	CATEGORY_NODE_RE_LOADING = "CATEGORY_NODE_RE_LOADING",
@@ -685,8 +684,8 @@ export type CategoriesPayload = {
 		category: ICategory;
 	};
 
-	[ActionTypes.SET_CATEGORY]: {
-		category: ICategory;
+	[ActionTypes.SET_CATEGORY_ROW]: {
+		categoryRow: ICategoryRow;
 	};
 
 	[ActionTypes.SET_ADDED_CATEGORY]: {
@@ -707,10 +706,7 @@ export type CategoriesPayload = {
 
 	[ActionTypes.CANCEL_CATEGORY_FORM]: undefined;
 
-	[ActionTypes.SET_EXPANDED]: {
-		categoryRow: ICategoryRow;
-	}
-
+	
 	[ActionTypes.SET_COLLAPSED]: {
 		categoryKey: ICategoryKey;
 	}
