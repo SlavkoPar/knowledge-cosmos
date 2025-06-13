@@ -110,7 +110,7 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
   // ---------------------------
   // load all categoryRows
   // ---------------------------
-  const loadCats = useCallback(async (): Promise<any> => {
+  const loadAllCategoryRows = useCallback(async (): Promise<any> => {
     return new Promise(async (resolve) => {
       try {
         console.time();
@@ -370,13 +370,11 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
     });
   }
 
-
-
   const OpenDB = useCallback(async (): Promise<any> => {
     try {
-      await loadCats();
+      await loadAllCategoryRows();
       //await loadShortGroups();
-      console.log('*** loadCats')
+      console.log('*** loadAllCategoryRows')
       return true;
     }
     catch (err: any) {
@@ -770,7 +768,7 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
     <GlobalContext.Provider value={{
       globalState, OpenDB, setLastRouteVisited,
       getUser, health,
-      loadCats, getSubCats, getCatsByKind, searchQuestions, getQuestion,
+      loadAllCategoryRows, getSubCats, getCatsByKind, searchQuestions, getQuestion,
       loadShortGroups, getSubShortGroups, getGroupsByKind, searchAnswers, getAnswer,
       setNodesReloaded,
       addHistory, getAnswersRated, addHistoryFilter

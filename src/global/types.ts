@@ -29,7 +29,7 @@ export interface IRecordDto {
 }
 
 export class Dto2WhoWhen {
-	constructor(whoWhenDto: IWhoWhenDto) {
+	constructor(whoWhenDto?: IWhoWhenDto) {
 		if (whoWhenDto) {
 			const { Time, NickName } = whoWhenDto;
 			this.whoWhen = {
@@ -169,7 +169,7 @@ export interface IGlobalContext {
 	OpenDB: () => Promise<any>;
 	setLastRouteVisited: (lastRouteVisited: string) => void;
 	health: () => void;
-	loadCats: () => Promise<boolean>;
+	loadAllCategoryRows: () => Promise<boolean>;
 	getSubCats: (categoryId: string | null) => Promise<any>;
 	getCatsByKind: (kind: number) => Promise<ICategoryRow[]>;
 	searchQuestions: (filter: string, count: number) => Promise<IQuestionRow[]>;

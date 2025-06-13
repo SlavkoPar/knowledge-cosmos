@@ -9,7 +9,7 @@ const EditQuestion = ({ questionKey, inLine }: { questionKey: IQuestionKey, inLi
     const { partitionKey, id, parentCategory } = questionKey;
     const globalState = useGlobalState();
     const { nickName } = globalState.authUser;
-    const { loadCats } = useGlobalContext();
+    const { loadAllCategoryRows } = useGlobalContext();
 
     const dispatch = useCategoryDispatch();
     const { state, updateQuestion, reloadCategoryRowNode } = useCategoryContext();
@@ -52,8 +52,8 @@ const EditQuestion = ({ questionKey, inLine }: { questionKey: IQuestionKey, inLi
         const categoryChanged = question!.parentCategory !== object.parentCategory;
         const q = await updateQuestion(object, categoryChanged);
         if (question!.parentCategory !== q.parentCategory) {
-            await loadCats(); // reload, group could have been changed
-            dispatch({ type: ActionTypes.CLEAN_TREE, payload: { id: q.parentCategory } })
+            await loadAllCategoryRows(); // reload, group could have been changed
+            //dispatch({ type: ActionTypes.CLEAN_TREE, payload: { id: q.parentCategory } })
             await reloadCategoryRowNode({ partitionKey: '', id: q.parentCategory, questionId: q.id });
         }
         if (categoryChanged) {

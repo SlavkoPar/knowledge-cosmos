@@ -12,6 +12,7 @@ const CategoryList = ({ title, categoryRow, level, isExpanded }: IParentInfo) =>
     const { categoryKeyExpanded } = state;
     const { partitionKey, id, questionId } = categoryKeyExpanded!;
     const { subCategories } = categoryRow;
+    //console.log('<<<<<<<<<CategoryList', categoryRow.id, subCategories )
 
     // const [subCats, setSubCats] = useState<ICategory[]>([]);
 
@@ -36,7 +37,7 @@ const CategoryList = ({ title, categoryRow, level, isExpanded }: IParentInfo) =>
                     {subCategories!.map((c: ICategoryRow) =>
                         <CategoryRow
                             //categoryRow={{ ...c, isSelected: c.id === id }}
-                            categoryRow={{...c}}
+                            categoryRow={c} // {...c}}
                             questionId={c.partitionKey === partitionKey && c.id === id ? questionId : null}
                             key={c.id}
                         />

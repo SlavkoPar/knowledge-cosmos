@@ -19,7 +19,7 @@ import QuestionList from './questions/QuestionList';
 const CategoryRow = ({ categoryRow, questionId }: { categoryRow: ICategoryRow, questionId: string | null }) => {
 
     const { partitionKey, id, title, level, hasSubCategories, subCategories,
-        numOfQuestions, questionRows, inAdding, isExpanded, isSelected } = categoryRow;
+        numOfQuestions, questionRows, inAdding, isExpanded, rootId } = categoryRow;
 
     const categoryKey: ICategoryKey = { partitionKey, id }
     
@@ -29,10 +29,8 @@ const CategoryRow = ({ categoryRow, questionId }: { categoryRow: ICategoryRow, q
     const { canEdit, isDarkMode, variant, bg, authUser } = useGlobalState();
 
     const { state, viewCategory, editCategory, deleteCategory, expandCategory, collapseCategory } = useCategoryContext();
-    //const { mode, categoryInViewingOrEditing } = state;
-    const { mode, categoryKeyExpanded } = state;
-
-    //const bold = categoryInViewingOrEditing && categoryInViewingOrEditing.id === id;
+    const { mode, categoryKeyExpanded, categoryInViewingOrEditing } = state;
+    const isSelected = categoryInViewingOrEditing && categoryInViewingOrEditing.id === id;
 
     const dispatch = useCategoryDispatch();
 
@@ -148,6 +146,7 @@ const CategoryRow = ({ categoryRow, questionId }: { categoryRow: ICategoryRow, q
                             dispatch({
                                 type: ActionTypes.ADD_SUB_CATEGORY,
                                 payload: {
+                                    rootId,
                                     categoryKey,
                                     level: categoryRow.level + 1
                                 }

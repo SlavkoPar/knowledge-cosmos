@@ -28,7 +28,7 @@ interface IProps {
 const Providered = ({ categoryId_questionId, fromChatBotDlg }: IProps) => {
     console.log("=== Categories", categoryId_questionId)
     const { state, reloadCategoryRowNode, getSubCategoryRows } = useCategoryContext();
-    const { rootCategoryRows: categories, categoryKeyExpanded, categoryId_questionId_done, categoryNodeReLoading, categoryNodeLoaded } = state;
+    const { rootCategoryRows, categoryKeyExpanded, categoryId_questionId_done, categoryNodeReLoading, categoryNodeLoaded } = state;
 
     const { setLastRouteVisited, searchQuestions } = useGlobalContext();
     const { isDarkMode, authUser, categoryRows } = useGlobalState();
@@ -54,7 +54,12 @@ const Providered = ({ categoryId_questionId, fromChatBotDlg }: IProps) => {
         questionId: categoryKeyExpanded ? categoryKeyExpanded.questionId : null
     })
 
-    const categoryRow: ICategoryRow = { ...initialCategory, subCategories: categories }
+    const categoryRow: ICategoryRow = {
+        ...initialCategory,
+        level: 1,
+        subCategories: rootCategoryRows
+    }
+
 
     let tekst = '';
 
@@ -62,16 +67,16 @@ const Providered = ({ categoryId_questionId, fromChatBotDlg }: IProps) => {
         (async () => {
             // SET_ROOT_CATEGORY_ROWS  Level:1
             await getSubCategoryRows({ partitionKey: null, id: null })
-                .then((list: ICategory[]) => {
-                    console.log("+++++++>>>>>>> CategoryList ", { catKeyExpanded, list });
-                    //setSubCats(list)
-                });
+            // .then((list: ICategory[]) => {
+            //     console.log("+++++++>>>>>>> CategoryList ", { catKeyExpanded, list });
+            //     //setSubCats(list)
+            // });
         })()
     }, [getSubCategoryRows]);
 
     useEffect(() => {
         (async () => {
-            if (!categoryNodeReLoading && categories.length > 0) {
+            if (!categoryNodeReLoading && rootCategoryRows.length > 0) {
                 if (categoryId_questionId) {
                     if (categoryId_questionId === 'add_question') {
                         const sNewQuestion = localStorage.getItem('New_Question');
@@ -101,7 +106,7 @@ const Providered = ({ categoryId_questionId, fromChatBotDlg }: IProps) => {
                 }
             }
         })()
-    }, [categoryKeyExpanded, categoryNodeReLoading, categoryNodeLoaded, reloadCategoryRowNode, categoryId_questionId, categoryId_questionId_done, categories])
+    }, [categoryKeyExpanded, categoryNodeReLoading, categoryNodeLoaded, reloadCategoryRowNode, categoryId_questionId, categoryId_questionId_done, rootCategoryRows])
 
     useEffect(() => {
         setLastRouteVisited(`/categories`);
@@ -116,7 +121,7 @@ const Providered = ({ categoryId_questionId, fromChatBotDlg }: IProps) => {
 
     console.log('===>>> Categories !!!!!!!!!!!!!!!!!')
     //if (!categoryNodeLoaded)
-    if (categories.length === 0)
+    if (rootCategoryRows.length === 0)
         return null
 
     return (

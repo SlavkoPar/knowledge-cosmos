@@ -61,7 +61,7 @@ const AddQuestion = ({ questionRow, inLine, closeModal, showCloseButton, source,
             }
             else if (closeModal) {
                 closeModal();
-                dispatch({ type: ActionTypes.CLEAN_TREE, payload: { id: q.parentCategory } })
+                //dispatch({ type: ActionTypes.CLEAN_TREE, payload: { id: q.parentCategory } })
                 await reloadCategoryRowNode({ partitionKey: '', id: q.parentCategory, questionId: q.id });
             }
         }

@@ -117,6 +117,10 @@ export interface ICategoryKeyExpanded { //extends ICategoryKey {
 	questionId: string | null;
 }
 
+ export interface ILocStorage {
+    lastCategoryKeyExpanded: ICategoryKeyExpanded|null
+  }
+
 
 export interface ICategoryKeyExtended extends ICategoryKey {
 	title: string;
@@ -170,7 +174,6 @@ export interface ICategoryRow extends IRecord {
 	questionRows: IQuestionRow[];
 	hasMoreQuestions?: boolean;
 	isExpanded?: boolean;
-	isSelected?: boolean; // when category has no subCategories
 	titlesUpTheTree?: string;
 }
 export interface ICategory extends ICategoryRow {
@@ -199,7 +202,6 @@ export class CategoryRow {
 			level: Level,
 			kind: Kind,
 			isExpanded: IsExpanded,
-			isSelected: false,
 			rootId: RootId!
 		}
 	}
@@ -476,6 +478,7 @@ export interface IParentInfo {
 export interface ICategoriesState {
 	mode: string | null;
 	rootCategoryRows: ICategoryRow[];
+	rootCategoryRowsNew?: ICategoryRow[];
 	categoryKeyExpanded: ICategoryKeyExpanded | null;
 	categoryId_questionId_done?: string;
 	categoryNodeReLoading: boolean;
@@ -485,6 +488,7 @@ export interface ICategoriesState {
 	error?: Error;
 	whichRowId?: string; // category.id or question.id
 	categoryInViewingOrEditing: ICategory | null;
+	categoryInAdding: ICategory | null;
 	questionInViewingOrEditing: IQuestion | null;
 }
 
@@ -604,8 +608,6 @@ export enum ActionTypes {
 	SET_CATEGORY_QUESTIONS_LOADING = 'SET_CATEGORY_QUESTIONS_LOADING',
 	SET_ROOT_CATEGORY_ROWS = 'SET_ROOT_CATEGORY_ROWS',
 	SET_SUB_CATEGORIES = 'SET_SUB_CATEGORIES',
-	CLEAN_SUB_TREE = 'CLEAN_SUB_TREE',
-	CLEAN_TREE = 'CLEAN_TREE',
 	SET_ERROR = 'SET_ERROR',
 	ADD_SUB_CATEGORY = 'ADD_SUB_CATEGORY',
 	SET_CATEGORY_ROW = 'SET_CATEGORY_ROW',
@@ -639,49 +641,78 @@ export enum ActionTypes {
 	CANCEL_QUESTION_FORM = 'CANCEL_QUESTION_FORM'
 }
 
+export const actionThatModifyRootCategoryRows = [
+	ActionTypes.SET_CATEGORY_ROW,
+	ActionTypes.SET_CATEGORY_TO_VIEW,
+	ActionTypes.SET_CATEGORY_TO_EDIT,
+	ActionTypes.SET_QUESTION_TO_VIEW,
+	ActionTypes.SET_QUESTION_TO_EDIT
+	// ActionTypes.SET_CATEGORY_ROWS_UP_THE_TREE
+]
+
+export const actionTypesToLocalStore = [
+    //ActionTypes.SET_EXPANDED,
+    ActionTypes.SET_COLLAPSED,
+    ActionTypes.SET_CATEGORY_ROW,
+    ActionTypes.SET_CATEGORY_TO_VIEW, ActionTypes.SET_CATEGORY_TO_EDIT,
+    ActionTypes.SET_QUESTION_TO_VIEW, ActionTypes.SET_QUESTION_TO_EDIT,
+    ActionTypes.SET_CATEGORY_ROWS_UP_THE_TREE
+];
+
+
 export type CategoriesPayload = {
-	[ActionTypes.SET_LOADING]: undefined;
+	[ActionTypes.SET_LOADING]: {
+		categoryRow?: ICategoryRow;
+	}
 
 	[ActionTypes.SET_CATEGORY_LOADING]: {
+		categoryRow?: ICategoryRow;
 		id: string;
 		loading: boolean;
 	}
 
 	[ActionTypes.SET_CATEGORY_QUESTIONS_LOADING]: {
+		categoryRow?: ICategoryRow;
 		questionLoading: boolean;
 	}
 
-	[ActionTypes.CATEGORY_NODE_RE_LOADING]: undefined;
+	[ActionTypes.CATEGORY_NODE_RE_LOADING]: {
+		categoryRow?: ICategoryRow;
+	};
 
 	[ActionTypes.SET_CATEGORY_ROWS_UP_THE_TREE]: {
 		// categoryNodesUpTheTree: ICategoryKeyExtended[]; /// we could have used Id only
+		categoryRow: ICategoryRow;
 		categoryKeyExpanded: ICategoryKeyExpanded;
 		fromChatBotDlg: boolean;
-		categoryRow: ICategoryRow;
 	};
 
 
 	[ActionTypes.SET_ROOT_CATEGORY_ROWS]: {
+		categoryRow?: ICategoryRow;
 		id: string | null;
 		rootCategoryRows: ICategoryRow[];
 	};
 
 	[ActionTypes.SET_SUB_CATEGORIES]: {
+		categoryRow?: ICategoryRow;
 		id: string | null;
 		subCategoryRows: ICategoryRow[];
 	};
 
 	[ActionTypes.ADD_SUB_CATEGORY]: {
+		categoryRow?: ICategoryRow;
+		rootId: string,
 		categoryKey: ICategoryKey,
 		level: number
 	}
 
 	[ActionTypes.SET_CATEGORY_TO_VIEW]: {
-		category: ICategory;
+		categoryRow: ICategoryRow; // ICategory extends ICategoryRow
 	};
 
 	[ActionTypes.SET_CATEGORY_TO_EDIT]: {
-		category: ICategory;
+		categoryRow: ICategoryRow; // ICategory extends ICategoryRow
 	};
 
 	[ActionTypes.SET_CATEGORY_ROW]: {
@@ -689,34 +720,39 @@ export type CategoriesPayload = {
 	};
 
 	[ActionTypes.SET_ADDED_CATEGORY]: {
+		categoryRow?: ICategoryRow;
 		category: ICategory;
 	};
 
 	[ActionTypes.DELETE]: {
+		categoryRow?: ICategoryRow;
 		id: string;
 	};
 
-	[ActionTypes.CLEAN_SUB_TREE]: {
-		categoryKey: ICategoryKey | null;
+
+	[ActionTypes.CLOSE_CATEGORY_FORM]: {
+		categoryRow?: ICategoryRow;
 	};
 
-	[ActionTypes.CLEAN_TREE]: undefined;
+	[ActionTypes.CANCEL_CATEGORY_FORM]: {
+		categoryRow?: ICategoryRow;
+	};
 
-	[ActionTypes.CLOSE_CATEGORY_FORM]: undefined;
 
-	[ActionTypes.CANCEL_CATEGORY_FORM]: undefined;
-
-	
 	[ActionTypes.SET_COLLAPSED]: {
+		categoryRow?: ICategoryRow;
 		categoryKey: ICategoryKey;
 	}
 
 	[ActionTypes.SET_ERROR]: {
+		categoryRow?: ICategoryRow;
 		error: Error;
 		whichRowId?: string;
 	};
 
-	[ActionTypes.RESET_CATEGORY_QUESTION_DONE]: undefined;
+	[ActionTypes.RESET_CATEGORY_QUESTION_DONE]: {
+		categoryRow?: ICategoryRow
+	};
 
 
 	/////////////
@@ -726,44 +762,56 @@ export type CategoriesPayload = {
 	};
 
 	[ActionTypes.ADD_QUESTION]: {
+		categoryRow?: ICategoryRow;
 		categoryInfo: ICategoryInfo;
 	}
 
-	[ActionTypes.SET_VIEWING_EDITING_QUESTION]: undefined;
+	[ActionTypes.SET_VIEWING_EDITING_QUESTION]: {
+		categoryRow?: ICategoryRow;
+	};
 
 	[ActionTypes.SET_QUESTION_TO_VIEW]: {
+		categoryRow?: ICategoryRow;
 		question: IQuestion;
 	};
 
 	[ActionTypes.SET_QUESTION_TO_EDIT]: {
+		categoryRow?: ICategoryRow;
 		question: IQuestion;
 	};
 
 	[ActionTypes.SET_QUESTION_SELECTED]: {
+		categoryRow?: ICategoryRow;
 		questionKey: IQuestionKey;
 	};
 
 	[ActionTypes.SET_QUESTION]: {
+		categoryRow?: ICategoryRow;
 		question: IQuestion
 	};
 
 	[ActionTypes.SET_QUESTION_AFTER_ASSIGN_ANSWER]: {
+		categoryRow?: ICategoryRow;
 		question: IQuestion
 	};
 
 	[ActionTypes.SET_QUESTION_ANSWERS]: {
+		categoryRow?: ICategoryRow;
 		answers: IAssignedAnswer[];
 	};
 
 	[ActionTypes.DELETE_QUESTION]: {
+		categoryRow?: ICategoryRow;
 		question: IQuestion
 	};
 
 	[ActionTypes.CLOSE_QUESTION_FORM]: {
+		categoryRow?: ICategoryRow;
 		question: IQuestion;
 	};
 
 	[ActionTypes.CANCEL_QUESTION_FORM]: {
+		categoryRow?: ICategoryRow;
 		question: IQuestion;
 	};
 };

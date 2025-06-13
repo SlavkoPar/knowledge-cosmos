@@ -9,7 +9,7 @@ const EditAnswer = ({ answerKey, inLine }: { answerKey: IAnswerKey, inLine: bool
     const { partitionKey, id, parentGroup } = answerKey;
     const globalState = useGlobalState();
     const { nickName } = globalState.authUser;
-    const { loadCats } = useGlobalContext();
+    const { loadAllCategoryRows: loadCats } = useGlobalContext();
 
     const dispatch = useGroupDispatch();
     const { state, updateAnswer, reloadGroupNode } = useGroupContext();
@@ -20,11 +20,11 @@ const EditAnswer = ({ answerKey, inLine }: { answerKey: IAnswerKey, inLine: bool
     useEffect(() => {
         //const q = group!.answers.find(q => q.inEditing)
         //if (group) {
-            //const q = group!.answers.find(q => q.id === id)
-            console.log("#################################### EditAnswer setAnswer ...", { answerInViewingOrEditing })
-            //if (q) {
-                setAnswer(answerInViewingOrEditing);
-            //}
+        //const q = group!.answers.find(q => q.id === id)
+        console.log("#################################### EditAnswer setAnswer ...", { answerInViewingOrEditing })
+        //if (q) {
+        setAnswer(answerInViewingOrEditing);
+        //}
         //}
     }, [answerInViewingOrEditing]) // answerLoading
 

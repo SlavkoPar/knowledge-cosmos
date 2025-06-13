@@ -1,5 +1,5 @@
 import { Reducer } from 'react'
-import { Mode, ActionTypes, ICategoriesState, ICategory, IQuestion, CategoriesActions, ILocStorage, ICategoryKey, ICategoryKeyExtended, IQuestionRow, Question, IQuestionRowDto, IQuestionKey, CategoryKey, QuestionKey, ICategoryDto, QuestionRow, ICategoryRow, CategoryRow } from "categories/types";
+import { Mode, ActionTypes, ICategoriesState, ICategory, IQuestion, CategoriesActions, ILocStorage, ICategoryKey, ICategoryKeyExtended, IQuestionRow, Question, IQuestionRowDto, IQuestionKey, CategoryKey, QuestionKey, ICategoryDto, QuestionRow, ICategoryRow, CategoryRow, actionThatModifyRootCategoryRows, actionTypesToLocalStore, ICategoryRowDto } from "categories/types";
 import { Dto2WhoWhen } from 'global/types';
 
 export const initialQuestion: IQuestion = {
@@ -50,6 +50,7 @@ export const initialState: ICategoriesState = {
   categoryNodeReLoading: false,
   categoryNodeLoaded: false, //true  TODO izmeni nakon testa
   categoryInViewingOrEditing: null,
+  categoryInAdding: null,
   questionInViewingOrEditing: null
 }
 
@@ -94,54 +95,59 @@ export const CategoriesReducer: Reducer<ICategoriesState, CategoriesActions> = (
 
   console.log('------------------------------->', action.type)
 
-  SET_CATEGORY_ROW
-  const actionsWithCategoryRow = [
-    ActionTypes.SET_CATEGORY_ROW,
-    ActionTypes.SET_CATEGORY_TO_VIEW, ActionTypes.SET_CATEGORY_TO_EDIT,
-    ActionTypes.SET_QUESTION_TO_VIEW, ActionTypes.SET_QUESTION_TO_EDIT,
-    ActionTypes.SET_CATEGORY_ROWS_UP_THE_TREE
-  ];
-  if (actionsWithCategoryRow.includes(action.type)) {
-      const { categoryRow } = action.payload;
-      let { rootCategoryRows } = state;
-      const rootCat: ICategory = rootCategoryRows.find(c => c.id === rootId)!;
-      DeepClone.catIdToSet = id;
-      DeepClone.newCat = categoryRow;
-      const rootCatModified = new DeepClone(rootCat).categoryRow;
-      const rootCategoryRows2 = rootCategoryRows.map(c => c.id === rootId
-        ? rootCatModified
-        : new DeepClone(c).categoryRow
-      )  }
 
-      
+// function replaceCatRowInRootCatRows(rootCategoryRows: ICategoryRow[], rootId: string, categoryRow: ICategoryRow) {
+//   DeepClone.catIdToSet = categoryRow.id;
+//   DeepClone.newCat = categoryRow;
 
-  const newState = reducer(state, action);
+//   const rootCat: ICategoryRow = rootCategoryRows.find(c => c.id === rootId)!;
+//   const rootCatModified = new DeepClone(rootCat).categoryRow;
+//   const newRootCategoryRows = rootCategoryRows.map(c => c.id === rootId
+//     ? rootCatModified
+//     : new DeepClone(c).categoryRow
+//   )
+//   return newRootCategoryRows;
+// }
 
-  const aTypesToStore = [
-    //ActionTypes.SET_EXPANDED,
-    ActionTypes.SET_COLLAPSED,
-    ActionTypes.SET_CATEGORY_ROW,
-    ActionTypes.SET_CATEGORY_TO_VIEW, ActionTypes.SET_CATEGORY_TO_EDIT,
-    ActionTypes.SET_QUESTION_TO_VIEW, ActionTypes.SET_QUESTION_TO_EDIT,
-    ActionTypes.SET_CATEGORY_ROWS_UP_THE_TREE
-  ];
+
+  const { categoryRow } = action.payload;
+  const { rootCategoryRows } = state;
+  let newRootCategoryRows: ICategoryRow[];
+  if (categoryRow && actionThatModifyRootCategoryRows.includes(action.type)) {
+    const { rootId, id } = categoryRow!;
+    const rootCategoryRow: ICategory = rootCategoryRows.find(c => c.id === rootId)!;
+    DeepClone.catIdToSet = id;
+    DeepClone.newCat = categoryRow!;
+    const rootCatModified = new DeepClone(rootCategoryRow).categoryRow;
+    newRootCategoryRows = rootCategoryRows.map(c => c.id === rootId
+      ? rootCatModified
+      : new DeepClone(c).categoryRow
+    )
+  }
+  else {
+    DeepClone.catIdToSet = '';
+    newRootCategoryRows = rootCategoryRows.map(c => new DeepClone(c).categoryRow)
+  }
+
+  const newState = reducer(state, action, newRootCategoryRows);
 
   const { categoryKeyExpanded } = newState;
   const locStorage: ILocStorage = {
     lastCategoryKeyExpanded: categoryKeyExpanded
   }
-  if (aTypesToStore.includes(action.type)) {
+  if (actionTypesToLocalStore.includes(action.type)) {
     localStorage.setItem('CATEGORIES_STATE', JSON.stringify(locStorage));
   }
   return newState;
 }
 
-const reducer = (state: ICategoriesState, action: CategoriesActions) => {
+const reducer = (state: ICategoriesState, action: CategoriesActions, newRootCategoryRows: ICategoryRow[]): ICategoriesState => {
   switch (action.type) {
 
     case ActionTypes.SET_LOADING:
       return {
         ...state,
+        rootCategoryRows: newRootCategoryRows,
         loading: true
       }
 
@@ -149,6 +155,7 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
       const { id, loading } = action.payload; // category doesn't contain inAdding 
       return {
         ...state,
+        rootCategoryRows: newRootCategoryRows,
         loading
       }
 
@@ -156,6 +163,7 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
       const { questionLoading } = action.payload; // category doesn't contain inAdding 
       return {
         ...state,
+        rootCategoryRows: newRootCategoryRows,
         questionLoading
       }
 
@@ -163,6 +171,7 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
     case ActionTypes.CATEGORY_NODE_RE_LOADING: {
       return {
         ...state,
+        rootCategoryRows: newRootCategoryRows,
         categoryNodeReLoading: true
       }
     }
@@ -170,6 +179,7 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
     case ActionTypes.RESET_CATEGORY_QUESTION_DONE: {
       return {
         ...state,
+        rootCategoryRows: newRootCategoryRows,
         categoryId_questionId_done: undefined,
         categoryNodeLoaded: false
       };
@@ -185,10 +195,11 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
       // })
       return {
         ...state,
-        rootCategoryRows,
+        rootCategoryRows, //: newRootCategoryRows,
         loading: false
       };
     }
+
 
     case ActionTypes.SET_CATEGORY_ROWS_UP_THE_TREE: {
       const { categoryKeyExpanded, fromChatBotDlg, categoryRow } = action.payload;
@@ -202,14 +213,13 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
         ...state,
         rootCategoryRows: fromChatBotDlg ? [] : rootCategoryRows,
         categoryId_questionId_done: `${id}_${questionId}`,
-        categoryNodeLoading: false,
         categoryNodeLoaded: true,
         loading: false,
         categoryKeyExpanded,
         mode: Mode.NULL // reset previosly selected form
       };
     }
-
+    
     case ActionTypes.SET_SUB_CATEGORIES: {
       const { id, subCategoryRows } = action.payload;
       const { rootCategoryRows } = state;
@@ -219,63 +229,31 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
       })
       return {
         ...state,
-        //categoryRows: categoryRows.concat(subCategoryRows),
-        categoryRows: subCategoryRows,
+        rootCategoryRows: newRootCategoryRows,
         loading: false
       };
     }
 
-    case ActionTypes.CLEAN_SUB_TREE: {
-      const { categoryKey } = action.payload;
-      if (categoryKey === null) {
-        return {
-          ...state,
-          categoryKeyExpanded: null,
-          categoryNodeLoaded: false,
-          categoryRows: []
-        }
-      }
-      else {
-        const ids = markForClean(state.rootCategoryRows, categoryKey.id);
-        console.log('CLEAN_SUB_TREE:', ids)
-        if (ids.length === 0)
-          return {
-            ...state,
-            //categoryKeyExpanded: null
-          }
-        else
-          return {
-            ...state,
-            //categoryKeyExpanded: null,
-            categoryRows: state.rootCategoryRows.filter(c => !ids.includes(c.id))
-          }
-      }
-    }
-
-    case ActionTypes.CLEAN_TREE: {
-      return {
-        ...state,
-        categoryRows: []
-      }
-    }
 
     case ActionTypes.SET_ERROR: {
       const { error, whichRowId } = action.payload; // category.id or question.id
       return {
         ...state,
+        rootCategoryRows: newRootCategoryRows,
         error,
         whichRowId,
         loading: false,
-        questionLoading: false,
-        categoryNodeLoading: false
+        questionLoading: false
+        //categoryNodeLoading: false
       };
     }
 
     case ActionTypes.ADD_SUB_CATEGORY: {
-      const { categoryKey, level } = action.payload;
+      const { categoryKey, level, rootId } = action.payload;
       const { partitionKey, id } = categoryKey;
-      const categoryRow: ICategoryRow = {
+      const category: ICategory = {
         ...initialCategory,
+        rootId,
         level,
         partitionKey: partitionKey!,
         parentCategory: id,
@@ -283,7 +261,8 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
       }
       return {
         ...state,
-        categoryRows: [...state.rootCategoryRows, categoryRow],
+        categoryInAdding: category,
+        rootCategoryRows: [...newRootCategoryRows, category],
         mode: Mode.AddingCategory
       };
     }
@@ -292,7 +271,8 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
       const { category } = action.payload;
       return {
         ...state,
-        categoryRows: state.rootCategoryRows.map((row: ICategoryRow) => row.inAdding ? { ...category, inAdding: false } : row),
+        // TODO Popravi
+        rootCategoryRows: newRootCategoryRows.map((row: ICategoryRow) => row.inAdding ? { ...category, inAdding: false } : row),
         mode: Mode.NULL,
         loading: false
       }
@@ -309,26 +289,19 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
         questions.unshift(questionInAdding); // TODO mislim da ovo treba comment
         console.assert(state.mode === Mode.AddingQuestion, "expected Mode.AddingQuestion")
       }
-      */ 
-      let { rootCategoryRows } = state;
-      const rootCat: ICategory = rootCategoryRows.find(c => c.id === rootId)!;
-      DeepClone.catIdToSet = id;
-      DeepClone.newCat = categoryRow;
-      const rootCatModified = new DeepClone(rootCat).categoryRow;
-      const rootCategoryRows2 = rootCategoryRows.map(c => c.id === rootId
-        ? rootCatModified
-        : new DeepClone(c).categoryRow
-      )
+      */
+      // let { rootCategoryRows } = state;
+      // const rootCat: ICategory = rootCategoryRows.find(c => c.id === rootId)!;
+      // DeepClone.catIdToSet = id;
+      // DeepClone.newCat = categoryRow;
+      // const rootCatModified = new DeepClone(rootCat).categoryRow;
+      // const rootCategoryRows2 = rootCategoryRows.map(c => c.id === rootId
+      //   ? rootCatModified
+      //   : new DeepClone(c).categoryRow
+      // )
       return {
         ...state,
-        // categoryRows: state.rootCategoryRows.map((c: ICategory) => c.id === id
-        //   ? {
-        //     ...categoryRow,
-        //     inAdding: c.inAdding,
-        //     isExpanded: c.isExpanded
-        //   }
-        //   : c),
-        rootCategoryRows: rootCategoryRows2,
+        rootCategoryRows: newRootCategoryRows,
         questionInViewingOrEditing: null,
         // keep mode
         loading: false
@@ -336,23 +309,23 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
     }
 
     case ActionTypes.SET_CATEGORY_TO_VIEW: {
-      const { category } = action.payload;
-      const categoryInViewingOrEditing = { ...category, isExpanded: false, isSelected: true }
-      const { partitionKey, id, parentCategory, rootId } = category;
+      const { categoryRow } = action.payload;
+      const categoryInViewingOrEditing = { ...categoryRow, isExpanded: false }
+      const { partitionKey, id, parentCategory, rootId } = categoryRow;
       // let { rootCategoryRows } = state;
       // const newRootCategoryRows = replaceCatRowInRootCatRows(rootCategoryRows, rootId, categoryInViewingOrEditing);
-      let { rootCategoryRows } = state;
-      const rootCat: ICategoryRow = rootCategoryRows.find(c => c.id === rootId)!;
-      DeepClone.catIdToSet = id;
-      DeepClone.newCat = category; // category extends categoryRow
-      const rootCatModified = new DeepClone(rootCat).categoryRow;
-      const rootCategoryRows2 = rootCategoryRows.map(c => c.id === rootId
-        ? rootCatModified
-        : new DeepClone(c).categoryRow
-      )
+      // let { rootCategoryRows } = state;
+      // const rootCat: ICategoryRow = rootCategoryRows.find(c => c.id === rootId)!;
+      // DeepClone.catIdToSet = id;
+      // DeepClone.newCat = category; // category extends categoryRow
+      // const rootCatModified = new DeepClone(rootCat).categoryRow;
+      // const rootCategoryRows2 = rootCategoryRows.map(c => c.id === rootId
+      //   ? rootCatModified
+      //   : new DeepClone(c).categoryRow
+      // )
       return {
         ...state,
-        rootCategoryRows: rootCategoryRows2,
+        rootCategoryRows: newRootCategoryRows,
         mode: Mode.ViewingCategory,
         loading: false,
         categoryKeyExpanded: state.categoryKeyExpanded ? { ...state.categoryKeyExpanded, questionId: null } : null,
@@ -362,11 +335,12 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
     }
 
     case ActionTypes.SET_CATEGORY_TO_EDIT: {
-      const { category } = action.payload;
-      const categoryInViewingOrEditing = { ...category, isExpanded: false, isSelected: true }
-      const { partitionKey, id, parentCategory, rootId } = category;
+      const { categoryRow } = action.payload; // ICategory extends ICategoryRow
+      const categoryInViewingOrEditing = { ...categoryRow, isExpanded: false }
+      const { partitionKey, id, parentCategory, rootId } = categoryRow;
       // let { rootCategoryRows } = state;
       // const newRootCategoryRows = replaceCatRowInRootCatRows(rootCategoryRows, rootId, categoryInViewingOrEditing);
+      /*
       let { rootCategoryRows } = state;
       const rootCat: ICategoryRow = rootCategoryRows.find(c => c.id === rootId)!;
       DeepClone.catIdToSet = id;
@@ -376,9 +350,10 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
         ? rootCatModified
         : new DeepClone(c).categoryRow
       )
+        */
       return {
         ...state,
-        rootCategoryRows: rootCategoryRows2,
+        rootCategoryRows: newRootCategoryRows,
         mode: Mode.EditingCategory,
         loading: false,
         categoryKeyExpanded: state.categoryKeyExpanded ? { ...state.categoryKeyExpanded, questionId: null } : null,
@@ -392,15 +367,15 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
       const { id, rootId, questionRows, hasMoreQuestions } = categoryRow;
       //const { id, questionRows, hasMoreQuestions } = action.payload; // category doesn't contain inAdding 
       //console.log('>>>>>>>>>>>>LOAD_CATEGORY_QUESTIONS', { id, questionRows, hasMoreQuestions })
-      let { rootCategoryRows } = state;
-      const rootCat: ICategory = rootCategoryRows.find(c => c.id === rootId)!;
-      DeepClone.catIdToSet = id;
-      DeepClone.newCat = categoryRow;
-      const rootCatModified = new DeepClone(rootCat).categoryRow;
-      const rootCategoryRows2 = rootCategoryRows.map(c => c.id === rootId
-        ? rootCatModified
-        : new DeepClone(c).categoryRow
-      )
+      // let { rootCategoryRows } = state;
+      // const rootCat: ICategory = rootCategoryRows.find(c => c.id === rootId)!;
+      // DeepClone.catIdToSet = id;
+      // DeepClone.newCat = categoryRow;
+      // const rootCatModified = new DeepClone(rootCat).categoryRow;
+      // const rootCategoryRows2 = rootCategoryRows.map(c => c.id === rootId
+      //   ? rootCatModified
+      //   : new DeepClone(c).categoryRow
+      // )
       /*
       const questions: IQuestion[] = questionRowDtos.map(questionRow => new Question(questionRow).question);
       */
@@ -428,7 +403,7 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
       return {
         ...state,
         //categoryRows: rootCategoryRowsNEW,
-        rootCategoryRows: rootCategoryRows2,
+        rootCategoryRows: newRootCategoryRows,
         // state.categories.map((c: ICategory) => c.id === id
         //   ? {
         //     ...c,
@@ -445,10 +420,11 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
 
     case ActionTypes.DELETE: {
       const { id } = action.payload;
+      // TODO Popravi
       return {
         ...state,
         mode: Mode.NULL,
-        categoryRows: state.rootCategoryRows.filter(c => c.id !== id),
+        rootCategoryRows: newRootCategoryRows.filter(c => c.id !== id),
         error: undefined,
         whichRowId: undefined
       };
@@ -456,13 +432,14 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
 
     case ActionTypes.CANCEL_CATEGORY_FORM:
     case ActionTypes.CLOSE_CATEGORY_FORM: {
-      const categoryRows = state.mode === Mode.AddingCategory
-        ? state.rootCategoryRows.filter(c => !c.inAdding)
-        : state.rootCategoryRows
+      // const categoryRows = state.mode === Mode.AddingCategory
+      //   ? state.rootCategoryRows.filter(c => !c.inAdding)
+      //   : state.rootCategoryRows
       return {
         ...state,
         mode: Mode.NULL,
-        categoryRows: categoryRows.map((c: ICategory) => ({ ...c, inAdding: false }))
+        //categoryRows: categoryRows.map((c: ICategory) => ({ ...c, inAdding: false }))
+        rootCategoryRows: newRootCategoryRows
       };
     }
 
@@ -470,16 +447,10 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
     case ActionTypes.SET_COLLAPSED: {
       const { categoryKey } = action.payload;
       const { partitionKey, id } = categoryKey;
-      let { rootCategoryRows: categoryRows } = state;
-
-      const ids = markForClean(categoryRows, categoryKey.id)
-      console.log('clean:', ids)
-
-      const cats = ids.length > 0 ? categoryRows.filter(c => !ids.includes(c.id)) : categoryRows
-
+      // TODO Popravi
       const x = {
         ...state,
-        categoryRows: cats.map((c: ICategoryRow) => c.id === id
+        rootCategoryRows: newRootCategoryRows.map((c: ICategoryRow) => c.id === id
           ? { ...c, isExpanded: false }
           : { ...c }
         ),
@@ -507,7 +478,8 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
       }
       return {
         ...state,
-        categoryRows: state.rootCategoryRows.map((c: ICategory) => c.id === id
+        // TODO Popravi
+        rootCategoryRows: newRootCategoryRows.map((c: ICategory) => c.id === id
           ? { ...c, questionRows: [questionRow, ...c.questionRows], inAdding: true, numOfQuestions: c.numOfQuestions + 1 }
           : { ...c, inAdding: false }),
         mode: Mode.AddingQuestion
@@ -518,7 +490,8 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
       const { question } = action.payload;
       const { parentCategory, id, title, numOfAssignedAnswers } = question;
       const inAdding = state.mode === Mode.AddingQuestion;
-      const categoryRows = state.rootCategoryRows.map((c: ICategory) => c.id === parentCategory
+      // TODO Popravi
+      const rootCategoryRows = newRootCategoryRows.map((c: ICategory) => c.id === parentCategory
         ? {
           ...c,
           questionRows: inAdding
@@ -528,10 +501,10 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
         }
         : c
       );
-      console.log('ActionTypes.SET_QUESTION', "^" + parentCategory + "^", categoryRows.filter(c => c.id === parentCategory)[0])
+      console.log('ActionTypes.SET_QUESTION', "^" + parentCategory + "^", rootCategoryRows.filter(c => c.id === parentCategory)[0])
       return {
         ...state,
-        categoryRows,
+        rootCategoryRows,
         categoryInViewingOrEditing: null,
         questionInViewingOrEditing: question,
         // mode: Mode.NULL,
@@ -550,7 +523,8 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
       // const x = state.categories.filter(c => c.id === parentCategory).filter(q=>q.id === id);
       // console.error('SET_QUESTION_AFTER_ASSIGN_ANSWER', {x})
 
-      const categoryRows = state.rootCategoryRows.map((c: ICategory) => c.id === parentCategory
+      // TODO Popravi
+      const rootCategoryRows = newRootCategoryRows.map((c: ICategory) => c.id === parentCategory
         ? {
           ...c,
           questionRows: inAdding
@@ -562,15 +536,16 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
       );
       return {
         ...state,
-        categoryRows,
+        rootCategoryRows,
         mode: state.mode, // keep mode
         loading: false
       };
     }
     case ActionTypes.SET_VIEWING_EDITING_QUESTION: {
+      // Popravi
       return {
         ...state,
-        categoryRows: state.rootCategoryRows.map((c: ICategory) => ({
+        rootCategoryRows: newRootCategoryRows.map((c: ICategory) => ({
           ...c,
           questionRows: c.questionRows.map((q: IQuestionRow) => ({ ...q }))
         })),
@@ -581,11 +556,11 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
     case ActionTypes.SET_QUESTION_TO_VIEW: {
       const { question } = action.payload;
       const { partitionKey, id, parentCategory } = question;
-      const { rootCategoryRows: categoryRows, categoryKeyExpanded } = state;
+      const { categoryKeyExpanded } = state;
       const categoryProps = undefined;
       return {
         ...state,
-        //categoryRows: resetRows(state.rootCategoryRows, parentCategory, categoryProps, id, { isSelected: true, isExpanded: false }),
+        rootCategoryRows: newRootCategoryRows,
         mode: Mode.ViewingQuestion,
         loading: false,
         categoryKeyExpanded: categoryKeyExpanded
@@ -598,11 +573,11 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
     case ActionTypes.SET_QUESTION_TO_EDIT: {
       const { question } = action.payload;
       const { partitionKey, id, parentCategory } = question;
-      const { rootCategoryRows: categoryRows, categoryKeyExpanded } = state;
+      const { categoryKeyExpanded } = state;
       const categoryProps = undefined;
       return {
         ...state,
-        //categoryRows: resetRows(state.rootCategoryRows, parentCategory, categoryProps, id, { isSelected: true, isExpanded: false }),
+        rootCategoryRows: newRootCategoryRows,
         mode: Mode.EditingQuestion,
         loading: false,
         categoryKeyExpanded: categoryKeyExpanded
@@ -616,14 +591,14 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
       const { question } = action.payload;
       const { parentCategory, id } = question;
       return {
-        ...state,
-        categoryRows: state.rootCategoryRows.map((c: ICategory) => c.id === parentCategory
-          ? {
-            ...c,
-            questionRows: c.questionRows.filter(q => q.id !== id)
-          }
-          : c
-        ),
+        ...state, // Popravi
+        // categoryKeyExpanded: newRootCategoryRows.map((c: ICategory) => c.id === parentCategory
+        //   ? {
+        //     ...c,
+        //     questionRows: c.questionRows.filter(q => q.id !== id)
+        //   }
+        //   : c
+        // ),
         mode: Mode.NULL
       }
     }
@@ -635,6 +610,7 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
       let questionInViewingOrEditing: IQuestion | null = null
       const category = state.rootCategoryRows.find(c => c.id === parentCategory)
       let questionRows: IQuestionRow[] = [];
+      // POPRAVI
       switch (state.mode) {
         case Mode.AddingQuestion: {
           console.assert(category!.inAdding, "expected category.inAdding");
@@ -655,7 +631,7 @@ const reducer = (state: ICategoriesState, action: CategoriesActions) => {
 
       return {
         ...state,
-        categoryRows: state.rootCategoryRows.map((c: ICategory) => c.id === parentCategory
+        rootCategoryRows: newRootCategoryRows.map((c: ICategory) => c.id === parentCategory
           ? { ...c, /*questionRows: questionRows, numOfQuestions: questionRows.length,*/ inAdding: false }
           : c
         ),
@@ -688,40 +664,12 @@ function findCategory(categoryRows: ICategoryRow[], id: string | null): ICategor
   return cat;
 }
 
-
-function markForClean(categoryRows: ICategoryRow[], id: string | null) {
-  let deca = categoryRows
-    .filter(c => c.parentCategory === id)
-    .map(c => c.id)
-
-  deca.forEach(id => {
-    const unuci = id ? markForClean(categoryRows, id) : [];
-    deca = deca.concat(unuci);
-  })
-  return deca
-
-}
-
-
-function replaceCatRowInRootCatRows(rootCategoryRows: ICategoryRow[], rootId: string, categoryRow: ICategoryRow) {
-  DeepClone.catIdToSet = categoryRow.id;
-  DeepClone.newCat = categoryRow;
-
-  const rootCat: ICategoryRow = rootCategoryRows.find(c => c.id === rootId)!;
-  const rootCatModified = new DeepClone(rootCat).categoryRow;
-  const newRootCategoryRows = rootCategoryRows.map(c => c.id === rootId
-    ? rootCatModified
-    : new DeepClone(c).categoryRow
-  )
-  return newRootCategoryRows;
-}
-
 export class DeepClone {
   static catIdToSet: string;
   static newCat: ICategoryRow;
   constructor(categoryRow: ICategoryRow) {
     const { partitionKey, id, rootId, parentCategory, title, link, kind, header, level, variations, numOfQuestions,
-      hasSubCategories, subCategories, created, modified, questionRows, isExpanded, isSelected } = categoryRow;
+      hasSubCategories, subCategories, created, modified, questionRows, isExpanded } = categoryRow;
 
     const subCats = subCategories.map((cat: ICategoryRow) => {
       if (cat.id === DeepClone.catIdToSet) {
@@ -749,10 +697,10 @@ export class DeepClone {
       variations: variations ?? [],
       created,
       modified,
-      isExpanded,
-      isSelected
+      isExpanded
     }
   }
   categoryRow: ICategoryRow;
 }
+
 
