@@ -7,16 +7,18 @@ import CategoryForm from "categories/components/CategoryForm";
 import InLineCategoryForm from "categories/components/InLineCategoryForm";
 import { FormMode, ICategory, ICategoryKey } from "categories/types";
 
-const AddCategory = ({ categoryKey, inLine }: { categoryKey: ICategoryKey, inLine: boolean }) => {
+// const AddCategory = ({ rootId, categoryKey, inLine }: { rootId: string, categoryKey: ICategoryKey, inLine: boolean }) => {
+const AddCategory = () => {
     const globalState = useGlobalState();
     const { nickName } = globalState.authUser;
     const { createCategory, state } = useCategoryContext();
+    const { categoryInAdding } = state;
 
     // do not use categoryKey
-    const category: ICategory = state.rootCategoryRows.find(c => c.inAdding)!;
-    console.assert(category, 'category.inAdding should have been found')
+    // const category: ICategory = state.rootCategoryRows.find(c => c.inAdding)!;
+    // console.assert(category, 'category.inAdding should have been found')
 
-    const [formValues] = useState(category);
+    const [formValues] = useState<ICategory>({...categoryInAdding!});
 
     const submitForm = async (category: ICategory) => {
         delete category.inAdding;

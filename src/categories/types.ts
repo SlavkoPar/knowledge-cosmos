@@ -117,9 +117,9 @@ export interface ICategoryKeyExpanded { //extends ICategoryKey {
 	questionId: string | null;
 }
 
- export interface ILocStorage {
-    lastCategoryKeyExpanded: ICategoryKeyExpanded|null
-  }
+export interface ILocStorage {
+	lastCategoryKeyExpanded: ICategoryKeyExpanded | null
+}
 
 
 export interface ICategoryKeyExtended extends ICategoryKey {
@@ -168,7 +168,7 @@ export interface ICategoryRow extends IRecord {
 	header: string;
 	level: number;
 	hasSubCategories: boolean;
-	subCategories: ICategory[];
+	subCategories: ICategoryRow[];
 	variations: string[];
 	numOfQuestions: number;
 	questionRows: IQuestionRow[];
@@ -327,7 +327,7 @@ export class CategoryDto {
 			ParentCategory: parentCategory,
 			Title: title,
 			Link: link,
-			Header: header,
+			Header: header??'',
 			Level: level,
 			Variations: variations,
 			Created: new WhoWhen2Dto(created).whoWhenDto!,
@@ -477,8 +477,8 @@ export interface IParentInfo {
 
 export interface ICategoriesState {
 	mode: string | null;
-	rootCategoryRows: ICategoryRow[];
-	rootCategoryRowsNew?: ICategoryRow[];
+	firstLevelCategoryRows: ICategoryRow[];
+	firstLevelCategoryRowsNew?: ICategoryRow[];
 	categoryKeyExpanded: ICategoryKeyExpanded | null;
 	categoryId_questionId_done?: string;
 	categoryNodeReLoading: boolean;
@@ -512,7 +512,7 @@ export interface ICategoriesContext {
 	updateCategory: (category: ICategory, closeForm: boolean) => void,
 	deleteCategory: (category: ICategory) => void,
 	deleteCategoryVariation: (categoryKey: ICategoryKey, name: string) => void,
-	expandCategory: (categoryRow: ICategoryRow, includeQuestionId: string | null) => void,
+	expandCategory: (rootId: string, categoryKey: ICategoryKey, includeQuestionId: string | null) => void,
 	collapseCategory: (categoryKey: ICategoryKey) => void,
 	//////////////
 	// questions
@@ -610,7 +610,9 @@ export enum ActionTypes {
 	SET_SUB_CATEGORIES = 'SET_SUB_CATEGORIES',
 	SET_ERROR = 'SET_ERROR',
 	ADD_SUB_CATEGORY = 'ADD_SUB_CATEGORY',
+	SET_CATEGORY = 'SET_CATEGORY',
 	SET_CATEGORY_ROW = 'SET_CATEGORY_ROW',
+	SET_CATEGORY_ROW_EXPANDED = 'SET_CATEGORY_ROW_EXPANDED',
 	SET_ADDED_CATEGORY = 'SET_ADDED_CATEGORY',
 	SET_CATEGORY_TO_VIEW = 'SET_CATEGORY_TO_VIEW',
 	SET_CATEGORY_TO_EDIT = 'SET_CATEGORY_TO_EDIT',
@@ -641,22 +643,25 @@ export enum ActionTypes {
 	CANCEL_QUESTION_FORM = 'CANCEL_QUESTION_FORM'
 }
 
-export const actionThatModifyRootCategoryRows = [
-	ActionTypes.SET_CATEGORY_ROW,
+export const actionsThatModifyFirstLevelCategoryRow = [
+	// ActionTypes.SET_CATEGORY_ROWS_UP_THE_TREE,   keep commented
+	//	ActionTypes.SET_CATEGORY_ROW,    keep commented
+	ActionTypes.SET_CATEGORY_ROW_EXPANDED,
 	ActionTypes.SET_CATEGORY_TO_VIEW,
 	ActionTypes.SET_CATEGORY_TO_EDIT,
 	ActionTypes.SET_QUESTION_TO_VIEW,
 	ActionTypes.SET_QUESTION_TO_EDIT
-	// ActionTypes.SET_CATEGORY_ROWS_UP_THE_TREE
 ]
 
 export const actionTypesToLocalStore = [
-    //ActionTypes.SET_EXPANDED,
-    ActionTypes.SET_COLLAPSED,
-    ActionTypes.SET_CATEGORY_ROW,
-    ActionTypes.SET_CATEGORY_TO_VIEW, ActionTypes.SET_CATEGORY_TO_EDIT,
-    ActionTypes.SET_QUESTION_TO_VIEW, ActionTypes.SET_QUESTION_TO_EDIT,
-    ActionTypes.SET_CATEGORY_ROWS_UP_THE_TREE
+	//ActionTypes.SET_EXPANDED,
+	ActionTypes.SET_COLLAPSED,
+	ActionTypes.SET_CATEGORY_ROW_EXPANDED,
+	ActionTypes.SET_CATEGORY_TO_VIEW,
+	ActionTypes.SET_CATEGORY_TO_EDIT,
+	ActionTypes.SET_QUESTION_TO_VIEW,
+	ActionTypes.SET_QUESTION_TO_EDIT,
+	ActionTypes.SET_CATEGORY_ROWS_UP_THE_TREE
 ];
 
 
@@ -707,6 +712,11 @@ export type CategoriesPayload = {
 		level: number
 	}
 
+	[ActionTypes.SET_CATEGORY]: {
+		categoryRow: ICategory;
+	};
+
+
 	[ActionTypes.SET_CATEGORY_TO_VIEW]: {
 		categoryRow: ICategoryRow; // ICategory extends ICategoryRow
 	};
@@ -715,9 +725,10 @@ export type CategoriesPayload = {
 		categoryRow: ICategoryRow; // ICategory extends ICategoryRow
 	};
 
-	[ActionTypes.SET_CATEGORY_ROW]: {
+	[ActionTypes.SET_CATEGORY_ROW_EXPANDED]: {
 		categoryRow: ICategoryRow;
 	};
+
 
 	[ActionTypes.SET_ADDED_CATEGORY]: {
 		categoryRow?: ICategoryRow;

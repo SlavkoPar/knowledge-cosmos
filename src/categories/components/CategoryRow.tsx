@@ -15,6 +15,7 @@ import CategoryList from "categories/components/CategoryList";
 import EditCategory from "categories/components/EditCategory";
 import ViewCategory from "categories/components/ViewCategory";
 import QuestionList from './questions/QuestionList';
+import AddCategory from './AddCategory';
 
 const CategoryRow = ({ categoryRow, questionId }: { categoryRow: ICategoryRow, questionId: string | null }) => {
 
@@ -39,7 +40,7 @@ const CategoryRow = ({ categoryRow, questionId }: { categoryRow: ICategoryRow, q
     const showQuestions = isExpanded && numOfQuestions > 0 // || questions.find(q => q.inAdding) // && !questions.find(q => q.inAdding); // We don't have questions loaded
     console.log("----------------CategoryRow", id, numOfQuestions, questionRows, isExpanded, isSelected)
 
-    const del = () => {
+    const deleteCategoryRow = () => {
         categoryRow.modified = {
             time: new Date(),
             nickName: authUser.nickName
@@ -51,7 +52,7 @@ const CategoryRow = ({ categoryRow, questionId }: { categoryRow: ICategoryRow, q
         if (isExpanded)
             await collapseCategory(categoryKey);
         else
-            await expandCategory(categoryRow, questionId ?? null);
+            await expandCategory(rootId, categoryKey, questionId ?? null);
     }
 
 
@@ -79,13 +80,13 @@ const CategoryRow = ({ categoryRow, questionId }: { categoryRow: ICategoryRow, q
     useEffect(() => {
         if (!isExpanded && !isSelected) {
             if (categoryKeyExpanded && categoryKeyExpanded.id === id ) { // catKeyExpanded.id) {
-                expandCategory(categoryRow, questionId);
+                expandCategory(rootId, categoryKey, questionId);
             }
         }
         // else if (isSelected)
         //     onSelectCategory();
 
-    }, [id, isExpanded, isSelected, expandCategory, categoryKeyExpanded]) // isSelected
+    }, [id, isExpanded, isSelected, expandCategory, categoryKeyExpanded]) // 
 
     const [hoverRef, hoverProps] = useHover();
 
@@ -173,7 +174,7 @@ const CategoryRow = ({ categoryRow, questionId }: { categoryRow: ICategoryRow, q
                             if (!isExpanded) {
                                 // await dispatch({ type: ActionTypes.SET_EXPANDED, payload: { categoryKey } });
                                 // alert('sta je');
-                                await expandCategory(categoryRow, null);
+                                await expandCategory(rootId, categoryKey, null);
                             }
                             await dispatch({ type: ActionTypes.ADD_QUESTION, payload: { categoryInfo } });
                         }}
@@ -182,7 +183,8 @@ const CategoryRow = ({ categoryRow, questionId }: { categoryRow: ICategoryRow, q
                     </Button>
 
                     <Button variant='link' size="sm" className="py-0 mx-1 float-end"
-                        onClick={del}
+                        disabled={ hasSubCategories || numOfQuestions > 0}
+                        onClick={deleteCategoryRow}
                     >
                         <FontAwesomeIcon icon={faRemove} size='lg' />
                     </Button>
@@ -203,8 +205,10 @@ const CategoryRow = ({ categoryRow, questionId }: { categoryRow: ICategoryRow, q
                 as="li"
             >
                 {inAdding && mode === Mode.AddingCategory ? (
-                    // <AddCategory categoryKey={categoryKey} inLine={true} />
-                    <div />
+                    <div>
+                        {/* <AddCategory rootId={rootId} categoryKey={categoryKey} inLine={true} /> */}
+                        <AddCategory />
+                    </div>
                 )
                     : (mode === Mode.EditingCategory || mode === Mode.ViewingCategory) ? (
                         <>
