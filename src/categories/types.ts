@@ -327,7 +327,7 @@ export class CategoryDto {
 			ParentCategory: parentCategory,
 			Title: title,
 			Link: link,
-			Header: header??'',
+			Header: header ?? '',
 			Level: level,
 			Variations: variations,
 			Created: new WhoWhen2Dto(created).whoWhenDto!,
@@ -478,7 +478,6 @@ export interface IParentInfo {
 export interface ICategoriesState {
 	mode: string | null;
 	firstLevelCategoryRows: ICategoryRow[];
-	firstLevelCategoryRowsNew?: ICategoryRow[];
 	categoryKeyExpanded: ICategoryKeyExpanded | null;
 	categoryId_questionId_done?: string;
 	categoryNodeReLoading: boolean;
@@ -513,7 +512,7 @@ export interface ICategoriesContext {
 	deleteCategory: (category: ICategory) => void,
 	deleteCategoryVariation: (categoryKey: ICategoryKey, name: string) => void,
 	expandCategory: (rootId: string, categoryKey: ICategoryKey, includeQuestionId: string | null) => void,
-	collapseCategory: (categoryKey: ICategoryKey) => void,
+	collapseCategory: (categoryRow: ICategoryRow) => void,
 	//////////////
 	// questions
 	loadCategoryQuestions: (catParams: ILoadCategoryQuestions) => void;  //(parentInfo: IParentInfo) => void,
@@ -606,13 +605,14 @@ export enum ActionTypes {
 	SET_LOADING = 'SET_LOADING',
 	SET_CATEGORY_LOADING = 'SET_CATEGORY_LOADING',
 	SET_CATEGORY_QUESTIONS_LOADING = 'SET_CATEGORY_QUESTIONS_LOADING',
-	SET_ROOT_CATEGORY_ROWS = 'SET_ROOT_CATEGORY_ROWS',
+	SET_FIRST_LEVEL_CATEGORY_ROWS = 'SET_FIRST_LEVEL_CATEGORY_ROWS',
 	SET_SUB_CATEGORIES = 'SET_SUB_CATEGORIES',
 	SET_ERROR = 'SET_ERROR',
 	ADD_SUB_CATEGORY = 'ADD_SUB_CATEGORY',
 	SET_CATEGORY = 'SET_CATEGORY',
 	SET_CATEGORY_ROW = 'SET_CATEGORY_ROW',
 	SET_CATEGORY_ROW_EXPANDED = 'SET_CATEGORY_ROW_EXPANDED',
+	SET_CATEGORY_ROW_COLLAPSED = 'SET_CATEGORY_ROW_COLLAPSED',
 	SET_ADDED_CATEGORY = 'SET_ADDED_CATEGORY',
 	SET_CATEGORY_TO_VIEW = 'SET_CATEGORY_TO_VIEW',
 	SET_CATEGORY_TO_EDIT = 'SET_CATEGORY_TO_EDIT',
@@ -644,9 +644,10 @@ export enum ActionTypes {
 }
 
 export const actionsThatModifyFirstLevelCategoryRow = [
-	// ActionTypes.SET_CATEGORY_ROWS_UP_THE_TREE,   keep commented
-	//	ActionTypes.SET_CATEGORY_ROW,    keep commented
+	// ActionTypes.SET_FIRST_LEVEL_CATEGORY_ROWS, keep commented
+	// ActionTypes.SET_CATEGORY_ROWS_UP_THE_TREE, keep commented
 	ActionTypes.SET_CATEGORY_ROW_EXPANDED,
+	ActionTypes.SET_CATEGORY_ROW_COLLAPSED,
 	ActionTypes.SET_CATEGORY_TO_VIEW,
 	ActionTypes.SET_CATEGORY_TO_EDIT,
 	ActionTypes.SET_QUESTION_TO_VIEW,
@@ -654,9 +655,9 @@ export const actionsThatModifyFirstLevelCategoryRow = [
 ]
 
 export const actionTypesToLocalStore = [
-	//ActionTypes.SET_EXPANDED,
 	ActionTypes.SET_COLLAPSED,
 	ActionTypes.SET_CATEGORY_ROW_EXPANDED,
+	ActionTypes.SET_CATEGORY_ROW_COLLAPSED,
 	ActionTypes.SET_CATEGORY_TO_VIEW,
 	ActionTypes.SET_CATEGORY_TO_EDIT,
 	ActionTypes.SET_QUESTION_TO_VIEW,
@@ -693,10 +694,10 @@ export type CategoriesPayload = {
 	};
 
 
-	[ActionTypes.SET_ROOT_CATEGORY_ROWS]: {
+	[ActionTypes.SET_FIRST_LEVEL_CATEGORY_ROWS]: {
 		categoryRow?: ICategoryRow;
 		id: string | null;
-		rootCategoryRows: ICategoryRow[];
+		firstLevelCategoryRows: ICategoryRow[];
 	};
 
 	[ActionTypes.SET_SUB_CATEGORIES]: {
@@ -729,6 +730,9 @@ export type CategoriesPayload = {
 		categoryRow: ICategoryRow;
 	};
 
+	[ActionTypes.SET_CATEGORY_ROW_COLLAPSED]: {
+		categoryRow: ICategoryRow;
+	};
 
 	[ActionTypes.SET_ADDED_CATEGORY]: {
 		categoryRow?: ICategoryRow;
@@ -749,10 +753,8 @@ export type CategoriesPayload = {
 		categoryRow?: ICategoryRow;
 	};
 
-
 	[ActionTypes.SET_COLLAPSED]: {
-		categoryRow?: ICategoryRow;
-		categoryKey: ICategoryKey;
+		categoryRow: ICategoryRow;
 	}
 
 	[ActionTypes.SET_ERROR]: {

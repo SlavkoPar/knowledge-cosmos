@@ -38,10 +38,11 @@ const AboutShort: React.FC<IAboutShort> = (props: IAboutShort) => {
             <h5 className="card-title">Knowledge is asset for each company</h5>
             <h6 className="card-subtitle mb-2 text-muted">Use our App for maintenace of your Q/A</h6>
             <p className="card-text">
-              <ul className="m-3">
-                <li>Q/A will be safe at Microsoft Cloud Azure Platform</li>
+              <ol className="m-3">
+                <li>Keeping Q/A at Microsoft Cloud Azure Platform, 
+                  you get: Security, Integrity, Backups, Role based authorization ..., without any administration</li>
                 <li>Just integrate our <i>'ChatBot JavaScript Library'</i> at your site</li>
-              </ul>
+              </ol>
             </p>
           </div>
         </div>

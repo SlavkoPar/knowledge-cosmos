@@ -172,7 +172,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
               return new CategoryRow(dto).categoryRow;
             })
             if (id === null) {
-              dispatch({ type: ActionTypes.SET_ROOT_CATEGORY_ROWS, payload: { id, rootCategoryRows: subCategoryRows } });
+              dispatch({ type: ActionTypes.SET_FIRST_LEVEL_CATEGORY_ROWS, payload: { id, firstLevelCategoryRows: subCategoryRows } });
             }
             else {
               dispatch({ type: ActionTypes.SET_SUB_CATEGORIES, payload: { id, subCategoryRows } });
@@ -221,7 +221,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
       }
     }, [dispatch]);
 
-  // get category With subcategoryRows and wuestionRows
+  // get category With subcategoryRows and questionRows
   const getCategory = async (categoryKey: ICategoryKey, includeQuestionId: string | null): Promise<any> => {
     const { partitionKey, id } = categoryKey;
     console.log({ categoryKey, includeQuestionId })
@@ -248,20 +248,20 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
     })
   }
 
-  /*
-  const getCategoryWithSubCategoryRows = async (categoryKey: ICategoryKey): Promise<any> => {
+  const getCategoryRow = async (categoryKey: ICategoryKey, hidrate: boolean=false, includeQuestionId: string | null=null): Promise<any> => {
     const { partitionKey, id } = categoryKey;
-    console.log({ categoryKey })
+    console.log({ categoryKey, includeQuestionId })
     return new Promise(async (resolve) => {
       try {
-        const url = `${protectedResources.KnowledgeAPI.endpointCategory}/${partitionKey}/${id}`;
+        const url = `${protectedResources.KnowledgeAPI.endpointCategoryRow}/${partitionKey}/${id}/${hidrate}/${PAGE_SIZE}/${includeQuestionId}`;
         console.time()
         await Execute("GET", url)
-          .then((categoryDtoEx: ICategoryDtoEx) => {
+          .then((categoryRowDtoEx: ICategoryRowDtoEx) => {
             console.timeEnd();
-            const { categoryDto, msg } = categoryDtoEx;
-            if (categoryDto) {
-              resolve(new Category(categoryDto).category);
+            const { categoryRowDto, msg } = categoryRowDtoEx;
+            if (categoryRowDto) {
+              //resolve(new Category(categoryRowDto).category);
+              resolve(new CategoryRow(categoryRowDto).categoryRow);
             }
             else {
               resolve(new Error(msg));
@@ -274,50 +274,53 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
       }
     })
   }
-  */
 
   const expandCategory = useCallback(
     async (rootId: string, categoryKey: ICategoryKey, includeQuestionId: string | null) => {
-      const { partitionKey, id } = categoryKey;
       try {
-        const category: ICategory | Error = await getCategory(categoryKey, includeQuestionId); // to reload Category
-        // .then(async (category: ICategory) => {
-        console.log('getCategoryWithSubCategoryRows', { category })
-        //DeepClone()
-        if (category instanceof Error) {
-          dispatch({ type: ActionTypes.SET_ERROR, payload: { error: category } });
-          console.error({ cat: category })
+        const categoryRow: ICategoryRow | Error = await getCategoryRow(categoryKey, true, includeQuestionId); // to reload Category
+        if (categoryRow instanceof Error) {
+          dispatch({ type: ActionTypes.SET_ERROR, payload: { error: categoryRow } });
+          console.error({ cat: categoryRow })
         }
         else {
-          console.log('getCategory vratio:', category)
-          category.rootId = rootId;
-          //const categoryRow = new MyCategoryRow(category).categoryRow;
-          category.isExpanded = true;
-          category.rootId = rootId;
-          dispatch({ type: ActionTypes.SET_CATEGORY_ROW_EXPANDED, payload: { categoryRow: category } });
-          //dispatch({ type: ActionTypes.SET_EXPANDED, payload: { categoryRow } });
+          console.log('getCategory vratio:', categoryRow)
+          categoryRow.isExpanded = true;
+          categoryRow.rootId = rootId;
+          dispatch({ type: ActionTypes.SET_CATEGORY_ROW_EXPANDED, payload: { categoryRow } });
           return categoryKey;
         }
-        //})
       }
       catch (error: any) {
         console.log('error', error);
         dispatch({ type: ActionTypes.SET_ERROR, payload: { error } });
       }
     }, [dispatch]);
+
 
   const collapseCategory = useCallback(
-    async (categoryKey: ICategoryKey) => {
+    async (categoryRow: ICategoryRow) => {
+      const { rootId } = categoryRow;
+      const categoryKey = new CategoryKey(categoryRow).categoryKey!;
       try {
-        //dispatch({ type: ActionTypes.CLEAN_SUB_TREE, payload: { categoryKey } });// clean subTree
-        dispatch({ type: ActionTypes.SET_COLLAPSED, payload: { categoryKey } });
+        const categoryRow: ICategoryRow | Error = await getCategoryRow(categoryKey); // no subCategoryRows and no questionRows
+        // .then(async (category: ICategory) => {
+        if (categoryRow instanceof Error) {
+          dispatch({ type: ActionTypes.SET_ERROR, payload: { error: categoryRow } });
+          console.error({ cat: categoryRow })
+        }
+        else {
+          categoryRow.rootId = rootId;
+          categoryRow.isExpanded = false;
+          dispatch({ type: ActionTypes.SET_CATEGORY_ROW_EXPANDED, payload: { categoryRow } });
+          return categoryKey;
+        }
       }
       catch (error: any) {
         console.log('error', error);
         dispatch({ type: ActionTypes.SET_ERROR, payload: { error } });
       }
     }, [dispatch]);
-
 
   const viewCategory = useCallback(async (categoryRow: ICategoryRow, includeQuestionId: string | null) => {
     dispatch({ type: ActionTypes.SET_LOADING, payload: { categoryRow } });
@@ -411,7 +414,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
               await loadAllCategoryRows()
                 .then(async (done) => {
                   const parentCategoryKey: ICategoryKey = { partitionKey: parentCategory, id: parentCategory };
-                  await expandCategory(rootId, parentCategoryKey, null).then(() => {
+                  await expandCategory(rootId, parentCategoryKey, '').then(() => {
                     //dispatch({ type: ActionTypes.SET_CATEGORY, payload: { categoryRow: category } }); // ICategory extends ICategory Row
                   });
                 })

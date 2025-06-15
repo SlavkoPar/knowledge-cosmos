@@ -65,7 +65,7 @@ const Providered = ({ categoryId_questionId, fromChatBotDlg }: IProps) => {
 
     useEffect(() => {
         (async () => {
-            // SET_ROOT_CATEGORY_ROWS  Level:1
+            // SET_FIRST_LEVEL_CATEGORY_ROWS  Level:1
             await getSubCategoryRows({ partitionKey: null, id: null })
             // .then((list: ICategory[]) => {
             //     console.log("+++++++>>>>>>> CategoryList ", { catKeyExpanded, list });

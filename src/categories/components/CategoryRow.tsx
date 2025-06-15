@@ -50,7 +50,7 @@ const CategoryRow = ({ categoryRow, questionId }: { categoryRow: ICategoryRow, q
 
     const handleExpandClick = async () => {
         if (isExpanded)
-            await collapseCategory(categoryKey);
+            await collapseCategory(categoryRow);
         else
             await expandCategory(rootId, categoryKey, questionId ?? null);
     }
