@@ -10,25 +10,12 @@ const CategoryList = ({ title, categoryRow, level, isExpanded }: IParentInfo) =>
     // 2) TODO proveri partitionKey, id from <Categories 
     const { state, getSubCategoryRows } = useCategoryContext();
     const { categoryKeyExpanded } = state;
-    const { partitionKey, id, questionId } = categoryKeyExpanded!;
+
+    const { partitionKey, id, questionId } = categoryKeyExpanded 
+                ? categoryKeyExpanded
+                : { partitionKey: null, id: null, questionId: null };
     const { subCategories } = categoryRow;
     //console.log('<<<<<<<<<CategoryList', categoryRow.id, subCategories )
-
-    // const [subCats, setSubCats] = useState<ICategory[]>([]);
-
-    // useEffect(() => {
-    //     (async () => {
-    //         //if (isExpanded) {
-    //         if (categoryKey.id === null) { // for root only
-    //             await getSubCategoryRows(categoryKey)
-    //                 .then((list: ICategory[]) => {
-    //                     console.log("+++++++>>>>>>> CategoryList ", { categoryKey, list });
-    //                     setSubCats(list)
-    //                 });
-    //         }
-    //         //}
-    //     })()
-    // }, [getSubCategories, categoryKey, isExpanded]);
 
     return (
         <div className={level! > 1 ? 'ms-2' : ''}>

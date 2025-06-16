@@ -41,11 +41,11 @@ const CategoryForm = ({ inLine, mode, category, questionId, submitForm, children
   const dispatch = useCategoryDispatch();
 
   const closeForm = () => {
-    dispatch({ type: ActionTypes.CLOSE_CATEGORY_FORM })
+    dispatch({ type: ActionTypes.CLOSE_CATEGORY_FORM, payload: {} })
   }
 
   const cancelForm = () => {
-    dispatch({ type: ActionTypes.CANCEL_CATEGORY_FORM })
+    dispatch({ type: ActionTypes.CANCEL_CATEGORY_FORM, payload: {} })
   }
 
   const formik = useFormik({

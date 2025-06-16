@@ -22,7 +22,7 @@ const InLineCategoryForm = ({ inLine, mode, category, submitForm, children }: IC
   //const{ authUser, isAuthenticated, variant, bg } = useGlobalState();
 
   const cancelForm = () => {
-    dispatch({ type: ActionTypes.CANCEL_CATEGORY_FORM })
+    dispatch({ type: ActionTypes.CANCEL_CATEGORY_FORM, payload: {} })
   }
 
   const formik = useFormik({

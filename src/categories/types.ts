@@ -621,7 +621,6 @@ export enum ActionTypes {
 
 	CLOSE_CATEGORY_FORM = 'CLOSE_CATEGORY_FORM',
 	CANCEL_CATEGORY_FORM = 'CANCEL_CATEGORY_FORM',
-	SET_COLLAPSED = 'SET_COLLAPSED',
 
 	CATEGORY_NODE_RE_LOADING = "CATEGORY_NODE_RE_LOADING",
 	SET_CATEGORY_ROWS_UP_THE_TREE = "SET_CATEGORY_ROWS_UP_THE_TREE",
@@ -644,25 +643,26 @@ export enum ActionTypes {
 }
 
 export const actionsThatModifyFirstLevelCategoryRow = [
-	// ActionTypes.SET_FIRST_LEVEL_CATEGORY_ROWS, keep commented
-	// ActionTypes.SET_CATEGORY_ROWS_UP_THE_TREE, keep commented
-	ActionTypes.SET_CATEGORY_ROW_EXPANDED,
-	ActionTypes.SET_CATEGORY_ROW_COLLAPSED,
-	ActionTypes.SET_CATEGORY_TO_VIEW,
-	ActionTypes.SET_CATEGORY_TO_EDIT,
-	ActionTypes.SET_QUESTION_TO_VIEW,
-	ActionTypes.SET_QUESTION_TO_EDIT
-]
-
-export const actionTypesToLocalStore = [
-	ActionTypes.SET_COLLAPSED,
+	// ActionTypes.SET_FIRST_LEVEL_CATEGORY_ROWS keep commented
+	// ActionTypes.SET_CATEGORY_ROWS_UP_THE_TREE
 	ActionTypes.SET_CATEGORY_ROW_EXPANDED,
 	ActionTypes.SET_CATEGORY_ROW_COLLAPSED,
 	ActionTypes.SET_CATEGORY_TO_VIEW,
 	ActionTypes.SET_CATEGORY_TO_EDIT,
 	ActionTypes.SET_QUESTION_TO_VIEW,
 	ActionTypes.SET_QUESTION_TO_EDIT,
-	ActionTypes.SET_CATEGORY_ROWS_UP_THE_TREE
+	ActionTypes.CLOSE_CATEGORY_FORM,
+	ActionTypes.CANCEL_CATEGORY_FORM
+]
+
+export const actionTypesToLocalStore = [
+	// ActionTypes.SET_CATEGORY_ROWS_UP_THE_TREE
+	ActionTypes.SET_CATEGORY_ROW_EXPANDED,
+	ActionTypes.SET_CATEGORY_ROW_COLLAPSED,
+	ActionTypes.SET_CATEGORY_TO_VIEW,
+	ActionTypes.SET_CATEGORY_TO_EDIT,
+	ActionTypes.SET_QUESTION_TO_VIEW,
+	ActionTypes.SET_QUESTION_TO_EDIT,
 ];
 
 
@@ -689,7 +689,8 @@ export type CategoriesPayload = {
 	[ActionTypes.SET_CATEGORY_ROWS_UP_THE_TREE]: {
 		// categoryNodesUpTheTree: ICategoryKeyExtended[]; /// we could have used Id only
 		categoryRow: ICategoryRow;
-		categoryKeyExpanded: ICategoryKeyExpanded;
+		// categoryKeyExpanded: ICategoryKeyExpanded;
+		questionId: string | null,
 		fromChatBotDlg: boolean;
 	};
 
@@ -753,9 +754,6 @@ export type CategoriesPayload = {
 		categoryRow?: ICategoryRow;
 	};
 
-	[ActionTypes.SET_COLLAPSED]: {
-		categoryRow: ICategoryRow;
-	}
 
 	[ActionTypes.SET_ERROR]: {
 		categoryRow?: ICategoryRow;

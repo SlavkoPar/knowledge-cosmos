@@ -115,7 +115,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
               partitionKey = categoryRow.partitionKey;
             }
             else {
-              alert('reload cats' + id)
+              alert('reload all categoryRow:' + id)
               //return
             }
           }
@@ -133,9 +133,10 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
                 const categoryRow = new CategoryRow(categoryRowDto).categoryRow; // deep clone dto
                 dispatch({
                   type: ActionTypes.SET_CATEGORY_ROWS_UP_THE_TREE, payload: {
-                    categoryKeyExpanded: catKeyExp,
-                    fromChatBotDlg: fromChatBotDlg === 'true',
-                    categoryRow
+                    // categoryKeyExpanded: catKeyExp,
+                    categoryRow,
+                    questionId: catKeyExp.questionId,
+                    fromChatBotDlg: fromChatBotDlg === 'true'
                   }
                 })
                 //resolve(true)
@@ -312,7 +313,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
         else {
           categoryRow.rootId = rootId;
           categoryRow.isExpanded = false;
-          dispatch({ type: ActionTypes.SET_CATEGORY_ROW_EXPANDED, payload: { categoryRow } });
+          dispatch({ type: ActionTypes.SET_CATEGORY_ROW_COLLAPSED, payload: { categoryRow } });
           return categoryKey;
         }
       }

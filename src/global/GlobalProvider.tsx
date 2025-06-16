@@ -117,7 +117,7 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
         const url = protectedResources.KnowledgeAPI.endpointCategoryRow;
         await Execute("GET", url, null)
           .then((catDtos: ICategoryRowDto[]) => {   //  | Response
-            console.log('loadCats', protectedResources.KnowledgeAPI.endpointCategoryRow)
+            console.log('loadAllCategoryRows', protectedResources.KnowledgeAPI.endpointCategoryRow)
             const categoryRows = new Map<string, ICategoryRow>();
             console.timeEnd();
             // if (categoryDtos instanceof Response) {
@@ -150,7 +150,7 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
               // }
               categoryRows.set(id, cat);
             })
-            dispatch({ type: GlobalActionTypes.SET_ALL_CATS, payload: { categoryRows } });
+            dispatch({ type: GlobalActionTypes.SET_ALL_CATEGORY_ROWS, payload: { categoryRows } });
             resolve(true)
           });
       }

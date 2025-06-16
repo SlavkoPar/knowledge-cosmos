@@ -1,6 +1,5 @@
 import { Reducer } from 'react'
-import { Mode, ActionTypes, ICategoriesState, ICategory, IQuestion, CategoriesActions, ILocStorage, ICategoryKey, ICategoryKeyExtended, IQuestionRow, Question, IQuestionRowDto, IQuestionKey, CategoryKey, QuestionKey, ICategoryDto, QuestionRow, ICategoryRow, CategoryRow, actionsThatModifyFirstLevelCategoryRow, actionTypesToLocalStore, ICategoryRowDto } from "categories/types";
-import { Dto2WhoWhen } from 'global/types';
+import { Mode, ActionTypes, ICategoriesState, ICategory, IQuestion, CategoriesActions, ILocStorage, ICategoryKey, ICategoryKeyExtended, IQuestionRow, Question, IQuestionRowDto, IQuestionKey, CategoryKey, QuestionKey, ICategoryDto, QuestionRow, ICategoryRow, CategoryRow, actionsThatModifyFirstLevelCategoryRow, actionTypesToLocalStore as actionTypesStoringToLocalStore, ICategoryRowDto } from "categories/types";
 
 export const initialQuestion: IQuestion = {
   partitionKey: '',
@@ -130,36 +129,36 @@ export const CategoriesReducer: Reducer<ICategoriesState, CategoriesActions> = (
   const { categoryRow } = action.payload;
   const { firstLevelCategoryRows } = state;
 
-  let newFirstLevelRows: ICategoryRow[];
+  let newFirstLevelCategoryRows: ICategoryRow[];
   if (categoryRow && actionsThatModifyFirstLevelCategoryRow.includes(action.type)) {
     const { rootId, id } = categoryRow;
     const firstLevelRow: ICategoryRow = firstLevelCategoryRows.find(c => c.id === rootId)!;
     DeepClone.idToSet = id;
     DeepClone.newCategoryRow = categoryRow;
     const newFirstLevelRow = new DeepClone(firstLevelRow).categoryRow;
-    newFirstLevelRows = firstLevelCategoryRows.map(c => c.id === rootId
+    newFirstLevelCategoryRows = firstLevelCategoryRows.map(c => c.id === rootId
       ? newFirstLevelRow
       : new DeepClone(c).categoryRow
-    )
+    );
   }
   else {
     // just clone to enable time-travel debugging
     DeepClone.idToSet = '';
-    newFirstLevelRows = firstLevelCategoryRows.map(c => new DeepClone(c).categoryRow)
+    newFirstLevelCategoryRows = firstLevelCategoryRows.map(c => new DeepClone(c).categoryRow)
   }
 
-  const newState = reducer(
-    {
-      ...state,
-      firstLevelCategoryRows: newFirstLevelRows
-    },
-    action);
-
-  const { categoryKeyExpanded } = newState;
-  const locStorage: ILocStorage = {
-    lastCategoryKeyExpanded: categoryKeyExpanded
+  const state2 = {
+    ...state, 
+    firstLevelCategoryRows: newFirstLevelCategoryRows
   }
-  if (actionTypesToLocalStore.includes(action.type)) {
+
+  const newState = reducer(state2, action);
+
+  if (actionTypesStoringToLocalStore.includes(action.type)) {
+    const { categoryKeyExpanded } = newState;
+    const locStorage: ILocStorage = {
+      lastCategoryKeyExpanded: categoryKeyExpanded
+    }
     localStorage.setItem('CATEGORIES_STATE', JSON.stringify(locStorage));
   }
   return newState;
@@ -190,20 +189,23 @@ const reducer = (state: ICategoriesState, action: CategoriesActions): ICategorie
     }
 
     case ActionTypes.SET_CATEGORY_ROWS_UP_THE_TREE: {
-      const { categoryKeyExpanded, fromChatBotDlg, categoryRow } = action.payload;
-      const { id, questionId } = categoryKeyExpanded;
+      const { categoryRow, questionId, fromChatBotDlg } = action.payload; // categoryKeyExpanded, 
+      const { id } = categoryRow; //categoryKeyExpanded;
+      const { firstLevelCategoryRows } = state;
       console.log('====== >>>>>>> CategoriesReducer ActionTypes.SET_CATEGORY_ROWS_UP_THE_TREE payload ', action.payload)
-      const firstLevelCategoryRows: ICategoryRow[] = state.firstLevelCategoryRows.map(c => c.id === categoryRow.id
-        ? { ...categoryRow }
-        : { ...c }
-      )
+      const firstLevelRows: ICategoryRow[] = fromChatBotDlg 
+        ? []
+        : firstLevelCategoryRows.map(c => c.id === categoryRow.id
+            ? { ...categoryRow }
+            : { ...c }
+          )
       return {
         ...state,
-        firstLevelCategoryRows: fromChatBotDlg ? [] : firstLevelCategoryRows,
+        firstLevelCategoryRows: firstLevelRows,
         categoryId_questionId_done: `${id}_${questionId}`,
         categoryNodeLoaded: true,
         loading: false,
-        categoryKeyExpanded,
+        //categoryKeyExpanded,
         mode: Mode.NULL // reset previosly selected form
       };
     }
@@ -313,7 +315,7 @@ const reducer = (state: ICategoriesState, action: CategoriesActions): ICategorie
     case ActionTypes.SET_CATEGORY_ROW_EXPANDED: {
       const { categoryRow } = action.payload; // category doesn't contain  inAdding 
       const { partitionKey, id } = categoryRow;
-      const categoryKey = { partitionKey, id }
+      const categoryKey = { partitionKey, id };
       return {
         ...state,
         // keep mode
@@ -437,31 +439,12 @@ const reducer = (state: ICategoriesState, action: CategoriesActions): ICategorie
 
     case ActionTypes.CANCEL_CATEGORY_FORM:
     case ActionTypes.CLOSE_CATEGORY_FORM: {
-      // const categoryRows = state.mode === Mode.AddingCategory
-      //   ? state.rootCategoryRows.filter(c => !c.inAdding)
-      //   : state.rootCategoryRows
       return {
         ...state,
-        mode: Mode.NULL,
-        //categoryRows: categoryRows.map((c: ICategory) => ({ ...c, inAdding: false }))
+        mode: Mode.NULL
       };
     }
 
-
-    case ActionTypes.SET_COLLAPSED: {
-      const { categoryRow } = action.payload;
-      const { partitionKey, id } = categoryRow;
-      // TODO Popravi
-      const x = {
-        ...state,
-        loading: false,
-        //mode: state.mode,// expanding ? state.mode : Mode.NULL,  // TODO  close form only if inside of colapsed node
-        //categoryKeyExpanded: { ...categoryKey, questionId: null }
-        // mode: Mode.NULL, // : state.mode,// expanding ? state.mode : Mode.NULL,  // TODO  close form only if inside of colapsed node
-        //categoryNodeLoaded: true // prevent reloadCategoryRowNode
-      };
-      return x;
-    }
 
     // First we add a new question to the category.guestions
     // After user clicks Save, we call createQuestion 

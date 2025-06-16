@@ -9,10 +9,16 @@ import QuestionRow from "categories/components/questions/QuestionRow";
 const QuestionList = ({ level, categoryRow }: { level: number, categoryRow: ICategoryRow }) => {
   const { state, loadCategoryQuestions } = useCategoryContext();
   const { categoryKeyExpanded, questionLoading, error } = state;
-  const { questionId } = categoryKeyExpanded!;
-  const { partitionKey, id, questionRows } = categoryRow;
 
-  
+  const { partitionKey, id, questionId } = categoryKeyExpanded
+    ? categoryKeyExpanded
+    : { partitionKey: null, id: null, questionId: null };
+
+  //const { questionId } = categoryKeyExpanded!;
+  //const { partitionKey, id, questionRows } = categoryRow;
+  const { questionRows } = categoryRow;
+
+
   let hasMoreQuestions = false;
   // const category: ICategory = categories.find(c => c.id === categoryKey.id)!;
   // if (category) { // CLEAN_SUB_TREE could have removed it
@@ -55,7 +61,7 @@ const QuestionList = ({ level, categoryRow }: { level: number, categoryRow: ICat
   //   }
   // }, [numOfQuestions, questionRows])
 
-  
+
   const [infiniteRef, { rootRef }] = useInfiniteScroll({
     loading: questionLoading,
     hasNextPage: hasMoreQuestions!,
@@ -64,7 +70,7 @@ const QuestionList = ({ level, categoryRow }: { level: number, categoryRow: ICat
     rootMargin: '0px 0px 100px 0px',
   });
 
-console.log("QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQuestionList", id, questionRows)
+  console.log("QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQuestionList", id, questionRows)
   // if (questionLoading)
   //   return <div> ... loading</div>
 

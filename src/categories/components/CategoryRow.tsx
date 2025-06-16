@@ -80,6 +80,7 @@ const CategoryRow = ({ categoryRow, questionId }: { categoryRow: ICategoryRow, q
     useEffect(() => {
         if (!isExpanded && !isSelected) {
             if (categoryKeyExpanded && categoryKeyExpanded.id === id ) { // catKeyExpanded.id) {
+                console.log('%%%%%%%%%%%%%%%%%%%%%%%% Zovem iz CategoryRow',  categoryKeyExpanded.id, id)
                 expandCategory(rootId, categoryKey, questionId);
             }
         }

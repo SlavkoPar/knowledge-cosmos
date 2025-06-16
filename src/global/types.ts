@@ -44,7 +44,7 @@ export class Dto2WhoWhen {
 export class WhoWhen2Dto {
 	constructor(whoWhen: IWhoWhen | undefined) {
 		if (whoWhen) {
-			const { time: date, nickName: nickName } = whoWhen;
+			const { time: date, nickName } = whoWhen;
 			this.whoWhenDto = {
 				Time: new Date(date),
 				NickName: nickName
@@ -193,7 +193,7 @@ export enum GlobalActionTypes {
 	SET_ERROR = 'SET_ERROR',
 	DARK_MODE = "DARK_MODE",
 	LIGHT_MODE = "LIGHT_MODE",
-	SET_ALL_CATS = 'SET_ALL_CATS',
+	SET_ALL_CATEGORY_ROWS = 'SET_ALL_CATEGORY_ROWS',
 	SET_ALL_SHORT_GROUPS = 'SET_ALL_SHORT_GROUPS',
 	SET_NODES_RELOADED = 'SET_NODES_RELOADED',
 	SET_QUESTION_AFTER_ASSIGN_ANSWER = 'SET_QUESTION_AFTER_ASSIGN_ANSWER',
@@ -258,7 +258,7 @@ export type GlobalPayload = {
 
 	[GlobalActionTypes.DARK_MODE]: undefined;
 
-	[GlobalActionTypes.SET_ALL_CATS]: {
+	[GlobalActionTypes.SET_ALL_CATEGORY_ROWS]: {
 		categoryRows: Map<string, ICategoryRow>
 	};
 
