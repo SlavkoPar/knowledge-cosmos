@@ -41,6 +41,7 @@ const CatRow = ({ cat , dispatch, setParentCat }: ICatRow) => {
                 onClick={(e) => {
                     expand(id!);
                     e.stopPropagation();
+                    e.preventDefault();
                 }}
                 title="Expand"
             >
@@ -53,7 +54,7 @@ const CatRow = ({ cat , dispatch, setParentCat }: ICatRow) => {
                 title={id}
                 onClick={() => onSelectCat(cat)}
             >
-                {title.substring(0, 25) + ' ...'}
+                {title}
             </Button>
         </div>
 

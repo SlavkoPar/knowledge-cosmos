@@ -8,7 +8,7 @@ const CategoryList = ({ title, categoryRow, level, isExpanded }: IParentInfo) =>
 
     // 1) TODO zar ne treba uzimati subcategories from categorysubCategories 
     // 2) TODO proveri partitionKey, id from <Categories 
-    const { state, getSubCategoryRows } = useCategoryContext();
+    const { state } = useCategoryContext();
     const { categoryKeyExpanded } = state;
 
     const { partitionKey, id, questionId } = categoryKeyExpanded 

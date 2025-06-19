@@ -328,7 +328,6 @@ export const GroupProvider: React.FC<Props> = ({ children }) => {
     //dispatch({ type: ActionTypes.SET_GROUP_LOADING, payload: { id, loading: false } });
     try {
       const groupDto = new GroupDto(group).groupDto;
-      //answerDto.Archived = new WhoWhen2Dto(answer.archived!).whoWhenDto!;
       const url = `${protectedResources.KnowledgeAPI.endpointGroup}` ///${groupKey.partitionKey}/${groupKey.id}`;
       console.time()
       await Execute("DELETE", url, groupDto)    //Modified: {  Time: new Date(), NickName: globalState.authUser.nickName }
@@ -525,7 +524,6 @@ export const GroupProvider: React.FC<Props> = ({ children }) => {
       dispatch({ type: ActionTypes.SET_GROUP_LOADING, payload: { id: parentGroup!, loading: false } });
       try {
         const answerDto = new AnswerRowDto(answerRow).answerRowDto;
-        //answerDto.Archived = new WhoWhen2Dto(answer.archived!).whoWhenDto!;
         const url = `${protectedResources.KnowledgeAPI.endpointAnswer}`;
         console.time()
         await Execute("DELETE", url, answerDto)

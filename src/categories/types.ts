@@ -94,6 +94,7 @@ export interface IQuestionRow extends IRecord {
 	parentCategory: string | null;
 	categoryTitle?: string;
 	isSelected?: boolean;
+	rootId?: string,
 }
 
 export interface IQuestion extends IQuestionRow {
@@ -369,7 +370,7 @@ export class Question {
 }
 
 export class QuestionKey {
-	constructor(question: IQuestion | undefined) {
+	constructor(question: IQuestionRow | IQuestion | undefined) {
 		this.questionKey = question
 			? {
 				partitionKey: question.partitionKey,
@@ -417,7 +418,8 @@ export interface IQuestionRowDto extends IRecordDto {
 export interface IQuestionDto extends IQuestionRowDto {
 	AssignedAnswerDtos?: IAssignedAnswerDto[];
 	RelatedFilterDtos?: IRelatedFilterDto[]
-	NumOfRelatedFilters?: number
+	NumOfRelatedFilters?: number;
+	oldParentCategory?: string;
 }
 
 export interface IQuestionDtoEx {
@@ -478,17 +480,19 @@ export interface IParentInfo {
 export interface ICategoriesState {
 	mode: string | null;
 	firstLevelCategoryRows: ICategoryRow[];
+	firstLevelCategoryRowsLoading: boolean;
+	firstLevelCategoryRowsLoaded: boolean;
 	categoryKeyExpanded: ICategoryKeyExpanded | null;
 	categoryId_questionId_done?: string;
-	categoryNodeReLoading: boolean;
-	categoryNodeLoaded: boolean;
+	categoryNodeOpening: boolean;
+	categoryNodeOpened: boolean;
+	categoryInAdding: ICategory | null;
+	categoryInViewingOrEditing: ICategory | null;
+	questionInViewingOrEditing: IQuestion | null;
 	loading: boolean;
 	questionLoading: boolean,
 	error?: Error;
 	whichRowId?: string; // category.id or question.id
-	categoryInViewingOrEditing: ICategory | null;
-	categoryInAdding: ICategory | null;
-	questionInViewingOrEditing: IQuestion | null;
 }
 
 export interface ILocStorage {
@@ -503,8 +507,8 @@ export interface ILoadCategoryQuestions {
 
 export interface ICategoriesContext {
 	state: ICategoriesState,
-	reloadCategoryRowNode: (categoryKeyExpanded: ICategoryKeyExpanded, fromChatBotDlg?: string) => Promise<any>;
-	getSubCategoryRows: (categoryKey: ICategoryKey) => Promise<any>,
+	openCategoryNode: (categoryKeyExpanded: ICategoryKeyExpanded, fromChatBotDlg?: string) => Promise<any>;
+	loadFirstLevelCategoryRows: () => Promise<any>,
 	createCategory: (category: ICategory) => void,
 	viewCategory: (categoryRow: ICategoryRow, includeQuestionId: string) => void,
 	editCategory: (categoryRow: ICategoryRow, includeQuestionId: string) => void,
@@ -517,9 +521,9 @@ export interface ICategoriesContext {
 	// questions
 	loadCategoryQuestions: (catParams: ILoadCategoryQuestions) => void;  //(parentInfo: IParentInfo) => void,
 	createQuestion: (question: IQuestion, fromModal: boolean) => Promise<any>;
-	viewQuestion: (questionKey: IQuestionKey) => void;
-	editQuestion: (questionKey: IQuestionKey) => void;
-	updateQuestion: (question: IQuestion, categoryChanged: boolean) => Promise<any>;
+	viewQuestion: (questionRow: IQuestionRow) => void;
+	editQuestion: (questionRow: IQuestionRow) => void;
+	updateQuestion: (rootId: string, oldParentCategory: string, question: IQuestion, categoryChanged: boolean) => Promise<any>;
 	assignQuestionAnswer: (action: string, questionKey: IQuestionKey, answerKey: IAnswerKey, assigned: IWhoWhen) => Promise<any>;
 	deleteQuestion: (questionRow: IQuestionRow) => void;
 }
@@ -603,6 +607,7 @@ export class AssignedAnswer {
 
 export enum ActionTypes {
 	SET_LOADING = 'SET_LOADING',
+	SET_FIRST_LEVEL_CATEGORY_ROWS_LOADING = 'SET_FIRST_LEVEL_CATEGORY_ROWS_LOADING',
 	SET_CATEGORY_LOADING = 'SET_CATEGORY_LOADING',
 	SET_CATEGORY_QUESTIONS_LOADING = 'SET_CATEGORY_QUESTIONS_LOADING',
 	SET_FIRST_LEVEL_CATEGORY_ROWS = 'SET_FIRST_LEVEL_CATEGORY_ROWS',
@@ -622,8 +627,9 @@ export enum ActionTypes {
 	CLOSE_CATEGORY_FORM = 'CLOSE_CATEGORY_FORM',
 	CANCEL_CATEGORY_FORM = 'CANCEL_CATEGORY_FORM',
 
-	CATEGORY_NODE_RE_LOADING = "CATEGORY_NODE_RE_LOADING",
-	SET_CATEGORY_ROWS_UP_THE_TREE = "SET_CATEGORY_ROWS_UP_THE_TREE",
+	CATEGORY_NODE_OPENING = "CATEGORY_NODE_OPENING",
+	SET_CATEGORY_NODE_OPENED = "SET_CATEGORY_NODE_OPENED",
+	FORCE_OPEN_CATEGORY_NODE = "FORCE_OPEN_CATEGORY_NODE",
 
 	// questions
 	LOAD_CATEGORY_QUESTIONS = 'LOAD_CATEGORY_QUESTIONS',
@@ -644,19 +650,19 @@ export enum ActionTypes {
 
 export const actionsThatModifyFirstLevelCategoryRow = [
 	// ActionTypes.SET_FIRST_LEVEL_CATEGORY_ROWS keep commented
-	// ActionTypes.SET_CATEGORY_ROWS_UP_THE_TREE
+	// ActionTypes.SET_CATEGORY_NODE_OPENED
 	ActionTypes.SET_CATEGORY_ROW_EXPANDED,
 	ActionTypes.SET_CATEGORY_ROW_COLLAPSED,
 	ActionTypes.SET_CATEGORY_TO_VIEW,
 	ActionTypes.SET_CATEGORY_TO_EDIT,
-	ActionTypes.SET_QUESTION_TO_VIEW,
-	ActionTypes.SET_QUESTION_TO_EDIT,
+	// ActionTypes.SET_QUESTION_TO_VIEW,
+	// ActionTypes.SET_QUESTION_TO_EDIT,
 	ActionTypes.CLOSE_CATEGORY_FORM,
 	ActionTypes.CANCEL_CATEGORY_FORM
 ]
 
 export const actionTypesToLocalStore = [
-	// ActionTypes.SET_CATEGORY_ROWS_UP_THE_TREE
+	// ActionTypes.SET_CATEGORY_NODE_OPENED
 	ActionTypes.SET_CATEGORY_ROW_EXPANDED,
 	ActionTypes.SET_CATEGORY_ROW_COLLAPSED,
 	ActionTypes.SET_CATEGORY_TO_VIEW,
@@ -667,6 +673,12 @@ export const actionTypesToLocalStore = [
 
 
 export type CategoriesPayload = {
+
+
+	[ActionTypes.SET_FIRST_LEVEL_CATEGORY_ROWS_LOADING]: {
+		categoryRow?: ICategoryRow;
+	}
+
 	[ActionTypes.SET_LOADING]: {
 		categoryRow?: ICategoryRow;
 	}
@@ -682,11 +694,12 @@ export type CategoriesPayload = {
 		questionLoading: boolean;
 	}
 
-	[ActionTypes.CATEGORY_NODE_RE_LOADING]: {
+	[ActionTypes.CATEGORY_NODE_OPENING]: {
 		categoryRow?: ICategoryRow;
+		//categoryKeyExpanded: ICategoryKeyExpanded
 	};
 
-	[ActionTypes.SET_CATEGORY_ROWS_UP_THE_TREE]: {
+	[ActionTypes.SET_CATEGORY_NODE_OPENED]: {
 		// categoryNodesUpTheTree: ICategoryKeyExtended[]; /// we could have used Id only
 		categoryRow: ICategoryRow;
 		// categoryKeyExpanded: ICategoryKeyExpanded;
@@ -697,7 +710,6 @@ export type CategoriesPayload = {
 
 	[ActionTypes.SET_FIRST_LEVEL_CATEGORY_ROWS]: {
 		categoryRow?: ICategoryRow;
-		id: string | null;
 		firstLevelCategoryRows: ICategoryRow[];
 	};
 
@@ -764,6 +776,12 @@ export type CategoriesPayload = {
 	[ActionTypes.RESET_CATEGORY_QUESTION_DONE]: {
 		categoryRow?: ICategoryRow
 	};
+
+	[ActionTypes.FORCE_OPEN_CATEGORY_NODE]: {
+		categoryRow?: ICategoryRow,
+		categoryKeyExpanded: ICategoryKeyExpanded
+	};
+
 
 
 	/////////////

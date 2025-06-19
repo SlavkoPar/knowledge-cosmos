@@ -94,16 +94,16 @@ const QuestionForm = ({ mode, question, submitForm, children, showCloseButton, s
       </Row>
       <Form onSubmit={formik.handleSubmit}>
 
-        <Stack direction="horizontal" gap={0}>
+        <Stack direction="horizontal" gap={0} className="border">
           <div className="p-0"><Form.Label>Category:</Form.Label></div>
           <div className="p-1">
-            <Form.Group controlId="parentCategory" className="category-select form-select-sm">
+            <Form.Group controlId="parentCategory" className="category-select form-select-sm w-90">
               <Dropdown>
                 <Dropdown.Toggle variant="light" id="dropdown-basic" className="px-2 py-0 text-primary border" disabled={isDisabled}>
                   <span className="text-wrap me-1">{formik.values.categoryTitle}</span>
                 </Dropdown.Toggle>
-                <Dropdown.Menu className="p-0 w-100">
-                  <Dropdown.Item className="p-0 m-0 rounded-3 border">
+                <Dropdown.Menu className="p-0 border border-3">
+                  <Dropdown.Item className="p-0 m-0 rounded-3">
                     <CatList
                       categoryKey= {null}  // TODO {categoryKey}
                       level={1}

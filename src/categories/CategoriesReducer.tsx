@@ -37,20 +37,25 @@ export const initialCategory: ICategory = {
 
 export const initialState: ICategoriesState = {
   mode: Mode.NULL,
+
   firstLevelCategoryRows: [],
+  firstLevelCategoryRowsLoading: false,
+	firstLevelCategoryRowsLoaded: false,
+
+  categoryNodeOpening: false,
+  categoryNodeOpened: false,
+
   categoryKeyExpanded: {
     partitionKey: "REMOTECTRLS",
     id: "REMOTECTRLS",
     questionId: "qqqqqq111"
   },
   categoryId_questionId_done: undefined,
-  loading: false,
-  questionLoading: false,
-  categoryNodeReLoading: false,
-  categoryNodeLoaded: false, //true  TODO izmeni nakon testa
-  categoryInViewingOrEditing: null,
   categoryInAdding: null,
-  questionInViewingOrEditing: null
+  categoryInViewingOrEditing: null,
+  questionInViewingOrEditing: null,
+  loading: false,
+  questionLoading: false
 }
 
 
@@ -77,11 +82,11 @@ if ('localStorage' in window) {
   if (s !== null) {
     const locStorage = JSON.parse(s);
     const { lastCategoryKeyExpanded } = locStorage!;
-    const categoryNodeLoaded = lastCategoryKeyExpanded ? false : true;
+    const categoryNodeOpened = lastCategoryKeyExpanded ? false : true;
     initialCategoriesState = {
       ...initialCategoriesState,
       categoryKeyExpanded: { ...lastCategoryKeyExpanded },
-      categoryNodeLoaded
+      categoryNodeOpened
     }
     console.log('initialCategoriesState nakon citanja iz memorije', initialCategoriesState);
   }
@@ -167,6 +172,13 @@ export const CategoriesReducer: Reducer<ICategoriesState, CategoriesActions> = (
 const reducer = (state: ICategoriesState, action: CategoriesActions): ICategoriesState => {
   switch (action.type) {
 
+    case ActionTypes.SET_FIRST_LEVEL_CATEGORY_ROWS_LOADING:
+      return {
+        ...state,
+        firstLevelCategoryRowsLoading: true,
+        firstLevelCategoryRowsLoaded: false,
+      }
+
     case ActionTypes.SET_LOADING:
       return {
         ...state,
@@ -176,23 +188,33 @@ const reducer = (state: ICategoriesState, action: CategoriesActions): ICategorie
     //////////////////////////////////////////////////
     // CategoryRows Level: 1
     case ActionTypes.SET_FIRST_LEVEL_CATEGORY_ROWS: {
-      const { id, firstLevelCategoryRows } = action.payload;
+      const { firstLevelCategoryRows } = action.payload;
       console.log('=> CategoriesReducer ActionTypes.SET_FIRST_LEVEL_CATEGORY_ROWS', { firstLevelCategoryRows })
-      // subCategoryRows.forEach((categoryRow: ICategoryRow) => {
-      //   const { id, hasSubCategories, numOfQuestions } = categoryRow;
-      // })
       return {
         ...state,
         firstLevelCategoryRows,
-        loading: false
+        firstLevelCategoryRowsLoading: false,
+        firstLevelCategoryRowsLoaded: true,
       };
     }
 
-    case ActionTypes.SET_CATEGORY_ROWS_UP_THE_TREE: {
+
+    case ActionTypes.CATEGORY_NODE_OPENING: {
+      //const { categoryKeyExpanded } = action.payload;
+      return {
+        ...state,
+        categoryNodeOpening: true,
+        categoryNodeOpened: false
+        //firstLevelCategoryRows: [],
+        //categoryKeyExpanded
+      }
+    }
+
+    case ActionTypes.SET_CATEGORY_NODE_OPENED: {
       const { categoryRow, questionId, fromChatBotDlg } = action.payload; // categoryKeyExpanded, 
       const { id } = categoryRow; //categoryKeyExpanded;
       const { firstLevelCategoryRows } = state;
-      console.log('====== >>>>>>> CategoriesReducer ActionTypes.SET_CATEGORY_ROWS_UP_THE_TREE payload ', action.payload)
+      console.log('====== >>>>>>> CategoriesReducer ActionTypes.SET_CATEGORY_NODE_OPENED payload ', action.payload)
       const firstLevelRows: ICategoryRow[] = fromChatBotDlg 
         ? []
         : firstLevelCategoryRows.map(c => c.id === categoryRow.id
@@ -203,12 +225,21 @@ const reducer = (state: ICategoriesState, action: CategoriesActions): ICategorie
         ...state,
         firstLevelCategoryRows: firstLevelRows,
         categoryId_questionId_done: `${id}_${questionId}`,
-        categoryNodeLoaded: true,
-        loading: false,
-        //categoryKeyExpanded,
-        mode: Mode.NULL // reset previosly selected form
+        categoryNodeOpening: false,
+        categoryNodeOpened: true,
+        //mode: Mode.NULL // reset previosly selected form
       };
     }
+
+    case ActionTypes.FORCE_OPEN_CATEGORY_NODE:
+      const { categoryKeyExpanded } = action.payload;
+      return {
+        ...state,
+        categoryNodeOpening: false,
+        categoryNodeOpened: false,
+        firstLevelCategoryRows: [],
+        categoryKeyExpanded
+      }
 
     case ActionTypes.SET_CATEGORY_LOADING:
       const { id, loading } = action.payload; // category doesn't contain inAdding 
@@ -225,20 +256,15 @@ const reducer = (state: ICategoriesState, action: CategoriesActions): ICategorie
       }
 
 
-    case ActionTypes.CATEGORY_NODE_RE_LOADING: {
-      return {
-        ...state,
-        categoryNodeReLoading: true
-      }
-    }
+    
 
-    case ActionTypes.RESET_CATEGORY_QUESTION_DONE: {
-      return {
-        ...state,
-        categoryId_questionId_done: undefined,
-        categoryNodeLoaded: false
-      };
-    }
+    // case ActionTypes.RESET_CATEGORY_QUESTION_DONE: {
+    //   return {
+    //     ...state,
+    //     categoryId_questionId_done: undefined,
+    //     categoryNodeLoaded: false
+    //   };
+    // }
 
 
     case ActionTypes.SET_SUB_CATEGORIES: {
@@ -470,8 +496,8 @@ const reducer = (state: ICategoriesState, action: CategoriesActions): ICategorie
 
     case ActionTypes.SET_QUESTION: {
       const { question } = action.payload;
-      const { parentCategory, id, title, numOfAssignedAnswers } = question;
-      const inAdding = state.mode === Mode.AddingQuestion;
+      //const { parentCategory, id, title, numOfAssignedAnswers } = question;
+      //const inAdding = state.mode === Mode.AddingQuestion;
       // TODO Popravi
       // const rootCategoryRows = newFirstLevelCategoryRows.map((c: ICategory) => c.id === parentCategory
       //   ? {
@@ -536,15 +562,15 @@ const reducer = (state: ICategoriesState, action: CategoriesActions): ICategorie
     case ActionTypes.SET_QUESTION_TO_VIEW: {
       const { question } = action.payload;
       const { partitionKey, id, parentCategory } = question;
-      const { categoryKeyExpanded } = state;
+      // const { categoryKeyExpanded } = state;
       const categoryProps = undefined;
       return {
         ...state,
         mode: Mode.ViewingQuestion,
         loading: false,
-        categoryKeyExpanded: categoryKeyExpanded
-          ? { ...categoryKeyExpanded, questionId: categoryKeyExpanded.id === parentCategory ? id : null }
-          : null,
+        // categoryKeyExpanded: categoryKeyExpanded
+        //   ? { ...categoryKeyExpanded, questionId: categoryKeyExpanded.id === parentCategory ? id : null }
+        //   : null,
         questionInViewingOrEditing: question
       }
     }
@@ -552,15 +578,15 @@ const reducer = (state: ICategoriesState, action: CategoriesActions): ICategorie
     case ActionTypes.SET_QUESTION_TO_EDIT: {
       const { question } = action.payload;
       const { partitionKey, id, parentCategory } = question;
-      const { categoryKeyExpanded } = state;
+      //const { categoryKeyExpanded } = state;
       const categoryProps = undefined;
       return {
         ...state,
         mode: Mode.EditingQuestion,
         loading: false,
-        categoryKeyExpanded: categoryKeyExpanded
-          ? { ...categoryKeyExpanded, questionId: categoryKeyExpanded.id === parentCategory ? id : null }
-          : null,
+        // categoryKeyExpanded: categoryKeyExpanded
+        //   ? { ...categoryKeyExpanded, questionId: categoryKeyExpanded.id === parentCategory ? id : null }
+        //   : null,
         questionInViewingOrEditing: question
       }
     }

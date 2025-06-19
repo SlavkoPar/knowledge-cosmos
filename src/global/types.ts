@@ -12,7 +12,6 @@ export interface IWhoWhen {
 export interface IRecord {
 	created?: IWhoWhen,
 	modified?: IWhoWhen,
-	archived?: IWhoWhen,
 	inAdding?: boolean
 }
 

@@ -22,7 +22,7 @@ import { initialQuestion } from 'categories/CategoriesReducer';
 
 //const QuestionRow = ({ question, categoryInAdding }: { ref: React.ForwardedRef<HTMLLIElement>, question: IQuestion, categoryInAdding: boolean | undefined }) => {
 const QuestionRow = ({ questionRow, categoryInAdding }: { questionRow: IQuestionRow, categoryInAdding: boolean | undefined }) => {
-    const { id, partitionKey, parentCategory, title, inAdding, numOfAssignedAnswers, isSelected } = questionRow;
+    const { id, partitionKey, parentCategory, title, inAdding, numOfAssignedAnswers, isSelected, rootId } = questionRow;
     const questionKey: IQuestionKey = { partitionKey, id, parentCategory: parentCategory ?? undefined };
 
     const { canEdit, isDarkMode, variant, bg, authUser } = useGlobalState();
@@ -30,6 +30,7 @@ const QuestionRow = ({ questionRow, categoryInAdding }: { questionRow: IQuestion
     const dispatch = useCategoryDispatch();
 
     const { questionInViewingOrEditing, categoryKeyExpanded } = state;
+    const showForm = questionInViewingOrEditing && questionInViewingOrEditing.id === id;
     const { questionId } = categoryKeyExpanded ?? { questionId: null };
 
     //const { questionKey } = questionInViewingOrEditing;
@@ -50,14 +51,14 @@ const QuestionRow = ({ questionRow, categoryInAdding }: { questionRow: IQuestion
 
     const edit = async (Id: string) => {
         // Load data from server and reinitialize question
-        await editQuestion(questionKey);
+        await editQuestion(questionRow);
     }
 
     const onSelectQuestion = async (id: string) => {
         if (canEdit)
-            await editQuestion(questionKey);
+            await editQuestion(questionRow);
         else
-            await viewQuestion(questionKey);
+            await viewQuestion(questionRow);
     }
 
     useEffect(() => {
@@ -143,21 +144,31 @@ const QuestionRow = ({ questionRow, categoryInAdding }: { questionRow: IQuestion
                     showCloseButton={true}
                     source={0} />
             )
-                : (state.mode === Mode.EditingQuestion || state.mode === Mode.ViewingQuestion) ? (
+                : (showForm && state.mode === Mode.EditingQuestion) ? (
                     <>
                         {/* <div class="d-lg-none">hide on lg and wider screens</div> */}
                         <div id='div-question' className="ms-0 d-md-none w-100">
-                            {state.mode === Mode.EditingQuestion && <EditQuestion questionKey={questionKey} inLine={true} />}
-                            {state.mode === Mode.ViewingQuestion && <ViewQuestion inLine={true} />}
+                            {state.mode === Mode.EditingQuestion && <EditQuestion inLine={true} />}
                         </div>
                         <div className="d-none d-md-block">
                             {Row1}
                         </div>
                     </>
                 )
-                    : (
-                        Row1
+                    : (showForm && state.mode === Mode.ViewingQuestion) ? (
+                        <>
+                            {/* <div class="d-lg-none">hide on lg and wider screens</div> */}
+                            <div id='div-question' className="ms-0 d-md-none w-100">
+                                {state.mode === Mode.ViewingQuestion && <ViewQuestion inLine={true} />}
+                            </div>
+                            <div className="d-none d-md-block">
+                                {Row1}
+                            </div>
+                        </>
                     )
+                        : (
+                            Row1
+                        )
             }
             {/* </div> */}
         </ListGroup.Item>

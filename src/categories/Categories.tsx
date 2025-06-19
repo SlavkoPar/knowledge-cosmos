@@ -27,8 +27,13 @@ interface IProps {
 
 const Providered = ({ categoryId_questionId, fromChatBotDlg }: IProps) => {
     console.log("=== Categories", categoryId_questionId)
-    const { state, reloadCategoryRowNode, getSubCategoryRows } = useCategoryContext();
-    const { firstLevelCategoryRows: rootCategoryRows, categoryKeyExpanded, categoryId_questionId_done, categoryNodeReLoading, categoryNodeLoaded } = state;
+    const { state, openCategoryNode, loadFirstLevelCategoryRows } = useCategoryContext();
+    const {
+        firstLevelCategoryRows, firstLevelCategoryRowsLoading, firstLevelCategoryRowsLoaded,
+        categoryKeyExpanded, categoryId_questionId_done,
+        categoryNodeOpening, categoryNodeOpened, 
+        questionInViewingOrEditing
+    } = state;
 
     const { setLastRouteVisited, searchQuestions } = useGlobalContext();
     const { isDarkMode, authUser, categoryRows } = useGlobalState();
@@ -57,7 +62,7 @@ const Providered = ({ categoryId_questionId, fromChatBotDlg }: IProps) => {
     const categoryRow: ICategoryRow = {
         ...initialCategory,
         level: 1,
-        subCategories: rootCategoryRows
+        subCategories: firstLevelCategoryRows
     }
 
 
@@ -66,17 +71,15 @@ const Providered = ({ categoryId_questionId, fromChatBotDlg }: IProps) => {
     useEffect(() => {
         (async () => {
             // SET_FIRST_LEVEL_CATEGORY_ROWS  Level:1
-            await getSubCategoryRows({ partitionKey: null, id: null })
-            // .then((list: ICategory[]) => {
-            //     console.log("+++++++>>>>>>> CategoryList ", { catKeyExpanded, list });
-            //     //setSubCats(list)
-            // });
+            if (!firstLevelCategoryRowsLoading && !firstLevelCategoryRowsLoaded) {
+                await loadFirstLevelCategoryRows()
+            }
         })()
-    }, [getSubCategoryRows]);
+    }, [firstLevelCategoryRowsLoading, firstLevelCategoryRowsLoaded, loadFirstLevelCategoryRows]);
 
     useEffect(() => {
         (async () => {
-            if (!categoryNodeReLoading && rootCategoryRows.length > 0) {
+            if (!categoryNodeOpening && firstLevelCategoryRows.length > 0) {
                 if (categoryId_questionId) {
                     if (categoryId_questionId === 'add_question') {
                         const sNewQuestion = localStorage.getItem('New_Question');
@@ -88,25 +91,25 @@ const Providered = ({ categoryId_questionId, fromChatBotDlg }: IProps) => {
                             return null;
                         }
                     }
-                    else if (categoryId_questionId !== categoryId_questionId_done) { //} && !categoryNodeLoaded) {
+                    else if (categoryId_questionId !== categoryId_questionId_done) { //} && !categoryNodeOpened) {
                         const arr = categoryId_questionId.split('_');
                         const categoryId = arr[0];
                         const questionId = arr[1];
                         const keyExp = { partitionKey: null, id: categoryId, questionId }
                         // setCatKeyExpanded(keyExp);
-                        console.log('zovem reloadCategoryRowNode 1111111111111111111)', { categoryId_questionId }, { categoryId_questionId_done })
-                        await reloadCategoryRowNode(keyExp, fromChatBotDlg ?? 'false')
+                        console.log('zovem openCategoryNode 1111111111111111111)', { categoryId_questionId }, { categoryId_questionId_done })
+                        await openCategoryNode(keyExp, fromChatBotDlg ?? 'false')
                             .then(() => { return null; });
                     }
                 }
-                else if (categoryKeyExpanded && !categoryNodeLoaded) {
-                    console.log('zovem reloadCategoryRowNode 2222222222222)', { categoryKeyExpanded }, { categoryNodeLoaded })
-                    await reloadCategoryRowNode(categoryKeyExpanded)
+                else if (categoryKeyExpanded && !categoryNodeOpened) {
+                    console.log('zovem openCategoryNode 2222222222222)', { categoryKeyExpanded }, { categoryNodeOpened })
+                    await openCategoryNode(categoryKeyExpanded)
                         .then(() => { return null; });
                 }
             }
         })()
-    }, [categoryKeyExpanded, categoryNodeReLoading, categoryNodeLoaded, reloadCategoryRowNode, categoryId_questionId, categoryId_questionId_done, rootCategoryRows])
+    }, [categoryKeyExpanded, categoryNodeOpening, categoryNodeOpened, openCategoryNode, categoryId_questionId, categoryId_questionId_done, firstLevelCategoryRows])
 
     useEffect(() => {
         setLastRouteVisited(`/categories`);
@@ -120,8 +123,8 @@ const Providered = ({ categoryId_questionId, fromChatBotDlg }: IProps) => {
     }
 
     console.log('===>>> Categories !!!!!!!!!!!!!!!!!')
-    //if (!categoryNodeLoaded)
-    if (rootCategoryRows.length === 0)
+    //if (!categoryNodeOpened)
+    if (firstLevelCategoryRows.length === 0)
         return null
 
     return (
@@ -172,15 +175,17 @@ const Providered = ({ categoryId_questionId, fromChatBotDlg }: IProps) => {
                             {state.mode === Mode.EditingCategory && <EditCategory inLine={false} />}
                             {/* {state.mode === FORM_MODES.ADD_QUESTION && <AddQuestion category={null} />} */}
                             {/* TODO check if we set questionId everywhere */}
-                            {catKeyExpanded.questionId && state.mode === Mode.ViewingQuestion &&
+                            {/* && catKeyExpanded.questionId */}
+                            {questionInViewingOrEditing && state.mode === Mode.ViewingQuestion &&
                                 <ViewQuestion inLine={false} />
                             }
-                            {catKeyExpanded.questionId && state.mode === Mode.EditingQuestion &&
-                                <EditQuestion questionKey={{
-                                    parentCategory: catKeyExpanded.id ?? undefined,
-                                    partitionKey: catKeyExpanded.partitionKey,
-                                    id: catKeyExpanded.questionId
-                                }}
+                            {questionInViewingOrEditing && state.mode === Mode.EditingQuestion &&
+                                <EditQuestion
+                                    // questionKey={{
+                                    //     parentCategory: catKeyExpanded.id ?? undefined,
+                                    //     partitionKey: catKeyExpanded.partitionKey,
+                                    //     id: catKeyExpanded.questionId
+                                    // }}
                                     inLine={false}
                                 />
                             }

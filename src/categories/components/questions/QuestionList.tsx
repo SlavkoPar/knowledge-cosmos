@@ -6,7 +6,8 @@ import { List, ListItem, Loading } from "common/components/InfiniteList";
 import QuestionRow from "categories/components/questions/QuestionRow";
 
 //const QuestionList = ({ title, categoryRow, level }: IParentInfo) => {
-const QuestionList = ({ level, categoryRow }: { level: number, categoryRow: ICategoryRow }) => {
+const 
+QuestionList = ({ level, categoryRow }: { level: number, categoryRow: ICategoryRow }) => {
   const { state, loadCategoryQuestions } = useCategoryContext();
   const { categoryKeyExpanded, questionLoading, error } = state;
 

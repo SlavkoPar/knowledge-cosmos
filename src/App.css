@@ -243,3 +243,16 @@ input[type=number] {
   color: darkolivegreen;
   font-size: 14px;
 }
+
+
+.dropdown-menu {
+  width: vw-25 !important;
+  /* min-width: 200px; */
+}
+
+/* .dropdown-menu li a { */
+.dropdown-menu li div button {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
