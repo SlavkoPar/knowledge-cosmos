@@ -238,6 +238,7 @@ const reducer = (state: ICategoriesState, action: CategoriesActions): ICategorie
         categoryNodeOpening: false,
         categoryNodeOpened: false,
         firstLevelCategoryRows: [],
+        firstLevelCategoryRowsLoaded: false,
         categoryKeyExpanded
       }
 
@@ -342,11 +343,13 @@ const reducer = (state: ICategoriesState, action: CategoriesActions): ICategorie
       const { categoryRow } = action.payload; // category doesn't contain  inAdding 
       const { partitionKey, id } = categoryRow;
       const categoryKey = { partitionKey, id };
+      const { categoryKeyExpanded } = state;
+      const { questionId } = categoryKeyExpanded!;
       return {
         ...state,
         // keep mode
         loading: false,
-        categoryKeyExpanded: { ...categoryKey, questionId: null },
+        categoryKeyExpanded: { ...categoryKey, questionId },
         categoryInAdding: null,
         categoryInViewingOrEditing: null,
         questionInViewingOrEditing: null
@@ -496,20 +499,6 @@ const reducer = (state: ICategoriesState, action: CategoriesActions): ICategorie
 
     case ActionTypes.SET_QUESTION: {
       const { question } = action.payload;
-      //const { parentCategory, id, title, numOfAssignedAnswers } = question;
-      //const inAdding = state.mode === Mode.AddingQuestion;
-      // TODO Popravi
-      // const rootCategoryRows = newFirstLevelCategoryRows.map((c: ICategory) => c.id === parentCategory
-      //   ? {
-      //     ...c,
-      //     questionRows: inAdding
-      //       ? c.questionRows.map(q => q.inAdding ? { ...q, title, inAdding: false } : q)
-      //       : c.questionRows.map(q => q.id === id ? { ...q, title, numOfAssignedAnswers } : q),
-      //     inAdding: false
-      //   }
-      //   : c
-      // );
-      //console.log('ActionTypes.SET_QUESTION', "^" + parentCategory + "^", rootCategoryRows.filter(c => c.id === parentCategory)[0])
       return {
         ...state,
         categoryInViewingOrEditing: null,
@@ -562,15 +551,15 @@ const reducer = (state: ICategoriesState, action: CategoriesActions): ICategorie
     case ActionTypes.SET_QUESTION_TO_VIEW: {
       const { question } = action.payload;
       const { partitionKey, id, parentCategory } = question;
-      // const { categoryKeyExpanded } = state;
+      const { categoryKeyExpanded } = state;
       const categoryProps = undefined;
       return {
         ...state,
         mode: Mode.ViewingQuestion,
         loading: false,
-        // categoryKeyExpanded: categoryKeyExpanded
-        //   ? { ...categoryKeyExpanded, questionId: categoryKeyExpanded.id === parentCategory ? id : null }
-        //   : null,
+        categoryKeyExpanded: categoryKeyExpanded
+          ? { ...categoryKeyExpanded, questionId: categoryKeyExpanded.id === parentCategory ? id : null }
+          : null,
         questionInViewingOrEditing: question
       }
     }
@@ -578,15 +567,15 @@ const reducer = (state: ICategoriesState, action: CategoriesActions): ICategorie
     case ActionTypes.SET_QUESTION_TO_EDIT: {
       const { question } = action.payload;
       const { partitionKey, id, parentCategory } = question;
-      //const { categoryKeyExpanded } = state;
+      const { categoryKeyExpanded } = state;
       const categoryProps = undefined;
       return {
         ...state,
         mode: Mode.EditingQuestion,
         loading: false,
-        // categoryKeyExpanded: categoryKeyExpanded
-        //   ? { ...categoryKeyExpanded, questionId: categoryKeyExpanded.id === parentCategory ? id : null }
-        //   : null,
+         categoryKeyExpanded: categoryKeyExpanded
+          ? { ...categoryKeyExpanded, questionId: categoryKeyExpanded.id === parentCategory ? id : null }
+          : null,
         questionInViewingOrEditing: question
       }
     }
@@ -603,6 +592,7 @@ const reducer = (state: ICategoriesState, action: CategoriesActions): ICategorie
         //   }
         //   : c
         // ),
+        questionInViewingOrEditing: null,
         mode: Mode.NULL
       }
     }

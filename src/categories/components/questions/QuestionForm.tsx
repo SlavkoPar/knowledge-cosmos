@@ -102,9 +102,10 @@ const QuestionForm = ({ mode, question, submitForm, children, showCloseButton, s
                 <Dropdown.Toggle variant="light" id="dropdown-basic" className="px-2 py-0 text-primary border" disabled={isDisabled}>
                   <span className="text-wrap me-1">{formik.values.categoryTitle}</span>
                 </Dropdown.Toggle>
-                <Dropdown.Menu className="p-0 border border-3">
+                <Dropdown.Menu className="p-0 border" >
                   <Dropdown.Item className="p-0 m-0 rounded-3">
                     <CatList
+                      selId= {formik.values.parentCategory}
                       categoryKey= {null}  // TODO {categoryKey}
                       level={1}
                       setParentCategory={setParentCategory}

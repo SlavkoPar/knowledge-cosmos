@@ -222,7 +222,7 @@ export class QuestionRow {
 			modified: rowDto.Modified
 				? new Dto2WhoWhen(rowDto.Modified).whoWhen
 				: undefined,
-			isSelected: rowDto.Included !== undefined
+			isSelected: rowDto.Included
 		}
 	}
 	questionRow: IQuestionRow
@@ -655,8 +655,8 @@ export const actionsThatModifyFirstLevelCategoryRow = [
 	ActionTypes.SET_CATEGORY_ROW_COLLAPSED,
 	ActionTypes.SET_CATEGORY_TO_VIEW,
 	ActionTypes.SET_CATEGORY_TO_EDIT,
-	// ActionTypes.SET_QUESTION_TO_VIEW,
-	// ActionTypes.SET_QUESTION_TO_EDIT,
+	ActionTypes.SET_QUESTION_TO_VIEW,
+	ActionTypes.SET_QUESTION_TO_EDIT,
 	ActionTypes.CLOSE_CATEGORY_FORM,
 	ActionTypes.CANCEL_CATEGORY_FORM
 ]
@@ -669,6 +669,7 @@ export const actionTypesToLocalStore = [
 	ActionTypes.SET_CATEGORY_TO_EDIT,
 	ActionTypes.SET_QUESTION_TO_VIEW,
 	ActionTypes.SET_QUESTION_TO_EDIT,
+	ActionTypes.FORCE_OPEN_CATEGORY_NODE
 ];
 
 

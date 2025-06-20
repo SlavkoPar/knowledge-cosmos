@@ -12,12 +12,13 @@ import { CatsActions, CatsActionTypes } from './types';
 
 interface ICatRow {
     cat: ICategoryRow;
+    selId: string | null;
     dispatch: React.Dispatch<CatsActions>;
     setParentCat: (cat: ICategoryRow) => void;
 }
 
-const CatRow = ({ cat , dispatch, setParentCat }: ICatRow) => {
-    const { partitionKey, id, title, level, isExpanded } = cat;
+const CatRow = ({ cat , dispatch, setParentCat, selId }: ICatRow) => {
+    const { partitionKey, id, title, level, isExpanded} = cat;
     const categoryKey = { partitionKey, id };
 
     const { isDarkMode, variant, bg } = useGlobalState();
@@ -75,6 +76,7 @@ const CatRow = ({ cat , dispatch, setParentCat }: ICatRow) => {
                     as="li"
                 >
                     <CatList
+                        selId={selId}
                         level={level + 1}
                         categoryKey={categoryKey}
                         setParentCategory={setParentCat}

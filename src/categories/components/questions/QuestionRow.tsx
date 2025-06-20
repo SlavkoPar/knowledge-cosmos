@@ -33,10 +33,6 @@ const QuestionRow = ({ questionRow, categoryInAdding }: { questionRow: IQuestion
     const showForm = questionInViewingOrEditing && questionInViewingOrEditing.id === id;
     const { questionId } = categoryKeyExpanded ?? { questionId: null };
 
-    //const { questionKey } = questionInViewingOrEditing;
-    //const bold = questionInViewingOrEditing && questionInViewingOrEditing.id === id;
-    //const bold = categoryKeyExpanded && categoryKeyExpanded.id === id;
-    //const bold = included; // id === questionId;
     console.log("------------------------ QuestionRow", { id, questionId })
 
     const alreadyAdding = state.mode === Mode.AddingQuestion;

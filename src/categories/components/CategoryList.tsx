@@ -24,7 +24,7 @@ const CategoryList = ({ title, categoryRow, level, isExpanded }: IParentInfo) =>
                     {subCategories!.map((c: ICategoryRow) =>
                         <CategoryRow
                             //categoryRow={{ ...c, isSelected: c.id === id }}
-                            categoryRow={c} // {...c}}
+                            categoryRow={c}
                             questionId={c.partitionKey === partitionKey && c.id === id ? questionId : null}
                             key={c.id}
                         />

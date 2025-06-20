@@ -15,22 +15,10 @@ QuestionList = ({ level, categoryRow }: { level: number, categoryRow: ICategoryR
     ? categoryKeyExpanded
     : { partitionKey: null, id: null, questionId: null };
 
-  //const { questionId } = categoryKeyExpanded!;
-  //const { partitionKey, id, questionRows } = categoryRow;
   const { questionRows } = categoryRow;
 
-
   let hasMoreQuestions = false;
-  // const category: ICategory = categories.find(c => c.id === categoryKey.id)!;
-  // if (category) { // CLEAN_SUB_TREE could have removed it
-  //   numOfQuestions = category.numOfQuestions;
-  //   questionRows = category.questionRows;
-  //   hasMoreQuestions = category.hasMoreQuestions??false;
-  //   const { partitionKey, id } = category;
-  //   console.assert(partitionKey === category.partitionKey);
-  //   console.log('^^^^^^^^^^^^^ QuestionList', questionRows)
-  // }
-
+  
   async function loadMore() {
     try {
       // const parentInfo: IParentInfo = {

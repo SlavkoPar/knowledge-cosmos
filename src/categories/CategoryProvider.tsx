@@ -569,7 +569,8 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
               console.log('Question successfully updated: ', questionRet)
               const { partitionKey, parentCategory } = questionRet;
               if (categoryChanged) {
-                dispatch({ type: ActionTypes.SET_QUESTION, payload: { question: questionRet } })
+                // nema koristi
+                // dispatch({ type: ActionTypes.SET_QUESTION, payload: { question: questionRet } })
                 const { partitionKey, parentCategory, id } = questionRet;
                 const categoryKeyExpanded: ICategoryKeyExpanded = {
                   partitionKey,
@@ -600,7 +601,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
 
   const deleteQuestion = useCallback(
     async (questionRow: IQuestionRow) => {
-      const { partitionKey, id, title, modified, parentCategory } = questionRow;
+      const { partitionKey, id, title, modified, parentCategory, rootId } = questionRow;
       dispatch({ type: ActionTypes.SET_CATEGORY_LOADING, payload: { id: parentCategory!, loading: false } });
       try {
         const questionDto = new QuestionRowDto(questionRow).questionRowDto;
@@ -620,8 +621,14 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
                 const question = new Question(questionDto).question;
                 console.log('Question successfully deleted')
                 dispatch({ type: ActionTypes.DELETE_QUESTION, payload: { question } });
+                /*
                 //dispatch({ type: ActionTypes.CLOSE_QUESTION_FORM })
                 await loadAllCategoryRows(); // reload
+                */
+                const parentCategoryKey: ICategoryKey = { partitionKey: parentCategory, id: parentCategory };
+                await expandCategory(rootId!, parentCategoryKey, null).then(() => {
+                 // dispatch({ type: ActionTypes.SET_CATEGORY, payload: { categoryRow: category } }); // ICategory extends ICategory Row
+                });
               }
               else {
                 dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error(msg) } });

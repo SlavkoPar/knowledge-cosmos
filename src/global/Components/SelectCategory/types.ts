@@ -14,6 +14,7 @@ export interface ICatsState {
 }
 
 export interface ICatInfo {
+	selId: string | null;
 	categoryKey: ICategoryKey | null,
 	level: number,
 	setParentCategory: (cat: ICategoryRow) => void;

@@ -245,8 +245,8 @@ input[type=number] {
 }
 
 
-.dropdown-menu {
-  width: vw-25 !important;
+.dropdown-menu.show {
+  width: 30vw !important;
   /* min-width: 200px; */
 }
 

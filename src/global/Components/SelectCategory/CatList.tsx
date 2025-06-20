@@ -6,7 +6,7 @@ import { useGlobalContext } from "global/GlobalProvider";
 import { CatsActionTypes, ICatInfo } from "./types";
 import { ICategoryKey, ICategoryRow } from "categories/types";
 
-const CatList = ({ categoryKey, level, setParentCategory }: ICatInfo) => {
+const CatList = ({ selId, categoryKey, level, setParentCategory }: ICatInfo) => {
     const [state, dispatch] = useReducer(CatsReducer, initialState);
     const { getSubCats } = useGlobalContext();
 
@@ -33,11 +33,12 @@ const CatList = ({ categoryKey, level, setParentCategory }: ICatInfo) => {
     }
 
     return (
-        <div className={level > 1 ? 'ms-4 h-25' : 'h-25'} style={{ overflowY: 'auto' }}>
+        <div className={level > 1 ? 'border  border-7 ms-4 h-25' : 'border border-7  h-25'} style={{ overflowY: 'auto' }}>
             <ListGroup as="ul" variant='dark' className="mb-0">
-                {mySubCats.map(cat =>
+                {mySubCats.filter(c => c.id !== selId).map((cat:ICategoryRow) =>
                     <CatRow
                         cat={cat}
+                        selId={selId}
                         dispatch={dispatch}
                         setParentCat={setParentCat}
                         key={cat.id}
