@@ -56,9 +56,7 @@ const ModalAddQuestion = (props: IProps) => {
             </Modal.Header>
             <Modal.Body className="py-0">
                 <AddQuestion
-                    questionRow={props.newQuestionRow}
                     closeModal={props.onHide}
-                    inLine={true}
                     showCloseButton={false}
                     source={1} /*gmail*/
                     setError={(msg) => setCreateQuestionError(msg)}

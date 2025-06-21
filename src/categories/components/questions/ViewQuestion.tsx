@@ -5,7 +5,7 @@ import QuestionForm from "categories/components/questions/QuestionForm";
 
 const ViewQuestion = ({ inLine }: { inLine: boolean }) => {
     const { state } = useCategoryContext();
-    const { questionLoading, firstLevelCategoryRows: categories, questionInViewingOrEditing } = state;
+    const { questionLoading, firstLevelCategoryRows: categories, questionInAddingViewingOrEditing: questionInViewingOrEditing } = state;
     //const { partitionKey, id, parentCategory } = questionInViewingOrEditing!;
 
     const [question, setQuestion] = useState<IQuestion | null>(null);
@@ -27,7 +27,7 @@ const ViewQuestion = ({ inLine }: { inLine: boolean }) => {
             question={question!}
             showCloseButton={true}
             source={0}
-            mode={FormMode.viewing}
+            formMode={FormMode.Viewing}
             submitForm={() => { }}
         >
             View Question

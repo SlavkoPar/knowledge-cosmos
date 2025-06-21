@@ -7,54 +7,36 @@ import { ActionTypes, FormMode, IQuestion, IQuestionRow } from "categories/types
 import { initialQuestion } from "categories/CategoriesReducer";
 
 interface IProps {
-    questionRow: IQuestionRow;
     closeModal?: () => void;
-    inLine: boolean;
-    showCloseButton: boolean;
-    source: number;
+    showCloseButton?: boolean;
+    source?: number;
     setError?: (msg: string) => void;
 }
 
-const AddQuestion = ({ questionRow, inLine, closeModal, showCloseButton, source, setError }: IProps) => {
-    const globalState = useGlobalState();
-    const { authUser } = globalState;
-    const { nickName } = authUser;
+const AddQuestion = ({ closeModal, showCloseButton, source, setError }: IProps) => {
 
-    const question = { ...initialQuestion, ...questionRow };
+    const { state, createQuestion } = useCategoryContext();
+    const { questionInAddingViewingOrEditing } = state;
+    const { rootId } = questionInAddingViewingOrEditing!;
 
-    // { error, execute }
-
-    const dispatch = useCategoryDispatch();
-    const { state, createQuestion, openCategoryNode } = useCategoryContext();
+    // const { state, createQuestion, openCategoryNode } = useCategoryContext();
     if (!closeModal) {
-        const cat = state.firstLevelCategoryRows.find(c => c.id === questionRow.parentCategory)
-        questionRow.categoryTitle = cat ? cat.title : '';
+        // const cat = state.firstLevelCategoryRows.find(c => c.id === questionRow.parentCategory)
+        // questionRow.categoryTitle = cat ? cat.title : '';
     }
-    // const question: IQuestion = {
-    //     ...questionRow, 
-    //     assignedAnswers: [], 
-    //     numOfAssignedAnswers: 0,
-    //     relatedFilters: [],
-    //     numOfRelatedFilters: 0,
-    //     source: 0,
-    //     status: 0
-    // };
-    const [formValues] = useState(question);
+
+    const [formValues] = useState(questionInAddingViewingOrEditing);
 
     const submitForm = async (questionObject: IQuestion) => {
-        const obj: any = { ...questionObject }
-        delete obj.inAdding;
-        // delete obj.id;
-        const object: IQuestion = {
-            ...obj,
-            partitionKey: question.partitionKey,
+        const newQuestion: IQuestion = {
+            ...questionObject,
             created: {
                 time: new Date(),
-                nickName: nickName
+                nickName: ''
             },
             modified: undefined
         }
-        const q = await createQuestion(object, closeModal !== undefined);
+        const q = await createQuestion(newQuestion, closeModal !== undefined);
         if (q) {
             if (q.message) {
                 setError!(q.message)
@@ -62,17 +44,17 @@ const AddQuestion = ({ questionRow, inLine, closeModal, showCloseButton, source,
             else if (closeModal) {
                 closeModal();
                 //dispatch({ type: ActionTypes.CLEAN_TREE, payload: { id: q.parentCategory } })
-                await openCategoryNode({ partitionKey: '', id: q.parentCategory, questionId: q.id });
+                //await openCategoryNode({ partitionKey: '', id: q.parentCategory, questionId: q.id });
             }
         }
     }
     return (
         <QuestionForm
-            question={formValues}
-            showCloseButton={showCloseButton}
-            source={source}
+            question={formValues!}
+            showCloseButton={showCloseButton ?? true}
+            source={source ?? 0}
             closeModal={closeModal}
-            mode={FormMode.adding}
+            formMode={FormMode.Adding}
             submitForm={submitForm}
         >
             Create Question

@@ -19,20 +19,26 @@ import { useGlobalContext } from 'global/GlobalProvider';
 import VariationList from 'categories/VariationList';
 import RelatedFilters from './RelatedFilters';
 
-const QuestionForm = ({ mode, question, submitForm, children, showCloseButton, source = 0, closeModal }: IQuestionFormProps) => {
+const QuestionForm = ({ formMode, question, submitForm, children, showCloseButton, source = 0, closeModal }: IQuestionFormProps) => {
 
   const { globalState } = useGlobalContext();
   const { isDarkMode, variant, bg } = globalState;
 
   const { state } = useCategoryContext();
+  let { questionFormMode } = state;
 
-  const viewing = mode === FormMode.viewing;
-  const editing = mode === FormMode.editing;
-  const adding = mode === FormMode.adding;
+  if (formMode)
+    questionFormMode = formMode;
+
+  const viewing = questionFormMode === FormMode.Viewing;
+  const editing = questionFormMode === FormMode.Editing;
+  const adding = questionFormMode === FormMode.Adding;
+
+  const isDisabled = viewing;
 
   const { partitionKey, parentCategory, title, id, assignedAnswers, relatedFilters } = question;
-  const questionKey = {parentCategory: parentCategory ?? undefined, partitionKey, id };
-  const categoryKey: ICategoryKey = {partitionKey, id: parentCategory};
+  const questionKey = { parentCategory: parentCategory ?? undefined, partitionKey, id };
+  const categoryKey: ICategoryKey = { partitionKey, id: parentCategory };
 
   const dispatch = useCategoryDispatch();
 
@@ -78,8 +84,7 @@ const QuestionForm = ({ mode, question, submitForm, children, showCloseButton, s
     }
   });
 
-  const isDisabled = mode === FormMode.viewing;
-
+  
   const setParentCategory = (cat: ICategoryRow) => {
     formik.setFieldValue('parentCategory', cat.id);
     formik.setFieldValue('categoryTitle', cat.title);
@@ -90,7 +95,7 @@ const QuestionForm = ({ mode, question, submitForm, children, showCloseButton, s
       {/* data-bs-theme={`${isDarkMode ? 'dark' : 'light'}`} */}
       {showCloseButton && <CloseButton onClick={closeForm} className="float-end" />}
       <Row className='text-center'>
-        <Form.Label>Question</Form.Label>
+        <Form.Label>Question:{questionFormMode.toString()}</Form.Label>
       </Row>
       <Form onSubmit={formik.handleSubmit}>
 
@@ -105,8 +110,8 @@ const QuestionForm = ({ mode, question, submitForm, children, showCloseButton, s
                 <Dropdown.Menu className="p-0 border" >
                   <Dropdown.Item className="p-0 m-0 rounded-3">
                     <CatList
-                      selId= {formik.values.parentCategory}
-                      categoryKey= {null}  // TODO {categoryKey}
+                      selId={formik.values.parentCategory}
+                      categoryKey={null}  // TODO {categoryKey}
                       level={1}
                       setParentCategory={setParentCategory}
                     />
@@ -123,7 +128,7 @@ const QuestionForm = ({ mode, question, submitForm, children, showCloseButton, s
                 //   if (isEdit && formik.initialValues.title !== formik.values.title)
                 //     formik.submitForm();
                 // }}
-                value={formik.values.parentCategory ? formik.values.parentCategory: ''}
+                value={formik.values.parentCategory ? formik.values.parentCategory : ''}
                 placeholder='Category'
                 className="text-primary w-100"
                 disabled={isDisabled}

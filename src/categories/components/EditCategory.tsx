@@ -29,9 +29,9 @@ const EditCategory = ({ inLine }: { inLine: boolean }) => {
     return (
         <CategoryForm
             inLine={inLine}
-            category={{...categoryInViewingOrEditing!}}
+            category={{ ...categoryInViewingOrEditing! }}
             questionId={questionId}
-            mode={FormMode.editing}
+            mode={FormMode.Editing}
             submitForm={submitForm}
         >
             Update Category

@@ -23,9 +23,10 @@ export const Mode = {
 }
 
 export enum FormMode {
-	viewing,
-	adding,
-	editing
+	None,
+	Viewing,
+	Adding,
+	Editing
 }
 
 export interface IFromUserAssignedAnswer {
@@ -488,7 +489,8 @@ export interface ICategoriesState {
 	categoryNodeOpened: boolean;
 	categoryInAdding: ICategory | null;
 	categoryInViewingOrEditing: ICategory | null;
-	questionInViewingOrEditing: IQuestion | null;
+	questionFormMode: FormMode;
+	questionInAddingViewingOrEditing: IQuestion | null;
 	loading: boolean;
 	questionLoading: boolean,
 	error?: Error;
@@ -515,11 +517,12 @@ export interface ICategoriesContext {
 	updateCategory: (category: ICategory, closeForm: boolean) => void,
 	deleteCategory: (category: ICategory) => void,
 	deleteCategoryVariation: (categoryKey: ICategoryKey, name: string) => void,
-	expandCategory: (rootId: string, categoryKey: ICategoryKey, includeQuestionId: string | null) => void,
+	expandCategory: (rootId: string, categoryKey: ICategoryKey, includeQuestionId: string | null) => Promise<any>,
 	collapseCategory: (categoryRow: ICategoryRow) => void,
 	//////////////
 	// questions
 	loadCategoryQuestions: (catParams: ILoadCategoryQuestions) => void;  //(parentInfo: IParentInfo) => void,
+	addQuestion: (isExpanded: boolean, categoryKey: ICategoryKey, rootId: string, unshiftQuestion?: IQuestionRow) => Promise<any>;
 	createQuestion: (question: IQuestion, fromModal: boolean) => Promise<any>;
 	viewQuestion: (questionRow: IQuestionRow) => void;
 	editQuestion: (questionRow: IQuestionRow) => void;
@@ -539,7 +542,7 @@ export interface ICategoryFormProps {
 
 export interface IQuestionFormProps {
 	question: IQuestion;
-	mode: FormMode;
+	formMode?: FormMode;
 	closeModal?: () => void;
 	submitForm: (question: IQuestion) => void,
 	showCloseButton: boolean;
@@ -658,7 +661,8 @@ export const actionsThatModifyFirstLevelCategoryRow = [
 	ActionTypes.SET_QUESTION_TO_VIEW,
 	ActionTypes.SET_QUESTION_TO_EDIT,
 	ActionTypes.CLOSE_CATEGORY_FORM,
-	ActionTypes.CANCEL_CATEGORY_FORM
+	ActionTypes.CANCEL_CATEGORY_FORM,
+	ActionTypes.ADD_QUESTION
 ]
 
 export const actionTypesToLocalStore = [
@@ -817,7 +821,8 @@ export type CategoriesPayload = {
 
 	[ActionTypes.SET_QUESTION]: {
 		categoryRow?: ICategoryRow;
-		question: IQuestion
+		questionFormMode: FormMode;
+		question: IQuestion;
 	};
 
 	[ActionTypes.SET_QUESTION_AFTER_ASSIGN_ANSWER]: {

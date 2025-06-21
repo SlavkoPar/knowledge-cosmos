@@ -18,9 +18,9 @@ const CategoryForm = ({ inLine, mode, category, questionId, submitForm, children
   const { globalState } = useGlobalContext();
   const { isDarkMode, variant, bg } = globalState;
 
-  const viewing = mode === FormMode.viewing;
-  const editing = mode === FormMode.editing;
-  const adding = mode === FormMode.adding;
+  const viewing = mode === FormMode.Viewing;
+  const editing = mode === FormMode.Editing;
+  const adding = mode === FormMode.Adding;
 
   const { partitionKey, id, title, variations, questionRows, kind } = category;
   const categoryKey: ICategoryKey = { partitionKey, id };

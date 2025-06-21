@@ -20,7 +20,7 @@ import AddCategory from './AddCategory';
 const CategoryRow = ({ categoryRow, questionId }: { categoryRow: ICategoryRow, questionId: string | null }) => {
 
     const { partitionKey, id, title, level, hasSubCategories, subCategories,
-        numOfQuestions, questionRows, inAdding, isExpanded, rootId } = categoryRow;
+                numOfQuestions, questionRows, inAdding, isExpanded, rootId } = categoryRow;
 
     const categoryKey: ICategoryKey = { partitionKey, id }
     
@@ -29,7 +29,7 @@ const CategoryRow = ({ categoryRow, questionId }: { categoryRow: ICategoryRow, q
 
     const { canEdit, isDarkMode, variant, bg, authUser } = useGlobalState();
 
-    const { state, viewCategory, editCategory, deleteCategory, expandCategory, collapseCategory } = useCategoryContext();
+    const { state, viewCategory, editCategory, deleteCategory, expandCategory, collapseCategory, addQuestion } = useCategoryContext();
     const { mode, categoryKeyExpanded, categoryInViewingOrEditing } = state;
     const isSelected = categoryInViewingOrEditing && categoryInViewingOrEditing.id === id;
 
@@ -172,12 +172,15 @@ const CategoryRow = ({ categoryRow, questionId }: { categoryRow: ICategoryRow, q
                         title="Add Question"
                         onClick={async () => {
                             const categoryInfo: ICategoryInfo = { categoryKey: { partitionKey, id: categoryRow.id }, level: categoryRow.level }
+                            addQuestion(isExpanded!, categoryKey, rootId);
+                            /*
                             if (!isExpanded) {
                                 // await dispatch({ type: ActionTypes.SET_EXPANDED, payload: { categoryKey } });
                                 // alert('sta je');
                                 await expandCategory(rootId, categoryKey, null);
                             }
                             await dispatch({ type: ActionTypes.ADD_QUESTION, payload: { categoryInfo } });
+                            */
                         }}
                     >
                         <img width="22" height="18" src={QPlus} alt="Add Question" />

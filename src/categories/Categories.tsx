@@ -19,6 +19,7 @@ import { initialCategory, initialQuestion } from "categories/CategoriesReducer";
 import ModalAddQuestion from './ModalAddQuestion';
 import AddCategory from './components/AddCategory';
 import { AutoSuggestQuestions } from './AutoSuggestQuestions';
+import AddQuestion from './components/questions/AddQuestion';
 
 interface IProps {
     categoryId_questionId?: string;
@@ -31,8 +32,8 @@ const Providered = ({ categoryId_questionId, fromChatBotDlg }: IProps) => {
     const {
         firstLevelCategoryRows, firstLevelCategoryRowsLoading, firstLevelCategoryRowsLoaded,
         categoryKeyExpanded, categoryId_questionId_done,
-        categoryNodeOpening, categoryNodeOpened, 
-        questionInViewingOrEditing
+        categoryNodeOpening, categoryNodeOpened,
+        questionInAddingViewingOrEditing
     } = state;
 
     const { setLastRouteVisited, searchQuestions } = useGlobalContext();
@@ -176,24 +177,21 @@ const Providered = ({ categoryId_questionId, fromChatBotDlg }: IProps) => {
                             {/* {state.mode === FORM_MODES.ADD_QUESTION && <AddQuestion category={null} />} */}
                             {/* TODO check if we set questionId everywhere */}
                             {/* && catKeyExpanded.questionId */}
-                            {questionInViewingOrEditing && state.mode === Mode.ViewingQuestion &&
-                                <ViewQuestion inLine={false} />
+                            {questionInAddingViewingOrEditing &&
+                                state.mode === Mode.ViewingQuestion
+                                    ? <ViewQuestion inLine={false} />
+                                    : state.mode === Mode.EditingQuestion
+                                        ? <EditQuestion inLine={false} />
+                                        : state.mode === Mode.AddingQuestion
+                                            ? <AddQuestion />
+                                            : null
                             }
-                            {questionInViewingOrEditing && state.mode === Mode.EditingQuestion &&
-                                <EditQuestion
-                                    // questionKey={{
-                                    //     parentCategory: catKeyExpanded.id ?? undefined,
-                                    //     partitionKey: catKeyExpanded.partitionKey,
-                                    //     id: catKeyExpanded.questionId
-                                    // }}
-                                    inLine={false}
-                                />
-                            }
+
                         </div>
                     </Col>
                 </Row>
             </Container>
-            {modalShow &&
+            {modalShow && questionInAddingViewingOrEditing &&
                 <ModalAddQuestion
                     show={modalShow}
                     onHide={() => { setModalShow(false) }}

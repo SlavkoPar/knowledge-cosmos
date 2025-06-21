@@ -6,39 +6,13 @@ import QuestionForm from "categories/components/questions/QuestionForm";
 import { ActionTypes, FormMode, IQuestion, IQuestionKey, QuestionKey } from "categories/types";
 
 const EditQuestion = ({ inLine }: { inLine: boolean }) => {
-    // const { partitionKey, id, parentCategory } = questionKey;
-    // const globalState = useGlobalState();
-    // const { nickName } = globalState.authUser;
-    // const { loadAllCategoryRows } = useGlobalContext();
-
-    //const dispatch = useCategoryDispatch();
     const { state, updateQuestion } = useCategoryContext();
-    const { questionLoading, questionInViewingOrEditing } = state;
-    const { rootId } = questionInViewingOrEditing!;
-    //const { partitionKey, id, parentCategory } = questionInViewingOrEditing!;
-    //const category = categories.find(c => c.id === parentCategory);
-    //const [question, setQuestion] = useState<IQuestion | null>(null);
-    /*
-    useEffect(() => {
-        //const q = category!.questions.find(q => q.inEditing)
-        //if (category) {
-        //const q = category!.questions.find(q => q.id === id)
-        console.log("#################################### EditQuestion setQuestion ...", { questionInViewingOrEditing })
-        //if (q) {
-        setQuestion(questionInViewingOrEditing);
-        //}
-        //}
-    }, [questionInViewingOrEditing]) // questionLoading
-    */
+    const { questionLoading, questionInAddingViewingOrEditing } = state;
+    const { rootId } = questionInAddingViewingOrEditing!;
 
-    // if (questionLoading) {
-    //     console.log("#################################### EditQuestion loading ...")
-    //     return <div>Loading question..</div>
-    // }
+    console.log("#################################### EditQuestion inLine:", { inLine }, { questionInAddingViewingOrEditing })
 
-    console.log("#################################### EditQuestion inLine:", { inLine }, { questionInViewingOrEditing })
-
-    if (!questionInViewingOrEditing) {
+    if (!questionInAddingViewingOrEditing) {
         console.log("#################################### EditQuestion loading ...")
         return <div>Loading question to edit...</div>
     }
@@ -53,11 +27,11 @@ const EditQuestion = ({ inLine }: { inLine: boolean }) => {
             }
         }
 
-        const { parentCategory} = questionInViewingOrEditing;
+        const { parentCategory } = questionInAddingViewingOrEditing;
         const categoryChanged = parentCategory !== newQuestion.parentCategory;
-        //const questionKey = new QuestionKey(questionInViewingOrEditing).questionKey;
+        //const questionKey = new QuestionKey(questionInAddingViewingOrEditing).questionKey;
         const question = await updateQuestion(rootId!, parentCategory!, newQuestion, categoryChanged);
-        if (questionInViewingOrEditing.parentCategory !== question.parentCategory) {
+        if (questionInAddingViewingOrEditing.parentCategory !== question.parentCategory) {
             /*
              await loadAllCategoryRows(); // reload, group could have been changed
              await openCategoryNode({ partitionKey: '', id: q.parentCategory, questionId: q.id });
@@ -68,15 +42,15 @@ const EditQuestion = ({ inLine }: { inLine: boolean }) => {
         // }
     };
 
-    // if (!questionInViewingOrEditing)
+    // if (!questionInAddingViewingOrEditing)
     //     return null;
 
     return (
         <QuestionForm
-            question={questionInViewingOrEditing!}
+            question={questionInAddingViewingOrEditing!}
             showCloseButton={true}
             source={0}
-            mode={FormMode.editing}
+            formMode={FormMode.Editing}
             submitForm={submitForm}
         >
             Update Question

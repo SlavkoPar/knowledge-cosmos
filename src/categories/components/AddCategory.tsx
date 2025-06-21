@@ -18,7 +18,7 @@ const AddCategory = () => {
     // const category: ICategory = state.rootCategoryRows.find(c => c.inAdding)!;
     // console.assert(category, 'category.inAdding should have been found')
 
-    const [formValues] = useState<ICategory>({...categoryInAdding!});
+    const [formValues] = useState<ICategory>({ ...categoryInAdding! });
 
     const submitForm = async (category: ICategory) => {
         delete category.inAdding;
@@ -55,7 +55,7 @@ const AddCategory = () => {
                 inLine={false}
                 category={formValues}
                 questionId={null}
-                mode={FormMode.adding}
+                mode={FormMode.Adding}
                 submitForm={submitForm}
             >
                 Create Category

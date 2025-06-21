@@ -5,7 +5,7 @@ import { faEdit, faRemove, faQuestion, faPlus, faReply } from '@fortawesome/free
 import { ListGroup, Button, Badge } from "react-bootstrap";
 
 import { useGlobalState } from 'global/GlobalProvider'
-import { ActionTypes, ICategoryInfo, IQuestionKey, IQuestionRow, Mode } from "categories/types";
+import { ActionTypes, FormMode, ICategoryInfo, ICategoryKey, IQuestionKey, IQuestionRow, Mode } from "categories/types";
 import { useCategoryContext, useCategoryDispatch } from 'categories/CategoryProvider'
 import { useHover } from 'hooks/useHover';
 import { IQuestion } from 'categories/types'
@@ -24,13 +24,14 @@ import { initialQuestion } from 'categories/CategoriesReducer';
 const QuestionRow = ({ questionRow, categoryInAdding }: { questionRow: IQuestionRow, categoryInAdding: boolean | undefined }) => {
     const { id, partitionKey, parentCategory, title, inAdding, numOfAssignedAnswers, isSelected, rootId } = questionRow;
     const questionKey: IQuestionKey = { partitionKey, id, parentCategory: parentCategory ?? undefined };
+    const categoryKey: ICategoryKey = { partitionKey, id: parentCategory}
 
     const { canEdit, isDarkMode, variant, bg, authUser } = useGlobalState();
-    const { state, viewQuestion, editQuestion, deleteQuestion } = useCategoryContext();
+    const { state, viewQuestion, addQuestion, editQuestion, deleteQuestion } = useCategoryContext();
     const dispatch = useCategoryDispatch();
 
-    const { questionInViewingOrEditing, categoryKeyExpanded } = state;
-    const showForm = questionInViewingOrEditing && questionInViewingOrEditing.id === id;
+    const { questionInAddingViewingOrEditing, questionFormMode, categoryKeyExpanded } = state;
+    const showForm = questionInAddingViewingOrEditing && questionInAddingViewingOrEditing.id === id;
     const { questionId } = categoryKeyExpanded ?? { questionId: null };
 
     console.log("------------------------ QuestionRow", { id, questionId })
@@ -60,7 +61,21 @@ const QuestionRow = ({ questionRow, categoryInAdding }: { questionRow: IQuestion
     useEffect(() => {
         (async () => {
             if (isSelected) {
-                onSelectQuestion(id)
+                switch(questionFormMode) {
+                    case FormMode.Adding:
+                        //await addQuestion(questionRow);
+                        addQuestion(true, categoryKey, rootId!);
+                        break;
+                    case FormMode.Editing:
+                        canEdit 
+                            ? await editQuestion(questionRow)
+                            : await viewQuestion(questionRow);
+                        break;
+                    case FormMode.Viewing:
+                        await viewQuestion(questionRow);
+                        break;
+                }
+                //onSelectQuestion(id)
             }
         })()
     }, [isSelected]);
@@ -135,8 +150,7 @@ const QuestionRow = ({ questionRow, categoryInAdding }: { questionRow: IQuestion
             {inAdding && categoryInAdding && state.mode === Mode.AddingQuestion ? (
                 <AddQuestion
                     //question={{ ...initialQuestion, ...questionRow}} 
-                    questionRow={questionRow}
-                    inLine={true}
+                    //questionRow={questionRow}
                     showCloseButton={true}
                     source={0} />
             )
