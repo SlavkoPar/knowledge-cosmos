@@ -170,13 +170,9 @@ const Providered = ({ categoryId_questionId, fromChatBotDlg }: IProps) => {
                         {/* {store.mode === FORM_MODES.ADD && <Add category={category??initialCategory} />} */}
                         {/* <div class="d-none d-lg-block">hide on screens smaller than lg</div> */}
                         <div id='div-details' className="d-none d-md-block">
-                            {/* {state.mode === Mode.AddingCategory && <AddCategory categoryKey={catKeyExpanded} inLine={false} />} */}
                             {state.mode === Mode.AddingCategory && <AddCategory />}
                             {state.mode === Mode.ViewingCategory && <ViewCategory inLine={false} />}
                             {state.mode === Mode.EditingCategory && <EditCategory inLine={false} />}
-                            {/* {state.mode === FORM_MODES.ADD_QUESTION && <AddQuestion category={null} />} */}
-                            {/* TODO check if we set questionId everywhere */}
-                            {/* && catKeyExpanded.questionId */}
                             {questionInAddingViewingOrEditing &&
                                 state.mode === Mode.ViewingQuestion
                                     ? <ViewQuestion inLine={false} />

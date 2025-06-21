@@ -35,7 +35,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
 
   const { loadAllCategoryRows, setNodesReloaded } = useGlobalContext()
   const globalState = useGlobalState();
-  const { dbp, categoryRows, authUser } = globalState;
+  const { dbp, categoryRows, authUser, canEdit } = globalState;
   const { nickName } = authUser;
 
   const [state, dispatch] = useReducer(CategoriesReducer, initialCategoriesState);
@@ -279,7 +279,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
 
 
   const expandCategory = useCallback(
-    async (rootId: string, categoryKey: ICategoryKey, includeQuestionId: string | null, unshiftQuestion?: IQuestionRow): Promise<any> => {
+    async (rootId: string, categoryKey: ICategoryKey, includeQuestionId: string | null, unshiftQuestion?: IQuestionRow, questionFormMode?: FormMode): Promise<any> => {
       try {
         const categoryRow: ICategoryRow | Error = await getCategoryRow(categoryKey, true, includeQuestionId); // to reload Category
         if (categoryRow instanceof Error) {
@@ -294,7 +294,10 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
           categoryRow.isExpanded = true;
           categoryRow.rootId = rootId;
           categoryRow.questionRows.map(q => q.rootId = rootId);
-          dispatch({ type: ActionTypes.SET_CATEGORY_ROW_EXPANDED, payload: { categoryRow } });
+          if (!questionFormMode) {
+            questionFormMode = canEdit ? FormMode.Editing : FormMode.Viewing
+          }
+          dispatch({ type: ActionTypes.SET_CATEGORY_ROW_EXPANDED, payload: { categoryRow, questionFormMode } });
           return categoryRow; //categoryKey;
         }
       }
@@ -539,7 +542,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
           //inAdding: true
         }
         //if (!isExpanded) {
-        const catRow: ICategoryRow | null = await expandCategory(rootId, categoryKey, null, unshiftQuestion);
+        const catRow: ICategoryRow | null = await expandCategory(rootId, categoryKey, null, unshiftQuestion, FormMode.Adding);
         if (catRow) {
           const question: IQuestion = {
             ...unshiftQuestion,

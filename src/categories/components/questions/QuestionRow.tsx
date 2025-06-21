@@ -22,7 +22,7 @@ import { initialQuestion } from 'categories/CategoriesReducer';
 
 //const QuestionRow = ({ question, categoryInAdding }: { ref: React.ForwardedRef<HTMLLIElement>, question: IQuestion, categoryInAdding: boolean | undefined }) => {
 const QuestionRow = ({ questionRow, categoryInAdding }: { questionRow: IQuestionRow, categoryInAdding: boolean | undefined }) => {
-    const { id, partitionKey, parentCategory, title, inAdding, numOfAssignedAnswers, isSelected, rootId } = questionRow;
+    const { id, partitionKey, parentCategory, title, numOfAssignedAnswers, isSelected, rootId } = questionRow;
     const questionKey: IQuestionKey = { partitionKey, id, parentCategory: parentCategory ?? undefined };
     const categoryKey: ICategoryKey = { partitionKey, id: parentCategory}
 
@@ -62,10 +62,11 @@ const QuestionRow = ({ questionRow, categoryInAdding }: { questionRow: IQuestion
         (async () => {
             if (isSelected) {
                 switch(questionFormMode) {
-                    case FormMode.Adding:
-                        //await addQuestion(questionRow);
-                        addQuestion(true, categoryKey, rootId!);
-                        break;
+                    // case FormMode.Adding:
+                    //     //await addQuestion(questionRow);
+                    //     addQuestion(true, categoryKey, rootId!);
+                    //     break;
+                    //case FormMode.None:
                     case FormMode.Editing:
                         canEdit 
                             ? await editQuestion(questionRow)
@@ -147,7 +148,7 @@ const QuestionRow = ({ questionRow, categoryInAdding }: { questionRow: IQuestion
             className="py-0 px-1 w-100"
             as="li"
         >
-            {inAdding && categoryInAdding && state.mode === Mode.AddingQuestion ? (
+            {/*inAdding && categoryInAdding && */ state.mode === Mode.AddingQuestion ? (
                 <AddQuestion
                     //question={{ ...initialQuestion, ...questionRow}} 
                     //questionRow={questionRow}

@@ -3,7 +3,7 @@ import { IAnswer, IAnswerKey } from 'groups/types';
 
 export const Mode = {
 	UNDEFINED: undefined,
-	NULL: null,
+	None: null,
 	AddingCategory: 'AddingCategory',
 	ViewingCategory: 'ViewingCategory',
 	EditingCategory: 'EditingCategory',
@@ -23,10 +23,10 @@ export const Mode = {
 }
 
 export enum FormMode {
-	None,
-	Viewing,
-	Adding,
-	Editing
+	None = 'None',
+	Viewing = 'Viewing',
+	Editing = 'Editing',
+	Adding = 'Adding'
 }
 
 export interface IFromUserAssignedAnswer {
@@ -517,7 +517,8 @@ export interface ICategoriesContext {
 	updateCategory: (category: ICategory, closeForm: boolean) => void,
 	deleteCategory: (category: ICategory) => void,
 	deleteCategoryVariation: (categoryKey: ICategoryKey, name: string) => void,
-	expandCategory: (rootId: string, categoryKey: ICategoryKey, includeQuestionId: string | null) => Promise<any>,
+	expandCategory: (rootId: string, categoryKey: ICategoryKey,
+		includeQuestionId: string | null, unshiftQuestion?: IQuestionRow, questionFormMode?: FormMode) => Promise<any>,
 	collapseCategory: (categoryRow: ICategoryRow) => void,
 	//////////////
 	// questions
@@ -746,6 +747,7 @@ export type CategoriesPayload = {
 
 	[ActionTypes.SET_CATEGORY_ROW_EXPANDED]: {
 		categoryRow: ICategoryRow;
+		questionFormMode: FormMode;
 	};
 
 	[ActionTypes.SET_CATEGORY_ROW_COLLAPSED]: {

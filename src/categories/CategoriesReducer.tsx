@@ -36,7 +36,7 @@ export const initialCategory: ICategory = {
 }
 
 export const initialState: ICategoriesState = {
-  mode: Mode.NULL,
+  mode: Mode.None,
 
   firstLevelCategoryRows: [],
   firstLevelCategoryRowsLoading: false,
@@ -320,7 +320,7 @@ const reducer = (state: ICategoriesState, action: CategoriesActions): ICategorie
       return {
         ...state,
         // TODO Popravi
-        mode: Mode.NULL,
+        mode: Mode.None,
         loading: false
       }
     }
@@ -343,7 +343,7 @@ const reducer = (state: ICategoriesState, action: CategoriesActions): ICategorie
 
 
     case ActionTypes.SET_CATEGORY_ROW_EXPANDED: {
-      const { categoryRow } = action.payload; // category doesn't contain  inAdding 
+      const { categoryRow, questionFormMode } = action.payload; // category doesn't contain  inAdding 
       const { partitionKey, id } = categoryRow;
       const categoryKey = { partitionKey, id };
       const { categoryKeyExpanded } = state;
@@ -355,7 +355,8 @@ const reducer = (state: ICategoriesState, action: CategoriesActions): ICategorie
         categoryKeyExpanded: { ...categoryKey, questionId },
         categoryInAdding: null,
         categoryInViewingOrEditing: null,
-        questionInAddingViewingOrEditing: null
+        questionInAddingViewingOrEditing: null,
+        questionFormMode
       }
     }
 
@@ -463,7 +464,7 @@ const reducer = (state: ICategoriesState, action: CategoriesActions): ICategorie
       // TODO Popravi
       return {
         ...state,
-        mode: Mode.NULL,
+        mode: Mode.None,
         error: undefined,
         whichRowId: undefined
       };
@@ -473,7 +474,7 @@ const reducer = (state: ICategoriesState, action: CategoriesActions): ICategorie
     case ActionTypes.CLOSE_CATEGORY_FORM: {
       return {
         ...state,
-        mode: Mode.NULL
+        mode: Mode.None
       };
     }
 
@@ -501,12 +502,19 @@ const reducer = (state: ICategoriesState, action: CategoriesActions): ICategorie
 
     case ActionTypes.SET_QUESTION: {
       const { question, questionFormMode } = action.payload;
+      const mode = questionFormMode === Mode.AddingQuestion
+        ? Mode.AddingQuestion
+        : questionFormMode === Mode.EditingQuestion
+          ? Mode.EditingQuestion
+          : questionFormMode === Mode.ViewingQuestion
+            ? Mode.ViewingQuestion
+            : Mode.None;
       return {
         ...state,
         categoryInViewingOrEditing: null,
         questionInAddingViewingOrEditing: question,
         questionFormMode,
-        // mode: Mode.NULL,
+        mode,
         error: undefined,
         loading: false
       };
@@ -555,7 +563,6 @@ const reducer = (state: ICategoriesState, action: CategoriesActions): ICategorie
       const { question } = action.payload;
       const { partitionKey, id, parentCategory } = question;
       const { categoryKeyExpanded } = state;
-      const categoryProps = undefined;
       return {
         ...state,
         mode: Mode.ViewingQuestion,
@@ -563,7 +570,8 @@ const reducer = (state: ICategoriesState, action: CategoriesActions): ICategorie
         categoryKeyExpanded: categoryKeyExpanded
           ? { ...categoryKeyExpanded, questionId: categoryKeyExpanded.id === parentCategory ? id : null }
           : null,
-        questionInAddingViewingOrEditing: question
+        questionInAddingViewingOrEditing: question,
+        questionFormMode: FormMode.Viewing
       }
     }
 
@@ -571,7 +579,6 @@ const reducer = (state: ICategoriesState, action: CategoriesActions): ICategorie
       const { question } = action.payload;
       const { partitionKey, id, parentCategory } = question;
       const { categoryKeyExpanded } = state;
-      const categoryProps = undefined;
       return {
         ...state,
         mode: Mode.EditingQuestion,
@@ -579,7 +586,8 @@ const reducer = (state: ICategoriesState, action: CategoriesActions): ICategorie
         categoryKeyExpanded: categoryKeyExpanded
           ? { ...categoryKeyExpanded, questionId: categoryKeyExpanded.id === parentCategory ? id : null }
           : null,
-        questionInAddingViewingOrEditing: question
+        questionInAddingViewingOrEditing: question,
+        questionFormMode: FormMode.Editing
       }
     }
 
@@ -596,7 +604,7 @@ const reducer = (state: ICategoriesState, action: CategoriesActions): ICategorie
         //   : c
         // ),
         questionInAddingViewingOrEditing: null,
-        mode: Mode.NULL
+        mode: Mode.None
       }
     }
 
@@ -632,7 +640,7 @@ const reducer = (state: ICategoriesState, action: CategoriesActions): ICategorie
         //   ? { ...c, /*questionRows: questionRows, numOfQuestions: questionRows.length,*/ inAdding: false }
         //   : c
         // ),
-        mode: Mode.NULL,
+        mode: Mode.None,
         questionInAddingViewingOrEditing: questionInViewingOrEditing
       };
     }
